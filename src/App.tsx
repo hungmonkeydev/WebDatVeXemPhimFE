@@ -1,6 +1,7 @@
 // src/App.tsx
 import Header from './components/Header/Header';
 import HeroSection from './components/Home/HeroSection';
+import MovieList from './components/Movie/MovieList';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       {/* 2. Phần nội dung chính của trang web (Banner, Danh sách phim...) sẽ nằm ở dưới này */}
       <main className="w-full mx-auto px-4 py-8">
         <HeroSection />
+        <MovieList />
       </main>
 
     </div>

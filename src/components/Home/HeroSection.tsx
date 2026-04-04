@@ -15,7 +15,7 @@ export default function HeroSection() {
       <div className="absolute left-0 right-0 -bottom-8 z-10">
         <div className="max-w-6xl mx-auto px-4">
           <BookingBar />
-        </div>
+        </div>  
       </div>
 
     </section>
