@@ -1,6 +1,5 @@
-// src/components/Home/MovieList.tsx
-import { useState } from 'react'; // BƯỚC 1: Import thư viện quản lý trạng thái của React
-import MovieCard from './MovieCard';
+import { useState } from 'react'; 
+import MovieCard from '../Movie/MovieCard';
 
 import imgPhiVu from '../../assets/movie/phivucuoicung.png';
 import imgMario from '../../assets/movie/mario.png';
@@ -18,19 +17,15 @@ import imgcuNhay from '../../assets/movie/cunhaykidieu.png';
 import imgThoatKhoiTanThe from '../../assets/movie/thoatkhoitanthe.png';
 
 export default function MovieList() {
-    // BƯỚC 2: Khai báo State. Mặc định vừa vào trang sẽ chọn tab 'dang_chieu'
     const [activeTab, setActiveTab] = useState('dang_chieu');
-    // THÊM STATE NÀY: Quản lý việc Đóng/Mở danh sách
     const [isExpanded, setIsExpanded] = useState(false);
     
-    // Danh sách các Tabs để render ra cho gọn
     const tabs = [
         { id: 'dang_chieu', label: 'Đang chiếu' },
         { id: 'sap_chieu', label: 'Sắp chiếu' },
         { id: 'imax', label: 'Phim IMAX' },
     ];
 
-    // BƯỚC 3: Dữ liệu phim (Thêm trường category để biết phim thuộc loại nào)
     const movies = [
         { id: 1, title: 'Phi Vụ Cuối Cùng', rating: '9.0', ageTag: 'T18', category: 'dang_chieu', image: imgPhiVu },
         { id: 2, title: 'Phim Mario', rating: '7.9', ageTag: 'K', category: 'dang_chieu', image: imgMario },
@@ -48,7 +43,6 @@ export default function MovieList() {
         { id: 14, title: 'Thoát Khỏi Tân Thế Giới', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgThoatKhoiTanThe },
     ];
 
-    // BƯỚC 4: Lọc phim. Chỉ lấy những phim có category giống với activeTab hiện tại
     const filteredMovies = movies.filter(movie => movie.category === activeTab);
     // Quyết định số lượng hiển thị: Nếu đang mở rộng thì lấy hết, nếu không thì cắt 8 cái đầu tiên
     const displayedMovies = isExpanded ? filteredMovies : filteredMovies.slice(0, 8);
@@ -68,15 +62,12 @@ export default function MovieList() {
                     {tabs.map((tab) => (
                         <div
                             key={tab.id}
-                            // Bấm vào tab nào thì cập nhật State bằng id của tab đó
                             onClick={() => setActiveTab(tab.id)}
-                            // Kiểm tra: Nếu tab này đang active thì cho chữ màu xanh, ngược lại màu xám
                             className={`relative cursor-pointer transition-colors ${activeTab === tab.id ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600'
                                 }`}
                         >
                             {tab.label}
 
-                            {/* Vạch kẻ xanh ở dưới cùng: Chỉ hiện ra nếu tab đang active */}
                             {activeTab === tab.id && (
                                 <div className="absolute -bottom-[11px] left-0 w-full h-[2px] bg-blue-600"></div>
                             )}
@@ -101,6 +92,7 @@ export default function MovieList() {
                     displayedMovies.map((movie) => (
                         <MovieCard
                             key={movie.id}
+                            id={movie.id}
                             title={movie.title}
                             imageUrl={movie.image}
                             rating={movie.rating}
