@@ -16,8 +16,12 @@ export default function MovieCard({id, title, imageUrl, rating, ageTag }: MovieC
     e.stopPropagation(); 
     navigate(`/phim/${id}`); 
   };
+  const handleBuyTicketClick = (e: any) => {
+    e.stopPropagation();
+    navigate(`/phim/${id}`); 
+  };
   return (
-    <div className="flex flex-col gap-3 cursor-pointer group">
+    <div className="flex flex-col gap-3 cursor-pointer group" onClick={handleGoToDetail}>
       
       {/* KHUNG ẢNH POSTER CÓ CHỨA LỚP PHỦ */}
       <div className="relative rounded-lg overflow-hidden">
@@ -32,7 +36,7 @@ export default function MovieCard({id, title, imageUrl, rating, ageTag }: MovieC
           
           {/* Nút Mua vé */}
           <Button 
-            onClick={handleGoToDetail}
+            onClick={handleBuyTicketClick}
             className="w-32" 
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

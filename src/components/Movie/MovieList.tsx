@@ -1,20 +1,21 @@
 import { useState } from 'react'; 
 import MovieCard from '../Movie/MovieCard';
 
-import imgPhiVu from '../../assets/movie/phivucuoicung.png';
-import imgMario from '../../assets/movie/mario.png';
-import imgSongHy from '../../assets/movie/songhylamnguy.png';
-import imgHenEm from '../../assets/movie/henemngaynhatthuc.png';
-import imgAnhDuong from '../../assets/movie/anhduongcuame.png';
-import imgMatna from '../../assets/movie/matnadanguoi.png';
-import imgTuhodainao from '../../assets/movie/tuhodainao.png';
-import imgThoOi from '../../assets/movie/thooi.png';
-import imgQuyNhapTrang from '../../assets/movie/quynhaptrang.png';
-import imgTai from '../../assets/movie/tai.png';
-import imgVungDatLuanhoi from '../../assets/movie/vungdatluanhoi.png';
-import imgDemNgayXaMe from '../../assets/movie/demngayxame.png';
-import imgcuNhay from '../../assets/movie/cunhaykidieu.png';
-import imgThoatKhoiTanThe from '../../assets/movie/thoatkhoitanthe.png';
+// import imgPhiVu from '../../assets/movie/phivucuoicung.png';
+// import imgMario from '../../assets/movie/mario.png';
+// import imgSongHy from '../../assets/movie/songhylamnguy.png';
+// import imgHenEm from '../../assets/movie/henemngaynhatthuc.png';
+// import imgAnhDuong from '../../assets/movie/anhduongcuame.png';
+// import imgMatna from '../../assets/movie/matnadanguoi.png';
+// import imgTuhodainao from '../../assets/movie/tuhodainao.png';
+// import imgThoOi from '../../assets/movie/thooi.png';
+// import imgQuyNhapTrang from '../../assets/movie/quynhaptrang.png';
+// import imgTai from '../../assets/movie/tai.png';
+// import imgVungDatLuanhoi from '../../assets/movie/vungdatluanhoi.png';
+// import imgDemNgayXaMe from '../../assets/movie/demngayxame.png';
+// import imgcuNhay from '../../assets/movie/cunhaykidieu.png';
+// import imgThoatKhoiTanThe from '../../assets/movie/thoatkhoitanthe.png';
+import { useMovies } from '../../hooks/useMovies';
 
 export default function MovieList() {
     const [activeTab, setActiveTab] = useState('dang_chieu');
@@ -25,25 +26,30 @@ export default function MovieList() {
         { id: 'sap_chieu', label: 'Sắp chiếu' },
         { id: 'imax', label: 'Phim IMAX' },
     ];
+    const { moviesList, isLoading } = useMovies();
+    // const movies = [
+    //     { id: 1, title: 'Phi Vụ Cuối Cùng', rating: '9.0', ageTag: 'T18', category: 'dang_chieu', image: imgPhiVu },
+    //     { id: 2, title: 'Phim Mario', rating: '7.9', ageTag: 'K', category: 'dang_chieu', image: imgMario },
+    //     { id: 3, title: 'Song Hỷ Lâm Nguy', rating: '8.7', ageTag: 'T13', category: 'sap_chieu', image: imgSongHy },
+    //     { id: 4, title: 'Hẹn Em Ngày Nhật Thực', rating: '8.7', ageTag: 'T16', category: 'sap_chieu', image: imgHenEm },
+    //     { id: 5, title: 'Ánh Dương Của Mẹ', rating: '9.5', ageTag: 'T18', category: 'imax', image: imgAnhDuong },
+    //     { id: 6, title: 'Mặt Nạ Quỷ', rating: '9.5', ageTag: 'T18', category: 'imax', image: imgMatna },
+    //     { id: 7, title: 'Tủ Hồ Sơ Đại Não', rating: '9.5', ageTag: 'T18', category: 'imax', image: imgTuhodainao },
+    //     { id: 8, title: 'Thỏ ơi', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgThoOi },
+    //     { id: 9, title: 'Quỷ Nhập Tràng', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgQuyNhapTrang },
+    //     { id: 10, title: 'Tài', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgTai },
+    //     { id: 11, title: 'Vùng đất luân hồi', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgVungDatLuanhoi },
+    //     { id: 12, title: 'cú Nhảy kì diệu', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgcuNhay },
+    //     { id: 13, title: 'Đếm Ngày Xe Mẹ', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgDemNgayXaMe },
+    //     { id: 14, title: 'Thoát Khỏi Tân Thế Giới', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgThoatKhoiTanThe },
+    // ];
 
-    const movies = [
-        { id: 1, title: 'Phi Vụ Cuối Cùng', rating: '9.0', ageTag: 'T18', category: 'dang_chieu', image: imgPhiVu },
-        { id: 2, title: 'Phim Mario', rating: '7.9', ageTag: 'K', category: 'dang_chieu', image: imgMario },
-        { id: 3, title: 'Song Hỷ Lâm Nguy', rating: '8.7', ageTag: 'T13', category: 'sap_chieu', image: imgSongHy },
-        { id: 4, title: 'Hẹn Em Ngày Nhật Thực', rating: '8.7', ageTag: 'T16', category: 'sap_chieu', image: imgHenEm },
-        { id: 5, title: 'Ánh Dương Của Mẹ', rating: '9.5', ageTag: 'T18', category: 'imax', image: imgAnhDuong },
-        { id: 6, title: 'Mặt Nạ Quỷ', rating: '9.5', ageTag: 'T18', category: 'imax', image: imgMatna },
-        { id: 7, title: 'Tủ Hồ Sơ Đại Não', rating: '9.5', ageTag: 'T18', category: 'imax', image: imgTuhodainao },
-        { id: 8, title: 'Thỏ ơi', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgThoOi },
-        { id: 9, title: 'Quỷ Nhập Tràng', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgQuyNhapTrang },
-        { id: 10, title: 'Tài', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgTai },
-        { id: 11, title: 'Vùng đất luân hồi', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgVungDatLuanhoi },
-        { id: 12, title: 'cú Nhảy kì diệu', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgcuNhay },
-        { id: 13, title: 'Đếm Ngày Xe Mẹ', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgDemNgayXaMe },
-        { id: 14, title: 'Thoát Khỏi Tân Thế Giới', rating: '9.5', ageTag: 'T18', category: 'dang_chieu', image: imgThoatKhoiTanThe },
-    ];
-
-    const filteredMovies = movies.filter(movie => movie.category === activeTab);
+    const filteredMovies = moviesList.filter(movie => {
+        if (activeTab === 'dang_chieu') return movie.status === 'now_showing';
+        if (activeTab === 'sap_chieu') return movie.status === 'coming_soon';
+        if (activeTab === 'imax') return movie.status === 'imax';
+        return true;
+    });
     // Quyết định số lượng hiển thị: Nếu đang mở rộng thì lấy hết, nếu không thì cắt 8 cái đầu tiên
     const displayedMovies = isExpanded ? filteredMovies : filteredMovies.slice(0, 8);
 
@@ -94,9 +100,9 @@ export default function MovieList() {
                             key={movie.id}
                             id={movie.id}
                             title={movie.title}
-                            imageUrl={movie.image}
-                            rating={movie.rating}
-                            ageTag={movie.ageTag}
+                            imageUrl={movie.poster_url}
+                            rating={movie.avg_rating}
+                            ageTag={movie.age_rating}
                         />
                     ))
                 ) : (

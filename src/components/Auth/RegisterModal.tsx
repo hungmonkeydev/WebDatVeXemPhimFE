@@ -5,6 +5,7 @@ import Button from '../ui/Button';
 import Toast from '../ui/Toast';
 import Spinner from '../ui/Spinner';
 import img from '../../../public/iconlogin/icon-login.fbbf1b2d.svg';
+import { useAuth } from '../../hooks/useAuth';
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -23,67 +24,47 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
 
-  // State quản lý UI chờ và thông báo
-  const [isLoading, setIsLoading] = useState(false);
   const [toast, setToast] = useState({ isOpen: false, message: '', type: 'success' as 'success' | 'error' });
+  const { register, isLoading } = useAuth();
 
-  // 2. HÀM XỬ LÝ GỌI API ĐĂNG KÝ
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation căn bản ở Frontend
     if (password !== confirmPassword) {
       setToast({ isOpen: true, message: 'Mật khẩu nhập lại không khớp!', type: 'error' });
       return;
     }
-
     if (!agreeTerms) {
       setToast({ isOpen: true, message: 'Vui lòng đồng ý với Điều khoản dịch vụ!', type: 'error' });
       return;
     }
 
-    setIsLoading(true);
     setToast({ ...toast, isOpen: false });
 
-    try {
-      const response = await axios.post('https://webxemphim-sbim.onrender.com/api/v1/auth/register', {
-        full_name: fullName.trim(),
-        email: email.trim(),
-        password: password.trim(),
-        phone: phone.trim(),
-        date_of_birth: dob,
-        gender: gender
-      });
-      console.log(response.data);
-      setToast({ isOpen: true, message: 'Đăng ký thành công! Vui lòng đăng nhập.', type: 'success' });
+    const result = await register({
+      full_name: fullName.trim(),
+      email: email.trim(),
+      password: password.trim(),
+      phone: phone.trim(),
+      date_of_birth: dob,
+      gender: gender
+    });
 
+    // Hứng kết quả và báo ra màn hình
+    if (result.success) {
+      setToast({ isOpen: true, message: result.message, type: 'success' });
       setTimeout(() => {
         onClose(); 
         onSwitchToLogin(); 
       }, 1500);
-
-    } catch (err: any) {
-      console.log("Lỗi chi tiết từ Backend:", err.response?.data);
-
-      if (err.response?.status === 422) {
-        const responseData = err.response.data;
-        let errorMessage = responseData.message || 'Dữ liệu không hợp lệ!';
-        if (responseData.errors && responseData.errors.length > 0) {
-          errorMessage = responseData.errors[0].message; 
-        }
-        setToast({ isOpen: true, message: errorMessage, type: 'error' });
-      } else {
-        setToast({ isOpen: true, message: 'Lỗi kết nối máy chủ. Vui lòng thử lại!', type: 'error' });
-      }
-    } finally {
-      setIsLoading(false);
+    } else {
+      setToast({ isOpen: true, message: result.message, type: 'error' });
     }
   };
 
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-[450px]">
-        {/* Tui thêm max-h-[85vh] overflow-y-auto để form dài thì nó tự có thanh cuộn mượt mà */}
         <div className="p-8 flex flex-col items-center my-2 max-h-[85vh] overflow-y-auto custom-scrollbar">
           
           <img 
@@ -94,7 +75,6 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
           
           <h2 className="text-[19px] font-bold text-gray-800 mb-6">Đăng Ký Tài Khoản</h2>
 
-          {/* Đổi thẻ form để xài sự kiện onSubmit */}
           <form onSubmit={handleRegister} className="w-full flex flex-col gap-4">
             
             {/* Họ và tên */}
