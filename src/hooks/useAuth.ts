@@ -58,7 +58,7 @@ export const useAuth = () => {
     try {
       console.log('Dữ liệu gửi đi:', userData);
       // Gọi API đăng ký
-      //const response = await axios.post('https://webxemphim-sbim.onrender.com/api/v1/auth/register', userData);
+      const response = await axios.post('https://webxemphim-sbim.onrender.com/api/v1/auth/register', userData);
       
       // Trả về kết quả thành công
       return { success: true, message: 'Đăng ký thành công! Vui lòng đăng nhập.' };
