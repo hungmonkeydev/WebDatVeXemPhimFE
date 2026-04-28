@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useMovieDetail } from '../hooks/useMovieDetail';
 import { useMovies } from '../hooks/useMovies';
 import { useShowtimes } from '../hooks/useShowtimes';
+import { useMemo } from 'react';
 import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
 import img from '../../public/movieDetail/quyduluyennguc.png';
@@ -14,17 +15,29 @@ export default function MovieDetail() {
     const { id } = useParams();
     const { movie, isLoading } = useMovieDetail(id);
     const { moviesList } = useMovies();
-    const sidebarMovies = moviesList.slice(0, 3);
+    const sidebarMovies = moviesList
+        .filter((movie: any) => movie.status === 'now_showing')
+        .slice(0, 3);
     const navigate = useNavigate();
+    const dates = useMemo(() => {
+        const result = [];
+        const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
 
-    const dates = [
-        { day: 'Hôm Nay', date: '13/04' },
-        { day: 'Thứ Ba', date: '14/04' },
-        { day: 'Thứ Tư', date: '15/04' },
-        { day: 'Thứ Năm', date: '16/04' },
-    ];
-    const [activeDate, setActiveDate] = useState(dates[0].date);
+        for (let i = 0; i < 4; i++) { 
+            const d = new Date();
+            d.setDate(d.getDate() + i); 
+            const dayLabel = i === 0 ? 'Hôm Nay' : dayNames[d.getDay()];
+
+            const displayDate = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+            const apiDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            result.push({ dayLabel, displayDate, apiDate });
+        }
+        return result;
+    }, []);
+
+    const [activeDate, setActiveDate] = useState(dates[0].apiDate);
     const { cinemas, isLoadingShowtimes } = useShowtimes(id, activeDate);
+    
 
     if (isLoading) {
         return <div className="min-h-screen flex items-center justify-center"><Spinner size="lg" color="primary" /></div>;
@@ -126,27 +139,23 @@ export default function MovieDetail() {
                             <div className="flex">
                                 {dates.map((item) => (
                                     <div
-                                        key={item.date}
-                                        onClick={() => setActiveDate(item.date)}
-                                        className={`flex flex-col items-center justify-center w-24 py-3 cursor-pointer transition-colors rounded-lg ${activeDate === item.date ? 'bg-blue-700 text-white font-semibold' : 'text-gray-600 hover:text-blue-700'
+                                        key={item.apiDate} 
+                                        onClick={() => setActiveDate(item.apiDate)}
+                                        className={`flex flex-col items-center justify-center w-24 py-3 cursor-pointer transition-colors rounded-lg ${activeDate === item.apiDate ? 'bg-blue-700 text-white font-semibold' : 'text-gray-600 hover:text-blue-700'
                                             }`}
                                     >
-                                        <span className="text-sm">{item.day}</span>
-                                        <span className="text-sm">{item.date}</span>
+                                        <span className="text-sm">{item.dayLabel}</span>
+                                        <span className="text-sm">{item.displayDate}</span>
                                     </div>
                                 ))}
                             </div>
 
                             <div className="flex gap-4 pb-2 md:pb-0">
                                 <select className="border border-gray-300 rounded px-4 py-2 text-sm outline-none w-36 cursor-pointer focus:border-blue-500">
-                                    <option>Toàn quốc</option>
                                     <option>Hồ Chí Minh</option>
-                                    <option>Hà Nội</option>
                                 </select>
                                 <select className="border border-gray-300 rounded px-4 py-2 text-sm outline-none w-36 cursor-pointer focus:border-blue-500">
-                                    <option>Tất cả rạp</option>
-                                    <option>VieCinema Sala</option>
-                                    <option>VieCinema Nguyễn Du</option>
+                                    <option>VieCinema Galaxy</option>
                                 </select>
                             </div>
                         </div>
@@ -164,13 +173,13 @@ export default function MovieDetail() {
                                             <div key={fIdx} className="flex flex-col md:flex-row md:items-center gap-4 mb-2">
                                                 <span className="text-sm font-semibold text-gray-700 w-48 shrink-0">{format.type}</span>
                                                 <div className="flex flex-wrap gap-3">
-                                                    {format.times?.map((time: string, tIdx: number) => (
+                                                    {format.times?.map((timeobj: any, tIdx: number) => (
                                                         <button
                                                             key={tIdx}
-                                                            onClick={() => navigate(`/dat-ve/${id}/chon-ghe`)}
+                                                            onClick={() => navigate(`/dat-ve/${timeobj.showtimeId}/chon-ghe`)}
                                                             className="border border-gray-300 bg-white text-gray-700 font-medium py-1.5 px-4 rounded hover:border-[#f26b38] hover:text-[#f26b38] transition-colors"
                                                         >
-                                                            {time}
+                                                            {timeobj.time}
                                                         </button>
                                                     ))}
                                                 </div>
