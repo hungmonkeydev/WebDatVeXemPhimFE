@@ -26,7 +26,7 @@ export default function MovieList() {
         { id: 'sap_chieu', label: 'Sắp chiếu' },
         { id: 'imax', label: 'Phim IMAX' },
     ];
-    const { moviesList, isLoading } = useMovies();
+    const { moviesList} = useMovies();
     // const movies = [
     //     { id: 1, title: 'Phi Vụ Cuối Cùng', rating: '9.0', ageTag: 'T18', category: 'dang_chieu', image: imgPhiVu },
     //     { id: 2, title: 'Phim Mario', rating: '7.9', ageTag: 'K', category: 'dang_chieu', image: imgMario },

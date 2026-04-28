@@ -19,7 +19,7 @@ export default function NavItem({ title, subMenu }: NavItemProps) {
       {subMenu && (
         <div className="absolute top-full left-0 w-48 bg-white shadow-lg rounded-md border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
           <ul className="py-2">
-            {subMenu.map((subItem, index) => (
+            {subMenu.map((subItem) => (
               <li key={subItem}>
                 <button className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-500 transition-colors">
                   {subItem}
