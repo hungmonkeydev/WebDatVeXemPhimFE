@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import axios from 'axios';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import Toast from '../ui/Toast';

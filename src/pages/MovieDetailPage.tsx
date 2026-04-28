@@ -4,10 +4,7 @@ import { useMovieDetail } from '../hooks/useMovieDetail';
 import { useMovies } from '../hooks/useMovies';
 import { useShowtimes } from '../hooks/useShowtimes';
 import { useMemo } from 'react';
-import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
-import img from '../../public/movieDetail/quyduluyennguc.png';
-import img1 from '../../public/movieDetail/poster.png';
 import { useNavigate } from 'react-router-dom';
 
 export default function MovieDetail() {

@@ -6,7 +6,6 @@ import Spinner from '../components/ui/Spinner';
 import { useHoldSeats } from '../hooks/useHoldSeats';
 import { useShowtimeDetail } from '../hooks/useShowtimeDetail';
 
-import { useMovieDetail } from '../hooks/useMovieDetail';
 export default function SeatSelection() {
   const { id } = useParams();
   const navigate = useNavigate();
