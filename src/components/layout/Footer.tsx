@@ -1,6 +1,3 @@
-import img from '../../../../my-project/public/logo/logogalaxy.png';
-import img1 from '../../../../my-project/public/logo/logoBCT.png';
-
 export default function Footer() {
     return (
         <footer className="bg-[#333333] text-gray-300 py-12 text-sm mt-20">
@@ -41,7 +38,7 @@ export default function Footer() {
                     {/* Cột 4: Kết Nối & Chứng Nhận */}
                     <div className="flex flex-col gap-4 items-start">
                         <h2 className="text-2xl font-black text-white italic tracking-tighter mb-2">
-                            <img src={img} alt="VieCinema Logo" />
+                            <img src="/logo/logogalaxy.png" alt="VieCinema Logo" />
                         </h2>
 
                         <div className="flex ]items-center gap-4">
@@ -56,7 +53,7 @@ export default function Footer() {
                             </a>
                         </div>
                         <img
-                            src={img1}
+                            src="/logo/logoBCT.png"
                             alt="Đã thông báo Bộ Công Thương"
                             className="h-10 mt-2"
                         />
@@ -67,7 +64,7 @@ export default function Footer() {
                 {/* ====== PHẦN 2: BẢN QUYỀN (LINE CÁCH ĐIỆU) ====== */}
                 <div className="pt-8 border-t border-gray-600 flex flex-col md:flex-row items-center gap-6">
                     <h2 className="text-3xl font-black text-white italic tracking-tighter opacity-50">
-                        <img src={img} alt="VieCinema Logo" />
+                        <img src="logo/logogalaxy.png" alt="VieCinema Logo" />
                     </h2>
                     <div className="flex-1">
                         <h4 className="text-white font-bold mb-1 uppercase">Công Ty Cổ Phần Giải Trí VieCinema</h4>
