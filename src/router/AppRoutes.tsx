@@ -7,6 +7,8 @@ import SeatSelection from '../pages/SeatSelectionPage';
 import FoodSelection from '../pages/FoodSelection';
 import ScrollToTop from '../components/ScrollToTop';
 import ProfilePage from '../pages/ProfilePage';
+import BookingLayout from '../components/layout/BookingLayout';
+import PaymentPage from '../pages/PaymentPage';
 
 const CustomerLayout = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -25,8 +27,13 @@ export default function AppRoutes() {
             <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/phim/:id" element={<MovieDetail />} />
-                <Route path="/dat-ve/:id/chon-ghe" element={<SeatSelection />} />
-                <Route path="/dat-ve/:id/thuc-an" element={<FoodSelection />} />
+                
+                {/* Wrap booking routes with BookingLayout */}
+                <Route element={<BookingLayout />}>
+                    <Route path="/dat-ve/:id/chon-ghe" element={<SeatSelection />} />
+                    <Route path="/dat-ve/:id/thuc-an" element={<FoodSelection />} />
+                </Route>
+                <Route path="/dat-ve/:id/thanh-toan" element={<PaymentPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 {/* Các route khác thêm vào đây */}
             </Routes>

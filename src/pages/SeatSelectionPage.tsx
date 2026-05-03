@@ -25,57 +25,63 @@ export default function SeatSelection() {
       alert(`❌ Không thể tiếp tục: ${result.message}`);
     }
   };
-  // 3. STATE ĐẾM NGƯỢC THỜI GIAN GIỮ GHẾ (5 phút = 300 giây)
-  const [timeLeft, setTimeLeft] = useState(300);
   const { showtime } = useShowtimeDetail(id);
 
-  let startTimeDisplay = 'Đang tải...';
+  let startTimeDisplay = showtime?.start_time ? showtime.start_time.substring(11, 16) : 'Đang tải...';
   let dateDisplay = 'Đang tải...';
+  
   if (showtime && showtime.start_time) {
-    const dateObj = new Date(showtime.start_time);
+    const safeDateStr = showtime.start_time.replace('Z', ''); 
+    const dateObj = new Date(safeDateStr);
 
-    // 1. Cắt lấy Giờ:Phút
-    startTimeDisplay = dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-
-    // 2. Lấy Thứ và ghép với Ngày/Tháng/Năm
     const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-    const dayOfWeek = dayNames[dateObj.getDay()]; // Lấy đúng tên thứ
-    const dateStr = dateObj.toLocaleDateString('vi-VN'); // Lấy ngày chuẩn 28/04/2026
+    const dayOfWeek = dayNames[dateObj.getDay()];
+    const dateStr = dateObj.toLocaleDateString('vi-VN');
 
-    // Ghép lại thành: Thứ Hai, 28/04/2026
     dateDisplay = `${dayOfWeek}, ${dateStr}`;
   }
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      alert('Đã hết thời gian giữ ghế! Vui lòng chọn lại từ đầu.');
-      navigate(-1); // Trở về trang trước
-      return;
-    }
-    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
-    return () => clearInterval(timer);
-  }, [timeLeft, navigate]);
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-    const s = (seconds % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-  };
-
-  // 4. HÀM XỬ LÝ KHI CLICK GHẾ
+  /** Handles seat toggling, including automatic pairing for couple seats */
   const toggleSeat = (seat: any) => {
     if (!seat.is_active) return;
 
     setSelectedSeats((prev) => {
       const isExist = prev.find((s) => s.id === seat.id);
+
+      const isCoupleSeat = seat.seatType?.color_code === '#E91E63'
+        || seat.seatType?.name?.toLowerCase().includes('couple');
+
+      let seatsToToggle = [seat];
+
+      if (isCoupleSeat) {
+        const rowLabel = seat.seat_name.replace(/[0-9]/g, '');
+        const seatNum = parseInt(seat.seat_name.replace(/\D/g, ''));
+        const partnerNum = (seatNum % 2 !== 0) ? seatNum + 1 : seatNum - 1;
+        const partnerSeatName = `${rowLabel}${partnerNum}`;
+
+        const rowSeats = seatMatrix[rowLabel] || [];
+        const partnerSeat = rowSeats.find((s: any) => s.seat_name === partnerSeatName);
+
+        if (partnerSeat && partnerSeat.is_active) {
+          seatsToToggle.push(partnerSeat);
+        }
+      }
+
       if (isExist) {
-        return prev.filter((s) => s.id !== seat.id);
+        const toggleIds = seatsToToggle.map(s => s.id);
+        return prev.filter((s) => !toggleIds.includes(s.id));
       } else {
-        return [...prev, seat];
+        const newSeats = [...prev];
+        seatsToToggle.forEach(sToToggle => {
+          if (!newSeats.find(s => s.id === sToToggle.id)) {
+            newSeats.push(sToToggle);
+          }
+        });
+        return newSeats;
       }
     });
   };
 
-  // 5. TÍNH TỔNG TIỀN ĐỘNG
+  /** Calculate total price based on seat multipliers */
   const totalPrice = selectedSeats.reduce((total, seat) => {
     const basePrice = 75000;
     return total + basePrice * Number(seat.seatType?.price_multiplier || 1);
@@ -91,11 +97,6 @@ export default function SeatSelection() {
 
   return (
     <div className="w-full bg-gray-50 min-h-screen pb-20">
-
-      {/* THANH THỜI GIAN GIỮ GHẾ CẢNH BÁO */}
-      <div className="bg-[#f26b38] text-white text-center py-2 text-[15px] font-medium sticky top-0 z-50 shadow-md">
-        Thời gian giữ ghế còn lại: <span className="font-bold text-lg tracking-wider">{formatTime(timeLeft)}</span>
-      </div>
 
       {/* ====== 1. THANH TIẾN ĐỘ (STEPPER) ====== */}
       <div className="bg-white shadow-sm mb-8">
@@ -217,7 +218,7 @@ export default function SeatSelection() {
             </div>
 
             <div className="text-[14px] text-gray-700 font-medium mb-1">
-              <span className="font-bold">VIECINEMA GALAXY</span>
+              <span className="font-bold">{showtime?.room?.cinema?.name || 'VieCinema'}</span>
               <br />
               <span className="font-bold">{showtime?.room?.name || "Đang tải rạp..."}</span>
             </div>

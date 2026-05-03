@@ -17,20 +17,26 @@ export default function MovieDetail() {
         .slice(0, 3);
     const navigate = useNavigate();
     const dates = useMemo(() => {
-        const result = [];
-        const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+    const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
 
-        for (let i = 0; i < 4; i++) { 
-            const d = new Date();
-            d.setDate(d.getDate() + i); 
-            const dayLabel = i === 0 ? 'Hôm Nay' : dayNames[d.getDay()];
+    return Array.from({ length: 4 }).map((_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
 
-            const displayDate = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
-            const apiDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            result.push({ dayLabel, displayDate, apiDate });
-        }
-        return result;
-    }, []);
+        const dayLabel = i === 0 ? 'Hôm Nay' : dayNames[d.getDay()];
+        
+        // Tách biến ra cho dễ đọc, đỡ bị rối mắt
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+
+        return {
+            dayLabel,
+            displayDate: `${day}/${month}`,
+            apiDate: `${year}-${month}-${day}` // Chuẩn format YYYY-MM-DD
+        };
+    });
+}, []);
 
     const [activeDate, setActiveDate] = useState(dates[0].apiDate);
     const { cinemas, isLoadingShowtimes } = useShowtimes(id, activeDate);
@@ -152,7 +158,7 @@ export default function MovieDetail() {
                                     <option>Hồ Chí Minh</option>
                                 </select>
                                 <select className="border border-gray-300 rounded px-4 py-2 text-sm outline-none w-36 cursor-pointer focus:border-blue-500">
-                                    <option>VieCinema Galaxy</option>
+                                    <option>CineStar Quận 1</option>
                                 </select>
                             </div>
                         </div>

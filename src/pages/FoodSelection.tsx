@@ -11,9 +11,9 @@ export default function FoodSelection() {
     // 1. NHẬN "HÀNH LÝ" (GHẾ ĐÃ CHỌN) TỪ TRANG TRƯỚC
     const location = useLocation();
     const selectedSeats = location.state?.selectedSeats || [];
-    
+
     const { showtime } = useShowtimeDetail(id);
-    
+
     const { combos, isLoadingCombos } = useCombos();
 
     const TICKET_PRICE = 85000;
@@ -27,14 +27,14 @@ export default function FoodSelection() {
         setComboCart(prev => {
             const currentQty = prev[comboId] || 0;
             const newQty = currentQty + delta;
-            
+
             // Nếu giảm xuống dưới 0 thì coi như xóa khỏi giỏ
             if (newQty <= 0) {
                 const newCart = { ...prev };
                 delete newCart[comboId];
                 return newCart;
             }
-            
+
             return { ...prev, [comboId]: newQty };
         });
     };
@@ -75,10 +75,10 @@ export default function FoodSelection() {
                                 const quantity = comboCart[combo.id] || 0;
                                 return (
                                     <div key={combo.id} className="flex gap-6 items-center border-b border-gray-100 pb-6 last:border-0 last:pb-0">
-                                        <img 
-                                            src={combo.image_url || 'https://via.placeholder.com/150'} 
-                                            alt={combo.name} 
-                                            className="w-24 h-24 object-cover rounded-md mix-blend-multiply border" 
+                                        <img
+                                            src={combo.image_url || 'https://via.placeholder.com/150'}
+                                            alt={combo.name}
+                                            className="w-24 h-24 object-cover rounded-md mix-blend-multiply border"
                                         />
 
                                         <div className="flex-1">
@@ -116,7 +116,7 @@ export default function FoodSelection() {
                             <div>
                                 <h3 className="font-bold text-gray-800 text-[15px] mb-1">{showtime?.movie?.title || 'Đang tải...'}</h3>
                                 <p className="text-gray-500 text-[13px] mb-1">
-                                    {showtime?.format === '2d' ? '2D' : showtime?.format?.toUpperCase()} 
+                                    {showtime?.format === '2d' ? '2D' : showtime?.format?.toUpperCase()}
                                     {showtime?.subtitle_type === 'subtitled' ? ' Phụ đề' : (showtime?.subtitle_type === 'dubbed' ? ' Lồng tiếng' : '')}
                                     <span className="bg-[#f26b38] text-white px-1 py-0.5 rounded text-[10px] font-bold ml-1">
                                         {showtime?.movie?.age_rating || 'C16'}
@@ -130,9 +130,9 @@ export default function FoodSelection() {
                         </div>
                         <div className="text-[14px] text-gray-700 mb-4">
                             Suất: <span className="font-bold">
-                                {showtime?.start_time ? new Date(showtime.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '...'}
+                                {showtime?.start_time ? new Date(showtime.start_time.replace('Z', '')).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '...'}
                             </span> - <span className="font-bold">
-                                {showtime?.start_time ? new Date(showtime.start_time).toLocaleDateString('vi-VN', {
+                                {showtime?.start_time ? new Date(showtime.start_time.replace('Z', '')).toLocaleDateString('vi-VN', {
                                     weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit'
                                 }) : '...'}
                             </span>
@@ -144,7 +144,7 @@ export default function FoodSelection() {
                                 <span>{selectedSeats.length}x Ghế</span>
                                 <span className="font-bold">{totalTicketPrice.toLocaleString('vi-VN')} đ</span>
                             </div>
-                            <div className="text-sm text-gray-500 mb-3">Ghế: <span className="font-bold text-gray-800">{selectedSeats.map((s:any) => s.seat_name).join(', ')}</span></div>
+                            <div className="text-sm text-gray-500 mb-3">Ghế: <span className="font-bold text-gray-800">{selectedSeats.map((s: any) => s.seat_name).join(', ')}</span></div>
 
                             {/* Hiển thị tiền Combo (Chỉ hiện khi có mua) */}
                             {combos.map(combo => {
@@ -170,9 +170,8 @@ export default function FoodSelection() {
 
                         <div className="flex gap-4">
                             <button onClick={() => navigate(-1)} className="w-1/2 py-2 text-[#f26b38] border border-[#f26b38] rounded font-semibold hover:bg-[#fff5f2]">Quay lại</button>
-                            <button 
-                                onClick={() => navigate(`/dat-ve/${id}/thanh-toan`, { state: { selectedSeats, comboCart, finalTotalPrice } })}
-                                className="w-1/2 py-2 rounded text-white font-semibold transition-colors bg-[#f26b38] hover:bg-[#d95c2b]"
+                            <button
+                                onClick={() => navigate(`/dat-ve/${id}/thanh-toan`, { state: { selectedSeats, comboCart, finalTotalPrice } })} className="w-1/2 py-2 rounded text-white font-semibold transition-colors bg-[#f26b38] hover:bg-[#d95c2b]"
                             >
                                 Tiếp tục
                             </button>

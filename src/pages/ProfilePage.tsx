@@ -41,16 +41,16 @@ export default function Profile() {
         try {
             const token = localStorage.getItem('access_token');
 
-            // const response = await axios.put('https://webxemphim-sbim.onrender.com/api/v1/users/me', {
-            //     full_name: formData.full_name,
-            //     phone: formData.phone,
-            //     date_of_birth: formData.date_of_birth,
-            //     gender: formData.gender
-            // }, {
-            //     headers: {
-            //         Authorization: `Bearer ${token}`
-            //     }
-            // });
+            const response = await axios.put('https://webxemphim-sbim.onrender.com/api/v1/users/me', {
+                full_name: formData.full_name,
+                phone: formData.phone,
+                date_of_birth: formData.date_of_birth,
+                gender: formData.gender
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
 
             // Nếu thành công -> Cập nhật lại kho LocalStorage
             const updatedUser = {

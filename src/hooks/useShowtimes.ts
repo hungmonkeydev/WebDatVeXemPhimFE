@@ -11,15 +11,13 @@ export const useShowtimes = (movieId: string | undefined, selectedDate: string) 
         const fetchShowtimes = async () => {
             setIsLoadingShowtimes(true);
             try {
-                // Gọi API truyền đúng ID phim và Ngày
                 const response = await axios.get(`https://webxemphim-sbim.onrender.com/api/v1/showtimes`, {
-                    params: { 
+                    params: {
                         movie_id: movieId,
-                        // Tạm thời bạn có thể comment dòng date dưới này lại để test xem nó có ra data phim Avengers không nha, vì lỡ ngày 20/04/2026 bạn test nó không trùng với ngày trong state của React.
-                        // date: selectedDate 
-                    } 
+                        date: selectedDate 
+                    }
                 });
-                
+
                 const rawData = response.data.data;
 
                 const groupedCinemas: any = {};
@@ -28,9 +26,7 @@ export const useShowtimes = (movieId: string | undefined, selectedDate: string) 
                     const cinemaName = item.room?.name || 'VieCinema - Đang cập nhật';
                     const formatType = `${item.format} - ${item.subtitle_type === 'subtitled' ? 'Phụ Đề' : 'Lồng Tiếng'}`;
 
-                    const dateObj = new Date(item.start_time);
-                    const timeString = dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-
+                    const timeString = item.start_time.substring(11, 16);
                     // Tạo cấu trúc nhóm
                     if (!groupedCinemas[cinemaName]) {
                         groupedCinemas[cinemaName] = { name: cinemaName, formats: {} };
@@ -56,7 +52,7 @@ export const useShowtimes = (movieId: string | undefined, selectedDate: string) 
 
             } catch (error) {
                 console.error("Lỗi khi tải lịch chiếu:", error);
-                setCinemas([]); 
+                setCinemas([]);
             } finally {
                 setIsLoadingShowtimes(false);
             }
