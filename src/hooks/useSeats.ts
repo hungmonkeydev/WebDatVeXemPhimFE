@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { bookingService } from '../services/bookingService';
 
 export const useSeats = (showtimeId: string | undefined) => {
-    const [seatMatrix, setSeatMatrix] = useState<any>({});
+    const [seatRows, setSeatRows] = useState<any[]>([]);
+    const [seatTypes, setSeatTypes] = useState<any[]>([]);
+    const [showtimeInfo, setShowtimeInfo] = useState<any>(null);
+    const [roomInfo, setRoomInfo] = useState<any>(null);
     const [isLoadingSeats, setIsLoadingSeats] = useState(false);
 
     useEffect(() => {
@@ -11,30 +14,23 @@ export const useSeats = (showtimeId: string | undefined) => {
         const fetchSeats = async () => {
             setIsLoadingSeats(true);
             try {
-                const response = await axios.get(`https://webxemphim-sbim.onrender.com/api/v1/showtimes/${showtimeId}/seats`);
-                console.log("DỮ LIỆU GHẾ TỪ API:", response.data);
-                const rawSeats = response.data.data?.seats || response.data.seats || []; 
-                if (rawSeats.length === 0) {
-                    console.warn("API có gọi được nhưng mảng ghế vẫn rỗng!");
+                const response = await bookingService.getSeats(showtimeId);
+                const data = response.data.data;
+
+                console.log("DỮ LIỆU TỪ API CHUẨN:", data);
+
+                if (data?.seatLayout?.rows) {
+                    setSeatRows(data.seatLayout.rows);
+                } else {
+                    console.warn("API không trả về seatLayout.rows!");
                 }
-                const grouped: any = {};
-                rawSeats.forEach((seat: any) => {
-                    const row = seat.row_label;
-                    if (!grouped[row]) {
-                        grouped[row] = [];
-                    }
-                    grouped[row].push(seat);
-                });
 
-                // Sắp xếp lại các ghế trong 1 hàng theo thứ tự cột (1, 2, 3...) cho chắc ăn
-                Object.keys(grouped).forEach(row => {
-                    grouped[row].sort((a: any, b: any) => a.col_number - b.col_number);
-                });
-
-                setSeatMatrix(grouped);
-
+                if (data?.seatTypes) setSeatTypes(data.seatTypes);
+                if (data?.showtimeInfo) setShowtimeInfo(data.showtimeInfo);
+                if (data?.roomInfo) setRoomInfo(data.roomInfo);
             } catch (error) {
                 console.error("Lỗi khi tải sơ đồ ghế:", error);
+                setSeatRows([]);
             } finally {
                 setIsLoadingSeats(false);
             }
@@ -43,5 +39,5 @@ export const useSeats = (showtimeId: string | undefined) => {
         fetchSeats();
     }, [showtimeId]);
 
-    return { seatMatrix, isLoadingSeats };
+    return { seatRows, seatTypes, showtimeInfo, roomInfo, isLoadingSeats }; 
 };

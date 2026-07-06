@@ -44,55 +44,61 @@ export default function Promotion() {
   ];
 
   return (
-    <section className="max-w-6xl mx-auto px-4 py-12">
-      
+    <section className="max-w-6xl mx-auto px-4 py-8 md:py-12">
       {/* ====== PHẦN HEADER ====== */}
-      <div className="flex items-center gap-8 mb-8 border-b border-gray-200 pb-2">
+      <div className="flex items-center gap-8 mb-6 md:mb-8 border-b border-gray-200 pb-2">
         <div className="flex items-center gap-2">
-          <div className="w-1 h-6 bg-blue-700"></div>
-          <h2 className="text-xl font-bold text-gray-800 uppercase tracking-wide">Tin Khuyến Mãi</h2>
+          <div className="w-1 h-5 md:h-6 bg-blue-700"></div>
+          <h2 className="text-lg md:text-xl font-bold text-gray-800 uppercase tracking-wide">Tin Khuyến Mãi</h2>
         </div>
       </div>
 
       {/* ====== PHẦN SLIDER TỰ ĐỘNG CHẠY ====== */}
       <Swiper
         modules={[Autoplay, Navigation]}
-        spaceBetween={24} 
-        loop={true} 
+        spaceBetween={24}
+        loop={true}
         autoplay={{
-          delay: 3000, 
+          delay: 3000,
           disableOnInteraction: false,
         }}
-        navigation={false} 
+        navigation={false}
         breakpoints={{
+          // Mobile nhỏ: 1.2 thẻ, khoảng cách nhỏ (16px)
           0: {
-            slidesPerView: 1.2, 
+            slidesPerView: 1,
+            spaceBetween: 16,
           },
-          640: {
-            slidesPerView: 2, 
+          // Điện thoại bự / Tablet dọc
+          480: {
+            slidesPerView: 2,
+            spaceBetween: 16,
           },
+          // Tablet ngang
           768: {
-            slidesPerView: 3, 
+            slidesPerView: 3,
+            spaceBetween: 20,
           },
+          // PC: 4 thẻ, khoảng cách lớn (24px)
           1024: {
-            slidesPerView: 4, 
+            slidesPerView: 4,
+            spaceBetween: 24,
           },
         }}
-        className="w-full pb-4" 
+        className="w-full pb-4"
       >
         {promotions.map((promo) => (
           <SwiperSlide key={promo.id}>
             <div className="flex flex-col cursor-pointer group h-full">
               <div className="overflow-hidden rounded-md mb-3">
-                <img 
-                  src={promo.image} 
-                  alt={promo.title} 
+                <img
+                  src={promo.image}
+                  alt={promo.title}
                   className="w-full aspect-video object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
 
-              <h3 className="text-[15px] font-semibold text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-2">
-                {promo.title}
+              <h3 className="text-[14px] md:text-[15px] font-semibold text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-2">                {promo.title}
               </h3>
             </div>
           </SwiperSlide>

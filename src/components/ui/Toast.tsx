@@ -1,4 +1,3 @@
-// src/components/ui/Toast.tsx
 import { useEffect } from 'react';
 
 // Định nghĩa các loại thông báo

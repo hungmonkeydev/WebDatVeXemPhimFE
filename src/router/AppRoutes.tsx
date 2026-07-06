@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route,Outlet } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import HomePage from '../pages/HomePage';
 import Footer from '../components/layout/Footer';
@@ -9,34 +9,41 @@ import ScrollToTop from '../components/ScrollToTop';
 import ProfilePage from '../pages/ProfilePage';
 import BookingLayout from '../components/layout/BookingLayout';
 import PaymentPage from '../pages/PaymentPage';
+import BookingSuccessPage from '../pages/BookingSuccessPage';
+import MoviesPage from '../pages/MoviesPage';
+import AdminRoutes from './AdminRoutes';
 
-const CustomerLayout = ({ children }: { children: React.ReactNode }) => (
+const CustomerLayout = () => (
     <div className="min-h-screen bg-gray-50 flex flex-col">
         <Header />
         <div className="flex-grow">
-            {children}
+            <Outlet />
         </div>
-        <Footer/>
+        <Footer />
     </div>
 );
 
 export default function AppRoutes() {
     return (
-        <CustomerLayout>
+       <>
             <ScrollToTop />
             <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/phim/:id" element={<MovieDetail />} />
-                
-                {/* Wrap booking routes with BookingLayout */}
-                <Route element={<BookingLayout />}>
-                    <Route path="/dat-ve/:id/chon-ghe" element={<SeatSelection />} />
-                    <Route path="/dat-ve/:id/thuc-an" element={<FoodSelection />} />
+                <Route path="/admin/*" element={<AdminRoutes />} />
+                <Route element={<CustomerLayout />}>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/movies" element={<MoviesPage />} />
+                    <Route path="/phim/:id" element={<MovieDetail />} />
+                    {/* BookingLayout nằm lồng bên trong CustomerLayout */}
+                    <Route element={<BookingLayout />}>
+                        <Route path="/dat-ve/:id/chon-ghe" element={<SeatSelection />} />
+                        <Route path="/dat-ve/:id/thuc-an" element={<FoodSelection />} />
+                    </Route>
+                    <Route path="/dat-ve/:id/thanh-toan" element={<PaymentPage />} />
+                    <Route path="/dat-ve/:id/thanh-cong" element={<BookingSuccessPage />} />
+                    <Route path="/booking/payment-success" element={<BookingSuccessPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
                 </Route>
-                <Route path="/dat-ve/:id/thanh-toan" element={<PaymentPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                {/* Các route khác thêm vào đây */}
             </Routes>
-        </CustomerLayout>
+        </>
     );
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import img from '../../../public/logo/join-member-Gstar.svg';
 import img1 from '../../../public/iconlogin/icon-login.fbbf1b2d.svg';
 import Button from '../ui/Button';
-
+import { useNavigate } from 'react-router-dom';
 interface UserActionProps {
   onOpenLogin: () => void;
 }
@@ -10,7 +10,8 @@ interface UserActionProps {
 export default function UserAction({ onOpenLogin }: UserActionProps) {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
   const loadUserFromStorage = () => {
     const userInfo = localStorage.getItem('user_info');
     if (userInfo) {
@@ -19,7 +20,16 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
       setCurrentUser(null);
     }
   };
-
+  const handleExecuteSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/movies?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      window.location.href = `/movies?search=${encodeURIComponent(searchQuery.trim())}`;
+    }
+  };
   useEffect(() => {
     loadUserFromStorage();
     window.addEventListener('authChange', loadUserFromStorage);
@@ -31,18 +41,28 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('user_info');
+    
     setIsMenuOpen(false);
+    
     window.dispatchEvent(new Event('authChange'));
-  };
 
+    navigate('/');
+  };
+  
   return (
     <div className="flex items-center gap-4">
-      <input type="text" placeholder='Tìm kiếm' className='border border-gray-200 rounded-full px-4 py-2 outline-none focus:border-[#f26b38]' />
-
+     <input
+          type="text"
+          placeholder='Tìm kiếm phim, diễn viên...'
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={handleSearchKeyDown}
+          className='border border-gray-200 rounded-full pl-4 pr-10 py-2 text-[14px] outline-none focus:border-[#f26b38] w-[250px] transition-all'
+        />
       {currentUser ? (
-        
+
         <div className="relative">
-          <div 
+          <div
             className="flex items-center gap-2 cursor-pointer select-none group"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
@@ -55,17 +75,17 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
 
             {/* Tên và Icon xổ xuống */}
             <div className="hidden md:flex items-center gap-1">
-               <span className="font-semibold text-gray-700 text-[14px] group-hover:text-[#f26b38] transition-colors">
-                  {currentUser.full_name}
-               </span>
-               <svg className={`w-4 h-4 text-gray-500 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              <span className="font-semibold text-gray-700 text-[14px] group-hover:text-[#f26b38] transition-colors">
+                {currentUser.full_name}
+              </span>
+              <svg className={`w-4 h-4 text-gray-500 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           </div>
 
           {/* Menu thả xuống */}
           {isMenuOpen && (
             <div className="absolute top-full right-0 mt-3 w-[240px] bg-white rounded-md shadow-[0_8px_30px_rgba(0,0,0,0.12)] py-2 z-50 border border-gray-100 animate-[fadeIn_0.2s_ease-out]">
-              
+
               {/* Header của Menu (Chứa thông tin điểm) */}
               <div className="px-5 py-3 border-b border-gray-100 mb-2 bg-gray-50/50">
                 <p className="font-bold text-gray-800 text-[15px]">{currentUser.full_name}</p>
@@ -80,15 +100,21 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
                 Tài Khoản
               </a>
 
-              <a href="/history" className="flex items-center gap-3 px-5 py-2.5 text-[14.5px] text-gray-700 hover:bg-orange-50 hover:text-[#f26b38] border-l-4 border-transparent hover:border-[#f26b38] transition-all">
+              <button 
+                onClick={() => { 
+                  setIsMenuOpen(false); 
+                  navigate('/profile', { state: { activeTab: 'lich-su' } }); 
+                }} 
+                className="w-full flex items-center gap-3 px-5 py-2.5 text-[14.5px] text-gray-700 hover:bg-orange-50 hover:text-[#f26b38] border-l-4 border-transparent hover:border-[#f26b38] transition-all"
+              >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
                 Lịch Sử Mua Vé
-              </a>
+              </button>
 
               <div className="h-[1px] bg-gray-100 my-1"></div>
 
-              <button 
-                onClick={handleLogout} 
+              <button
+                onClick={handleLogout}
                 className="w-full flex items-center gap-3 px-5 py-2.5 text-[14.5px] text-gray-700 hover:bg-red-50 hover:text-red-500 border-l-4 border-transparent hover:border-red-500 transition-all text-left"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
@@ -101,7 +127,7 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
 
       ) : (
 
-        /* GIAO DIỆN KHI CHƯA ĐĂNG NHẬP (Giữ nguyên nút của bạn) */
+        /* GIAO DIỆN KHI CHƯA ĐĂNG NHẬP */
         <button
           onClick={onOpenLogin}
           className="flex items-center gap-2 text-[14.5px] font-medium text-gray-700 hover:text-[#f26b38] transition-colors cursor-pointer"

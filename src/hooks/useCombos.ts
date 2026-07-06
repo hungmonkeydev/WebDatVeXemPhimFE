@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { bookingService } from '../services/bookingService';
 
 export const useCombos = () => {
     const [combos, setCombos] = useState<any[]>([]);
@@ -9,7 +9,7 @@ export const useCombos = () => {
         const fetchCombos = async () => {
             setIsLoadingCombos(true);
             try {
-                const response = await axios.get(`https://webxemphim-sbim.onrender.com/api/v1/combos`);
+                const response = await bookingService.getCombos();
                 
                 const rawData = response.data.data || response.data || [];
                 setCombos(rawData);

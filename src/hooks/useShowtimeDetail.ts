@@ -1,23 +1,29 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { showtimeService } from '../services/showtimeService';
 
 export const useShowtimeDetail = (showtimeId: string | undefined) => {
     const [showtime, setShowtime] = useState<any>(null);
+    const [isLoadingDetail, setIsLoadingDetail] = useState(false);
 
     useEffect(() => {
         if (!showtimeId) return;
-
+        console.log("Fetching showtime detail for", showtime);
         const fetchShowtimeDetail = async () => {
+            setIsLoadingDetail(true); 
             try {
-                const response = await axios.get(`https://webxemphim-sbim.onrender.com/api/v1/showtimes/${showtimeId}`);
+                const response = await showtimeService.getShowtimeDetail(showtimeId);
                 setShowtime(response.data.data);
+                console.log("Showtime detail:", response.data.data);
             } catch (error) {
-                console.error("Lỗi khi tải thông tin suất chiếu:", error);
+                console.error("Lỗi khi tải thông tin chi tiết suất chiếu:", error);
+                setShowtime(null); 
+            } finally {
+                setIsLoadingDetail(false); 
             }
         };
 
         fetchShowtimeDetail();
     }, [showtimeId]);
 
-    return { showtime };
+    return { showtime, isLoadingDetail };
 };

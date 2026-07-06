@@ -1,14 +1,14 @@
 export default function Footer() {
     return (
-        <footer className="bg-[#333333] text-gray-300 py-12 text-sm mt-20">
+        <footer className="bg-[#333333] text-gray-300 py-10 md:py-12 text-sm mt-20">
             <div className="max-w-6xl mx-auto px-4">
 
-                {/* ====== PHẦN 1: LƯỚI THÔNG TIN (4 CỘT) ====== */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                {/* ====== PHẦN 1: LƯỚI THÔNG TIN ====== */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10 mb-10">
 
                     {/* Cột 1: Giới thiệu */}
-                    <div className="flex flex-col gap-4">
-                        <h3 className="text-white font-bold uppercase tracking-wider mb-2">Giới Thiệu</h3>
+                    <div className="flex flex-col gap-3 text-center sm:text-left">
+                        <h3 className="text-white font-bold uppercase tracking-wider mb-1">Giới Thiệu</h3>
                         <a href="#" className="hover:text-white transition-colors">Về Chúng Tôi</a>
                         <a href="#" className="hover:text-white transition-colors">Thoả Thuận Sử Dụng</a>
                         <a href="#" className="hover:text-white transition-colors">Quy Chế Hoạt Động</a>
@@ -16,8 +16,8 @@ export default function Footer() {
                     </div>
 
                     {/* Cột 2: Góc Điện Ảnh */}
-                    <div className="flex flex-col gap-4">
-                        <h3 className="text-white font-bold uppercase tracking-wider mb-2">Góc Điện Ảnh</h3>
+                    <div className="flex flex-col gap-3 text-center sm:text-left">
+                        <h3 className="text-white font-bold uppercase tracking-wider mb-1">Góc Điện Ảnh</h3>
                         <a href="#" className="hover:text-white transition-colors">Thể Loại Phim</a>
                         <a href="#" className="hover:text-white transition-colors">Bình Luận Phim</a>
                         <a href="#" className="hover:text-white transition-colors">Blog Điện Ảnh</a>
@@ -26,8 +26,8 @@ export default function Footer() {
                     </div>
 
                     {/* Cột 3: Hỗ Trợ */}
-                    <div className="flex flex-col gap-4">
-                        <h3 className="text-white font-bold uppercase tracking-wider mb-2">Hỗ Trợ</h3>
+                    <div className="flex flex-col gap-3 text-center sm:text-left">
+                        <h3 className="text-white font-bold uppercase tracking-wider mb-1">Hỗ Trợ</h3>
                         <a href="#" className="hover:text-white transition-colors">Góp Ý</a>
                         <a href="#" className="hover:text-white transition-colors">Sale & Services</a>
                         <a href="#" className="hover:text-white transition-colors">Rạp / Giá Vé</a>
@@ -36,12 +36,12 @@ export default function Footer() {
                     </div>
 
                     {/* Cột 4: Kết Nối & Chứng Nhận */}
-                    <div className="flex flex-col gap-4 items-start">
-                        <h2 className="text-2xl font-black text-white italic tracking-tighter mb-2">
-                            <img src="/logo/logogalaxy.png" alt="VieCinema Logo" />
+                    <div className="flex flex-col gap-4 items-center sm:items-start sm:col-span-2 lg:col-span-1 mt-4 sm:mt-0">
+                        <h2 className="w-32 md:w-full max-w-[150px] mb-2">
+                            <img src="/logo/logogalaxy.png" alt="VieCinema Logo" className="w-full h-auto" />
                         </h2>
 
-                        <div className="flex ]items-center gap-4">
+                        <div className="flex items-center gap-4">
                             <a href="#" className="w-8 h-8 bg-gray-500 hover:bg-blue-600 flex items-center justify-center rounded-full text-white transition-colors">
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" /></svg>
                             </a>
@@ -55,23 +55,24 @@ export default function Footer() {
                         <img
                             src="/logo/logoBCT.png"
                             alt="Đã thông báo Bộ Công Thương"
-                            className="h-10 mt-2"
+                            className="h-9 md:h-10 mt-2"
                         />
                     </div>
 
                 </div>
 
-                {/* ====== PHẦN 2: BẢN QUYỀN (LINE CÁCH ĐIỆU) ====== */}
-                <div className="pt-8 border-t border-gray-600 flex flex-col md:flex-row items-center gap-6">
-                    <h2 className="text-3xl font-black text-white italic tracking-tighter opacity-50">
-                        <img src="logo/logogalaxy.png" alt="VieCinema Logo" />
+                {/* ====== PHẦN 2: BẢN QUYỀN ====== */}
+                <div className="pt-8 border-t border-gray-600 flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
+                    <h2 className="w-24 md:w-32 opacity-50 shrink-0">
+                        <img src="logo/logogalaxy.png" alt="VieCinema Logo" className="w-full h-auto" />
                     </h2>
                     <div className="flex-1">
-                        <h4 className="text-white font-bold mb-1 uppercase">Công Ty Cổ Phần Giải Trí VieCinema</h4>
-                        <p className="mb-1 text-gray-400">MST: 0123456789 - Cấp ngày 01/01/2025 bởi Sở Kế hoạch và Đầu tư TP.HCM</p>
-                        <p className="mb-1 text-gray-400">Địa chỉ: 180 Cao Lỗ, Phường 4, Quận 8, Thành phố Hồ Chí Minh, Việt Nam</p>
-                        <p className="text-gray-400">
-                            Điện thoại: 028.123.4567 - Hotline: 1900 9999 (9:00 - 22:00) - Email: hotro@viecinema.vn
+                        <h4 className="text-white font-bold mb-1 uppercase text-[15px]">Công Ty Cổ Phần Giải Trí VieCinema</h4>
+                        <p className="mb-1 text-gray-400 text-[13px] md:text-sm">MST: 0123456789 - Cấp ngày 01/01/2025 bởi Sở Kế hoạch và Đầu tư TP.HCM</p>
+                        <p className="mb-1 text-gray-400 text-[13px] md:text-sm">Địa chỉ: 180 Cao Lỗ, Phường 4, Quận 8, Thành phố Hồ Chí Minh, Việt Nam</p>
+                        <p className="text-gray-400 text-[13px] md:text-sm leading-relaxed">
+                            Điện thoại: 028.123.4567 - Hotline: 1900 9999 (9:00 - 22:00)
+                            <br className="block md:hidden" /> Email: hotro@viecinema.vn
                         </p>
                     </div>
                 </div>

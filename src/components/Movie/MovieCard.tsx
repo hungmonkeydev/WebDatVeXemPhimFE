@@ -7,36 +7,32 @@ interface MovieCardProps {
   readonly imageUrl: string;
   readonly rating: string;
   readonly ageTag: string;
+  readonly trailerUrl?: string;
+  readonly onOpenTrailer: (url: string) => void; 
 }
 
-export default function MovieCard({id, title, imageUrl, rating, ageTag }: MovieCardProps) {
+export default function MovieCard({id, title, imageUrl, rating, ageTag, trailerUrl, onOpenTrailer }: MovieCardProps) {
   const navigate = useNavigate();
   
   const handleGoToDetail = (e: React.MouseEvent) => {
     e.stopPropagation(); 
     navigate(`/phim/${id}`); 
   };
-  const handleBuyTicketClick = (e: any) => {
-    e.stopPropagation();
-    navigate(`/phim/${id}`); 
-  };
   return (
     <div className="flex flex-col gap-3 cursor-pointer group" onClick={handleGoToDetail}>
       
       {/* KHUNG ẢNH POSTER CÓ CHỨA LỚP PHỦ */}
-      <div className="relative rounded-lg overflow-hidden">
-        
+      <div className="relative rounded-lg overflow-hidden"> 
         <img 
           src={imageUrl} 
           alt={title} 
           className="w-full aspect-[2/3] object-cover transition-transform duration-500 group-hover:scale-105" 
         />
-
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-3 z-10">
           
           {/* Nút Mua vé */}
           <Button 
-            onClick={handleBuyTicketClick}
+            onClick={handleGoToDetail}
             className="w-32" 
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,6 +45,12 @@ export default function MovieCard({id, title, imageUrl, rating, ageTag }: MovieC
           <Button 
             variant="ghost"
             className="w-32"
+            onClick={(e) => {
+              e.stopPropagation(); 
+              if (trailerUrl) {
+                onOpenTrailer(trailerUrl); 
+              }
+            }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />

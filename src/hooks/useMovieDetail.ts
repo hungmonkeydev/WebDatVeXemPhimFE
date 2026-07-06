@@ -1,23 +1,25 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { movieService } from '../services/movieService';
 
 export const useMovieDetail = (id: string | undefined) => {
     const [movie, setMovie] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
-
+    const [error, setError] = useState<string | null>(null);
     useEffect(() => {
         const fetchMovieDetail = async () => {
             if (!id) {
                 setIsLoading(false);
                 return;
             }
-
             setIsLoading(true);
+            setError(null);
             try {
-                const response = await axios.get(`https://webxemphim-sbim.onrender.com/api/v1/movies/${id}`);
-                setMovie(response.data.data);
+                const response = await movieService.getMovieDetail(id);
+                const movieData = response?.data?.data || response?.data || response;
+                setMovie(movieData);
             } catch (error) {
                 console.error("Lỗi khi tải chi tiết phim:", error);
+                setError("Lỗi khi tải chi tiết phim hoặc phim không tồn tại");
             } finally {
                 setIsLoading(false);
             }
@@ -25,5 +27,5 @@ export const useMovieDetail = (id: string | undefined) => {
 
         fetchMovieDetail();
     }, [id]);
-    return { movie, isLoading };
+    return { movie, isLoading,error };
 };

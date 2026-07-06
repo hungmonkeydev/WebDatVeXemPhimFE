@@ -1,37 +1,27 @@
 // src/pages/SeatSelection.tsx
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSeats } from '../hooks/useSeats';
 import Spinner from '../components/ui/Spinner';
 import { useHoldSeats } from '../hooks/useHoldSeats';
-import { useShowtimeDetail } from '../hooks/useShowtimeDetail';
+import BookingSummary from '../components/booking/BookingSummary';
+import { bookingService } from '../services/bookingService';
 
 export default function SeatSelection() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { seatMatrix, isLoadingSeats } = useSeats(id);
+  const { seatRows, seatTypes, showtimeInfo, roomInfo, isLoadingSeats } = useSeats(id);
+  console.log("🚨 KIỂM TRA DỮ LIỆU GHẾ TRÊN UI:", seatRows);
 
   const [selectedSeats, setSelectedSeats] = useState<any[]>([]);
   const { holdSeats, isHolding } = useHoldSeats();
-  const handleNext = async () => {
-    const seatIds = selectedSeats.map(seat => seat.id);
 
-    const result = await holdSeats(id, seatIds);
-
-    if (result.success) {
-      navigate(`/dat-ve/${id}/thuc-an`, { state: { selectedSeats } });
-    } else {
-      alert(`❌ Không thể tiếp tục: ${result.message}`);
-    }
-  };
-  const { showtime } = useShowtimeDetail(id);
-
-  let startTimeDisplay = showtime?.start_time ? showtime.start_time.substring(11, 16) : 'Đang tải...';
+  let startTimeDisplay = showtimeInfo?.startTime ? showtimeInfo.startTime.substring(11, 16) : 'Đang tải...';
   let dateDisplay = 'Đang tải...';
-  
-  if (showtime && showtime.start_time) {
-    const safeDateStr = showtime.start_time.replace('Z', ''); 
+
+  if (showtimeInfo && showtimeInfo.startTime) {
+    const safeDateStr = showtimeInfo.startTime.replace('Z', '');
     const dateObj = new Date(safeDateStr);
 
     const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
@@ -40,52 +30,102 @@ export default function SeatSelection() {
 
     dateDisplay = `${dayOfWeek}, ${dateStr}`;
   }
-  /** Handles seat toggling, including automatic pairing for couple seats */
-  const toggleSeat = (seat: any) => {
-    if (!seat.is_active) return;
+
+  // --- HÀM MỚI: XỬ LÝ CHỌN CẢ NHÓM GHẾ (COUPLE HOẶC SINGLE) ---
+  const toggleSeatGroup = async (seatsToToggle: any[]) => {
+    const isAnySeatNotSelectable = seatsToToggle.some(seat => !seat.isSelectable);
+    if (isAnySeatNotSelectable) return;
+
+    // Lấy token ra để kiểm tra xem là Khách hay User
+    const token = localStorage.getItem('access_token');
 
     setSelectedSeats((prev) => {
-      const isExist = prev.find((s) => s.id === seat.id);
+      // Dựa vào ghế đầu tiên để biết là đang muốn "Chọn" hay "Bỏ chọn"
+      const isExist = prev.find((s) => s.seatId === seatsToToggle[0].seatId);
+      
+      let newSeats = [...prev];
+      const seatIdsToToggle = seatsToToggle.map(s => s.seatId);
 
-      const isCoupleSeat = seat.seatType?.color_code === '#E91E63'
-        || seat.seatType?.name?.toLowerCase().includes('couple');
+      if (isExist) {
+        // 1. BỎ CHỌN GHẾ
+        newSeats = prev.filter((s) => !seatIdsToToggle.includes(s.seatId));
 
-      let seatsToToggle = [seat];
+        // CHỈ GỌI API NHẢ GHẾ NẾU LÀ USER ĐÃ ĐĂNG NHẬP
+        if (token) {
+          seatsToToggle.forEach(seat => {
+            bookingService.releaseSeat({ showtimeId: Number(id), seatId: seat.seatId })
+              .catch(err => console.error("Lỗi nhả ghế:", err));
+          });
+        }
+      } else {
+        // 2. CHỌN THÊM GHẾ
+        newSeats = [...prev, ...seatsToToggle];
 
-      if (isCoupleSeat) {
-        const rowLabel = seat.seat_name.replace(/[0-9]/g, '');
-        const seatNum = parseInt(seat.seat_name.replace(/\D/g, ''));
-        const partnerNum = (seatNum % 2 !== 0) ? seatNum + 1 : seatNum - 1;
-        const partnerSeatName = `${rowLabel}${partnerNum}`;
-
-        const rowSeats = seatMatrix[rowLabel] || [];
-        const partnerSeat = rowSeats.find((s: any) => s.seat_name === partnerSeatName);
-
-        if (partnerSeat && partnerSeat.is_active) {
-          seatsToToggle.push(partnerSeat);
+        // CHỈ GỌI API GIỮ GHẾ NẾU LÀ USER ĐÃ ĐĂNG NHẬP
+        if (token) {
+          bookingService.holdSeats(id as string, seatIdsToToggle)
+            .catch(err => console.error("Lỗi giữ ghế nhóm:", err));
         }
       }
 
-      if (isExist) {
-        const toggleIds = seatsToToggle.map(s => s.id);
-        return prev.filter((s) => !toggleIds.includes(s.id));
-      } else {
-        const newSeats = [...prev];
-        seatsToToggle.forEach(sToToggle => {
-          if (!newSeats.find(s => s.id === sToToggle.id)) {
-            newSeats.push(sToToggle);
-          }
-        });
-        return newSeats;
-      }
+      return newSeats;
     });
   };
 
-  /** Calculate total price based on seat multipliers */
+  const SEAT_COLORS: Record<number, string> = {
+    1: '#4CAF50', // Thường (Xanh lá)
+    2: '#FFD700', // VIP (Vàng)
+    3: '#E91E63', // Couple (Hồng)
+    4: '#9C27B0', // Deluxe (Tím)
+  };
+
   const totalPrice = selectedSeats.reduce((total, seat) => {
-    const basePrice = 75000;
-    return total + basePrice * Number(seat.seatType?.price_multiplier || 1);
+    return total + Number(seat.price || 0);
   }, 0);
+
+  const handleNext = async () => {
+    const seatIds = selectedSeats.map(seat => seat.seatId);
+
+    // Kiểm tra token
+    const rawToken = localStorage.getItem('access_token');
+    const isValidToken = rawToken && rawToken !== 'null' && rawToken !== 'undefined';
+
+    // 🚦 1. NẾU LÀ KHÁCH VÃNG LAI -> ĐI THẲNG LUÔN, BỎ QUA API
+    if (!isValidToken) {
+      console.log("Khách vãng lai đi thẳng qua trang thức ăn!");
+      const expireAt = Date.now() + (300 * 1000); // Tạm set 5 phút
+
+      navigate(`/dat-ve/${id}/thuc-an`, {
+        state: {
+          selectedSeats: selectedSeats,
+          showtimeInfo: showtimeInfo,
+          roomInfo: roomInfo,
+          totalTicketPrice: totalPrice,
+          remainingSeconds: 300,
+          expireAt
+        }
+      });
+      return;
+    }
+
+    const result = await holdSeats(id, seatIds);
+
+    if (result.success) {
+      const expireAt = Date.now() + (result.remainingSeconds * 1000);
+      navigate(`/dat-ve/${id}/thuc-an`, {
+        state: {
+          selectedSeats: selectedSeats,
+          showtimeInfo: showtimeInfo,
+          roomInfo: roomInfo,
+          totalTicketPrice: totalPrice,
+          remainingSeconds: result.remainingSeconds,
+          expireAt
+        }
+      });
+    } else {
+      alert(`❌ Không thể tiếp tục: ${result.message}`);
+    }
+  };
 
   if (isLoadingSeats) {
     return (
@@ -94,12 +134,28 @@ export default function SeatSelection() {
       </div>
     );
   }
+  
+  if (!seatRows || seatRows.length === 0 || !showtimeInfo) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gray-50">
+        <img src="https://galaxycine.vn/assets/images/404.png" alt="Not Found" className="w-48 opacity-50 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-800">Suất chiếu không tồn tại!</h2>
+        <p className="text-gray-500">Suất chiếu này có thể đã bị hủy hoặc hệ thống đang bảo trì.</p>
+        <button
+          onClick={() => navigate('/')}
+          className="mt-4 bg-[#f26b38] text-white px-8 py-2.5 rounded font-semibold hover:bg-[#d95c2b] shadow-sm"
+        >
+          Quay Về Trang Chủ
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-gray-50 min-h-screen pb-20">
 
-      {/* ====== 1. THANH TIẾN ĐỘ (STEPPER) ====== */}
-      <div className="bg-white shadow-sm mb-8">
+      {/* ====== THANH TIẾN ĐỘ (STEPPER) ====== */}
+      <div className="hidden md:block bg-white shadow-sm mb-8">
         <div className="max-w-6xl mx-auto flex justify-center gap-8 py-4 text-sm font-semibold">
           <span className="text-gray-400">Chọn phim / Rạp / Suất</span>
           <span className="text-blue-700 border-b-2 border-blue-700 pb-4 -mb-4">Chọn ghế</span>
@@ -109,10 +165,9 @@ export default function SeatSelection() {
         </div>
       </div>
 
-      {/* ====== 2. NỘI DUNG CHÍNH (CHIA 2 CỘT) ====== */}
+      {/* ====== NỘI DUNG CHÍNH ====== */}
       <div className="max-w-6xl mx-auto px-4 flex flex-col lg:flex-row gap-8">
 
-        {/* === CỘT TRÁI: SƠ ĐỒ GHẾ THỰC TẾ TỪ API === */}
         <div className="flex-1 bg-white p-6 rounded-lg shadow-sm">
           <div className="flex justify-items-center mb-10">
             <span className="text-gray-600 font-medium">Đổi suất chiếu</span>
@@ -123,40 +178,74 @@ export default function SeatSelection() {
             <div className="min-w-max flex flex-col items-center gap-3">
 
               {/* Vòng lặp vẽ Hàng Ghế */}
-              {Object.keys(seatMatrix).map((rowLabel) => (
-                <div key={rowLabel} className="flex items-center gap-4">
+              {seatRows && seatRows.map((rowItem: any) => (
+                <div key={rowItem.rowLabel} className="flex items-center gap-4">
                   {/* Tên hàng ghế (Trái) */}
-                  <span className="font-bold text-gray-500 w-4 text-center">{rowLabel}</span>
+                  <span className="font-bold text-gray-500 w-4 text-center">{rowItem.rowLabel}</span>
 
                   {/* Vẽ các Ghế trong hàng */}
-                  <div className="flex gap-2">
-                    {seatMatrix[rowLabel].map((seat: any) => {
-                      const isSold = !seat.is_active;
-                      const isSelected = selectedSeats.some((s) => s.id === seat.id);
-                      const seatColor = seat.seatType?.color_code || '#e5e7eb';
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const renderSeatBtn = (seat: any, groupSeats: any[]) => {
+                        const isSold = !seat.isSelectable;
+                        const isSelected = selectedSeats.some((s) => s.seatId === seat.seatId);
+                        const seatColor = SEAT_COLORS[seat.seatTypeId] || '#e5e7eb';
 
-                      return (
-                        <button
-                          key={seat.id}
-                          onClick={() => toggleSeat(seat)}
-                          disabled={isSold}
-                          style={{
-                            backgroundColor: isSelected ? '#f26b38' : isSold ? '#d1d5db' : seatColor,
-                            color: isSelected ? '#fff' : isSold ? '#9ca3af' : '#000',
-                            borderColor: isSelected ? '#f26b38' : isSold ? '#d1d5db' : seatColor,
-                          }}
-                          className={`w-8 h-8 rounded-t-lg rounded-b-sm text-[11px] font-medium border-b-4 flex items-center justify-center transition-all hover:scale-110 
+                        return (
+                          <button
+                            key={seat.seatId}
+                            onClick={() => toggleSeatGroup(groupSeats)} 
+                            disabled={isSold}
+                            style={{
+                              backgroundColor: isSelected ? '#f26b38' : isSold ? '#d1d5db' : seatColor,
+                              color: isSelected ? '#fff' : isSold ? '#9ca3af' : '#000',
+                              borderColor: isSelected ? '#f26b38' : isSold ? '#d1d5db' : seatColor,
+                            }}
+                            className={`w-8 h-8 rounded-t-lg rounded-b-sm text-[11px] font-medium border-b-4 flex items-center justify-center transition-all hover:scale-110 
                             ${isSold ? 'cursor-not-allowed opacity-50' : 'cursor-pointer shadow-sm'}
                           `}
-                        >
-                          {seat.seat_name.replace(rowLabel, '')}
-                        </button>
-                      );
-                    })}
+                          >
+                            {seat.seatLabel.replace(rowItem.rowLabel, '')}
+                          </button>
+                        );
+                      };
+
+                      // 2. Gom nhóm ghế: Cứ thấy type 3 thì bắt cặp 2 cái liền kề
+                      const groupedSeats = [];
+                      let i = 0;
+                      while (i < rowItem.seats.length) {
+                        const seat = rowItem.seats[i];
+                        // Nếu là ghế Couple và cái tiếp theo cũng là Couple
+                        if (seat.seatTypeId === 3 && i + 1 < rowItem.seats.length && rowItem.seats[i + 1].seatTypeId === 3) {
+                          groupedSeats.push({ isCouple: true, seats: [seat, rowItem.seats[i + 1]] });
+                          i += 2; // Nhảy cóc qua 2 ghế
+                        } else {
+                          groupedSeats.push({ isCouple: false, seats: [seat] });
+                          i += 1; // Đi tiếp từng ghế
+                        }
+                      }
+
+                      return groupedSeats.map((group, index) => {
+                        if (group.isCouple) {
+                          return (
+                            // Khung bọc viền cho 2 ghế Couple
+                            <div key={`couple-${index}`} className="flex gap-1 border-2 border-[#E91E63] p-[3px] rounded-lg bg-pink-50 shadow-sm items-center justify-center">
+                              {group.seats.map((seat: any) => renderSeatBtn(seat, group.seats))}
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <React.Fragment key={`single-${index}`}>
+                              {group.seats.map((seat: any) => renderSeatBtn(seat, group.seats))}
+                            </React.Fragment>
+                          );
+                        }
+                      });
+                    })()}
                   </div>
 
                   {/* Tên hàng ghế (Phải) */}
-                  <span className="font-bold text-gray-500 w-4 text-center">{rowLabel}</span>
+                  <span className="font-bold text-gray-500 w-4 text-center">{rowItem.rowLabel}</span>
                 </div>
               ))}
 
@@ -195,80 +284,30 @@ export default function SeatSelection() {
                   <div className="w-5 h-5 bg-[#E91E63] rounded border-b-2 border-[#C2185B]"></div>
                   Couple
                 </div>
+                
+                {/* Ghế Deluxe (Tím) */}
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 bg-[#9C27B0] rounded border-b-2 border-[#7B1FA2]"></div>
+                  Deluxe
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* === CỘT PHẢI: BILL THANH TOÁN (STICKY) === */}
-        <div className="w-full lg:w-[350px]">
-          <div className="bg-white p-4 rounded-lg shadow-sm sticky top-20">
-
-            <div className="flex gap-4 mb-4">
-              {/* Tạm thời Hardcode ảnh và thông tin phim, sau này móc API showtime vào thay thế */}
-              <img src={showtime?.movie?.poster_url || "https://picsum.photos/id/1043/400/600"} alt="Poster" className="w-24 rounded object-cover shadow-sm" />
-              <div>
-                <h3 className="font-bold text-gray-800 text-[15px] mb-1 line-clamp-2">{showtime?.movie?.title || "Đang tải phim..."}</h3>
-                <p className="text-gray-500 text-[13px] mb-1">
-                  {showtime?.format} {showtime?.subtitle_type === 'subtitled' ? 'Phụ Đề' : 'Lồng Tiếng'}
-                  <span className="bg-[#f26b38] text-white px-1 py-0.5 rounded text-[10px] font-bold ml-2">
-                    {showtime?.movie?.age_rating || "C16"}
-                  </span>
-                </p>              </div>
-            </div>
-
-            <div className="text-[14px] text-gray-700 font-medium mb-1">
-              <span className="font-bold">{showtime?.room?.cinema?.name || 'VieCinema'}</span>
-              <br />
-              <span className="font-bold">{showtime?.room?.name || "Đang tải rạp..."}</span>
-            </div>
-            <div className="text-[14px] text-gray-700 mb-4">
-              Suất: <span className="font-bold">{startTimeDisplay}</span> - <span className="font-bold">
-                {dateDisplay}</span>
-            </div>
-
-            <div className="border-t border-dashed border-gray-300 my-4"></div>
-
-            {/* Hiển thị danh sách ghế đang chọn */}
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-gray-500 shrink-0">Ghế chọn:</span>
-              <span className="font-semibold text-gray-800 text-right">
-                {selectedSeats.length > 0 ? selectedSeats.map((s) => s.seat_name).join(', ') : 'Chưa chọn ghế'}
-              </span>
-            </div>
-
-            <div className="border-t border-dashed border-gray-300 my-4"></div>
-
-            {/* Tổng tiền */}
-            <div className="flex justify-between items-center mb-6">
-              <span className="font-bold text-gray-800">Tổng cộng</span>
-              <span className="text-2xl font-bold text-[#f26b38]">
-                {totalPrice.toLocaleString('vi-VN')} đ
-              </span>
-            </div>
-
-            {/* Nút hành động */}
-            <div className="flex gap-4">
-              <button
-                onClick={() => navigate(-1)}
-                className="w-1/3 py-2 text-[#f26b38] font-semibold border border-[#f26b38] rounded hover:bg-[#fff5f2] transition-colors"
-              >
-                Trở lại
-              </button>
-
-              <button
-                // Truyền selectedSeats sang trang Thức Ăn để tính tiếp tiền
-                onClick={handleNext}
-                disabled={selectedSeats.length === 0 || isHolding}
-                className={`w-2/3 py-2 rounded text-white font-semibold transition-colors shadow-sm ${selectedSeats.length > 0 ? 'bg-[#f26b38] hover:bg-[#d95c2b]' : 'bg-gray-300 cursor-not-allowed'
-                  }`}
-              >
-                {isHolding ? 'Đang giữ ghế...' : 'Tiếp tục'}
-              </button>
-            </div>
-
-          </div>
-        </div>
+        {/* === CỘT PHẢI: BILL THANH TOÁN === */}
+        <BookingSummary
+          showtimeInfo={showtimeInfo}
+          roomInfo={roomInfo}
+          startTimeDisplay={startTimeDisplay}
+          dateDisplay={dateDisplay}
+          selectedSeats={selectedSeats}
+          totalPrice={totalPrice}
+          onBack={() => navigate(-1)}
+          onNext={handleNext}
+          nextLabel={isHolding ? 'Đang giữ ghế...' : 'Tiếp tục'}
+          isNextDisabled={selectedSeats.length === 0 || isHolding}
+        />
 
       </div>
     </div>

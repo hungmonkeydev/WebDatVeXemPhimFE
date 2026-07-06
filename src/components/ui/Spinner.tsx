@@ -10,17 +10,17 @@ export default function Spinner({
   className = '' 
 }: SpinnerProps) {
   
-  // 1. Cấu hình Kích thước
+  // Cấu hình Kích thước
   const sizeClasses = {
     sm: 'w-4 h-4 border-2',
     md: 'w-6 h-6 border-2',
     lg: 'w-8 h-8 border-[3px]',
   };
 
-  // 2. Cấu hình Màu sắc (border-t-transparent giúp tạo hiệu ứng khuyết 1 góc để xoay)
+  // Cấu hình Màu sắc 
   const colorClasses = {
     white: 'border-white border-t-transparent',
-    primary: 'border-[#f26b38] border-t-transparent', // Màu cam chủ đạo của bạn
+    primary: 'border-[#f26b38] border-t-transparent',
     gray: 'border-gray-400 border-t-transparent',
   };
 

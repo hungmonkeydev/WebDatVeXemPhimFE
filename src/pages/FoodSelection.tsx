@@ -1,52 +1,62 @@
 // src/pages/FoodSelection.tsx
 import { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useShowtimeDetail } from '../hooks/useShowtimeDetail';
 import { useCombos } from '../hooks/useCombos';
-
+import { useEffect } from 'react';
+import BookingSummary from '../components/booking/BookingSummary';
+import { bookingService } from '../services/bookingService';
 export default function FoodSelection() {
     const navigate = useNavigate();
     const { id } = useParams();
 
-    // 1. NHẬN "HÀNH LÝ" (GHẾ ĐÃ CHỌN) TỪ TRANG TRƯỚC
     const location = useLocation();
-    const selectedSeats = location.state?.selectedSeats || [];
+    const {
+        selectedSeats = [],
+        expireAt,
+        showtimeInfo,
+        roomInfo,
+        totalTicketPrice = 0,
+        remainingSeconds = 600 // Mặc định 10 phút nếu không có
+    } = location.state || {};
+    const bookingData = location.state;
 
-    const { showtime } = useShowtimeDetail(id);
+    useEffect(() => {
+        if (selectedSeats.length === 0) {
+            navigate(`/dat-ve/${id}/chon-ghe`);
+        }
+    }, [selectedSeats, id, navigate]);
 
     const { combos, isLoadingCombos } = useCombos();
 
-    const TICKET_PRICE = 85000;
-    const totalTicketPrice = selectedSeats.length * TICKET_PRICE;
-
-    // 2. STATE QUẢN LÝ GIỎ HÀNG COMBO
     const [comboCart, setComboCart] = useState<Record<number, number>>({});
-
     // Hàm cập nhật số lượng
     const updateQuantity = (comboId: number, delta: number) => {
         setComboCart(prev => {
             const currentQty = prev[comboId] || 0;
             const newQty = currentQty + delta;
-
-            // Nếu giảm xuống dưới 0 thì coi như xóa khỏi giỏ
             if (newQty <= 0) {
                 const newCart = { ...prev };
                 delete newCart[comboId];
                 return newCart;
             }
-
             return { ...prev, [comboId]: newQty };
         });
     };
 
     // TÍNH TIỀN COMBO & TỔNG BILL
     const totalComboPrice = combos.reduce((total, combo) => {
-        const qty = comboCart[combo.id] || 0;
-        return total + (combo.price * qty);
+        const qty = comboCart[combo.comboId] || 0;
+        return total + (Number(combo.price) * qty);
     }, 0);
 
     const finalTotalPrice = totalTicketPrice + totalComboPrice;
-
+    let startTimeDisplay = showtimeInfo?.startTime ? showtimeInfo.startTime.substring(11, 16) : '...';
+    let dateDisplay = '...';
+    if (showtimeInfo && showtimeInfo.startTime) {
+        const dateObj = new Date(showtimeInfo.startTime.replace('Z', ''));
+        const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+        dateDisplay = `${dayNames[dateObj.getDay()]}, ${dateObj.toLocaleDateString('vi-VN')}`;
+    }
     return (
         <div className="w-full bg-gray-50 min-h-screen pb-20">
 
@@ -72,11 +82,11 @@ export default function FoodSelection() {
                     ) : (
                         <div className="flex flex-col gap-6">
                             {combos.map(combo => {
-                                const quantity = comboCart[combo.id] || 0;
+                                const quantity = comboCart[combo.comboId] || 0;
                                 return (
-                                    <div key={combo.id} className="flex gap-6 items-center border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+                                    <div key={combo.comboId} className="flex gap-6 items-center border-b border-gray-100 pb-6 last:border-0 last:pb-0">
                                         <img
-                                            src={combo.image_url || 'https://via.placeholder.com/150'}
+                                            src={combo.imageUrl || 'https://via.placeholder.com/150'}
                                             alt={combo.name}
                                             className="w-24 h-24 object-cover rounded-md mix-blend-multiply border"
                                         />
@@ -91,12 +101,12 @@ export default function FoodSelection() {
 
                                         <div className="flex items-center gap-4 bg-gray-50 border border-gray-200 rounded px-2 py-1">
                                             <button
-                                                onClick={() => updateQuantity(combo.id, -1)}
+                                                onClick={() => updateQuantity(combo.comboId, -1)}
                                                 className="w-6 h-6 flex justify-center items-center font-bold text-gray-500 hover:text-[#f26b38]"
                                             >-</button>
                                             <span className="text-[14px] font-semibold text-gray-800 w-4 text-center">{quantity}</span>
                                             <button
-                                                onClick={() => updateQuantity(combo.id, 1)}
+                                                onClick={() => updateQuantity(combo.comboId, 1)}
                                                 className="w-6 h-6 flex justify-center items-center font-bold text-gray-500 hover:text-[#f26b38]"
                                             >+</button>
                                         </div>
@@ -108,78 +118,89 @@ export default function FoodSelection() {
                 </div>
 
                 {/* CỘT PHẢI: BILL THANH TOÁN (STICKY) */}
-                <div className="w-full lg:w-[350px]">
-                    <div className="bg-white p-4 rounded-lg shadow-sm sticky top-4">
+                <BookingSummary
+                    showtimeInfo={showtimeInfo}
+                    roomInfo={roomInfo}
+                    startTimeDisplay={startTimeDisplay}
+                    dateDisplay={dateDisplay}
+                    selectedSeats={selectedSeats}
+                    totalPrice={finalTotalPrice}
+                    remainingSeconds={bookingData.remainingSeconds || 600}
+                    expireAt={expireAt}
+                    onTimeout={() => {
+                        alert("Đã hết thời gian giữ ghế! Vui lòng chọn lại từ đầu.");
+                        navigate(`/dat-ve/${id}/chon-ghe`); 
+                    }}
+                    combos={combos}
+                    comboCart={comboCart}
 
-                        <div className="flex gap-4 mb-4">
-                            <img src={showtime?.movie?.poster_url || 'https://picsum.photos/id/1043/400/600'} alt={showtime?.movie?.title || 'Poster'} className="w-24 rounded object-cover" />
-                            <div>
-                                <h3 className="font-bold text-gray-800 text-[15px] mb-1">{showtime?.movie?.title || 'Đang tải...'}</h3>
-                                <p className="text-gray-500 text-[13px] mb-1">
-                                    {showtime?.format === '2d' ? '2D' : showtime?.format?.toUpperCase()}
-                                    {showtime?.subtitle_type === 'subtitled' ? ' Phụ đề' : (showtime?.subtitle_type === 'dubbed' ? ' Lồng tiếng' : '')}
-                                    <span className="bg-[#f26b38] text-white px-1 py-0.5 rounded text-[10px] font-bold ml-1">
-                                        {showtime?.movie?.age_rating || 'C16'}
-                                    </span>
-                                </p>
-                            </div>
-                        </div>
+                    onBack={() => navigate(-1)}
+                    onNext={async () => {
+                        const rawToken = localStorage.getItem('access_token');
+                        const isValidToken = rawToken && rawToken !== 'null' && rawToken !== 'undefined';
 
-                        <div className="text-[14px] text-gray-700 font-medium mb-1">
-                            <span className="font-bold">{showtime?.room?.cinema?.name || 'VieCinema'}</span> - {showtime?.room?.name || 'Đang tải...'}
-                        </div>
-                        <div className="text-[14px] text-gray-700 mb-4">
-                            Suất: <span className="font-bold">
-                                {showtime?.start_time ? new Date(showtime.start_time.replace('Z', '')).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '...'}
-                            </span> - <span className="font-bold">
-                                {showtime?.start_time ? new Date(showtime.start_time.replace('Z', '')).toLocaleDateString('vi-VN', {
-                                    weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit'
-                                }) : '...'}
-                            </span>
-                        </div>
+                        // LUỒNG KHÁCH VÃNG LAI: CHƯA TẠO VÉ VỘI
+                        if (!isValidToken) {
+                            console.log("Khách vãng lai -> Chuyển sang trang Thanh Toán để điền thông tin!");
+                            navigate(`/dat-ve/${id}/thanh-toan`, {
+                                state: {
+                                    selectedSeats,
+                                    comboCart,
+                                    combos,
+                                    finalTotalPrice,
+                                    showtimeInfo,
+                                    roomInfo,
+                                    expireAt,
+                                    isGuest: true 
+                                }
+                            });
+                            return; 
+                        }
 
-                        <div className="border-t border-dashed border-gray-300 pt-4 mb-4 text-[14px] text-gray-700">
-                            {/* Hiển thị tiền vé */}
-                            <div className="flex justify-between mb-1">
-                                <span>{selectedSeats.length}x Ghế</span>
-                                <span className="font-bold">{totalTicketPrice.toLocaleString('vi-VN')} đ</span>
-                            </div>
-                            <div className="text-sm text-gray-500 mb-3">Ghế: <span className="font-bold text-gray-800">{selectedSeats.map((s: any) => s.seat_name).join(', ')}</span></div>
+                        // LUỒNG USER (ĐÃ ĐĂNG NHẬP): TẠO VÉ LUÔN
+                        try {
+                            const payload = {
+                                showtimeId: Number(id),
+                                seatIds: selectedSeats.map((seat: any) => seat.id || seat.seatId),
+                                combos: Object.keys(comboCart).map(comboId => ({
+                                    comboId: Number(comboId),
+                                    quantity: comboCart[Number(comboId)]
+                                }))
+                            };
 
-                            {/* Hiển thị tiền Combo (Chỉ hiện khi có mua) */}
-                            {combos.map(combo => {
-                                const qty = comboCart[combo.id];
-                                if (!qty) return null;
-                                return (
-                                    <div key={combo.id} className="flex justify-between mb-1">
-                                        <span>{qty}x {combo.name}</span>
-                                        <span className="font-bold">{(combo.price * qty).toLocaleString('vi-VN')} đ</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                            console.log("Đang gửi yêu cầu tạo vé cho User:", payload);
+                            const response = await bookingService.createBooking(payload);
 
-                        <div className="border-t border-dashed border-gray-300 my-4"></div>
+                            const newBookingId = response.data?.bookingId || response.data?.id || response.data?.data?.bookingId;
 
-                        <div className="flex justify-between items-center mb-6">
-                            <span className="font-bold text-gray-800">Tổng cộng</span>
-                            <span className="text-2xl font-bold text-[#f26b38]">
-                                {finalTotalPrice.toLocaleString('vi-VN')} đ
-                            </span>
-                        </div>
+                            if (!newBookingId) {
+                                alert("Không thể tạo vé lúc này. Vui lòng thử lại!");
+                                return;
+                            }
 
-                        <div className="flex gap-4">
-                            <button onClick={() => navigate(-1)} className="w-1/2 py-2 text-[#f26b38] border border-[#f26b38] rounded font-semibold hover:bg-[#fff5f2]">Quay lại</button>
-                            <button
-                                onClick={() => navigate(`/dat-ve/${id}/thanh-toan`, { state: { selectedSeats, comboCart, finalTotalPrice } })} className="w-1/2 py-2 rounded text-white font-semibold transition-colors bg-[#f26b38] hover:bg-[#d95c2b]"
-                            >
-                                Tiếp tục
-                            </button>
-                        </div>
+                            console.log("Tạo vé thành công! ID:", newBookingId);
 
-                    </div>
-                </div>
+                            navigate(`/dat-ve/${id}/thanh-toan`, {
+                                state: {
+                                    selectedSeats,
+                                    comboCart,
+                                    combos,
+                                    finalTotalPrice,
+                                    showtimeInfo,
+                                    roomInfo,
+                                    expireAt,
+                                    bookingId: newBookingId, 
+                                    isGuest: false
+                                }
+                            });
 
+                        } catch (error: any) {
+                            console.error("Lỗi tạo vé:", error);
+                            alert("Có lỗi xảy ra khi tạo vé: " + (error.response?.data?.message || "Lỗi mạng"));
+                        }
+                    }}
+                    nextLabel="Tiếp tục"
+                />
             </div>
         </div>
     );

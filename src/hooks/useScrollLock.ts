@@ -4,7 +4,6 @@ export default function useScrollLock(isLocked: boolean) {
   useEffect(() => {
     if (!isLocked) return;
 
-    // 1. Tính độ rộng của thanh cuộn trên máy người dùng
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
 
     const originalOverflow = document.body.style.overflow;

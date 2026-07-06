@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { bookingService } from '../services/bookingService';
 
 export const useHoldSeats = () => {
     const [isHolding, setIsHolding] = useState(false);
@@ -7,13 +7,9 @@ export const useHoldSeats = () => {
     const holdSeats = async (showtimeId: string | undefined, seatIds: number[]) => {
         setIsHolding(true);
         try {
-            const token = localStorage.getItem('access_token');
-            await axios.post(
-                'https://webxemphim-sbim.onrender.com/api/v1/bookings/hold',
-                { showtime_id: showtimeId, seat_ids: seatIds },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            return { success: true };
+            const response = await bookingService.holdSeats(showtimeId || '', seatIds);
+            const remainingSeconds = response.data?.data?.remainingSeconds || 600;
+            return { success: true, remainingSeconds };
         } catch (error: any) {
             const errorMsg = error.response?.data?.message || 'Có lỗi xảy ra khi giữ ghế!';
             return { success: false, message: errorMsg };

@@ -6,11 +6,11 @@ import Promotion from '../components/News/Promotion';
 export default function HomePage() {
   return (
     // Phần thẻ <main> được bê nguyên từ App.tsx sang đây
-    <main className="w-full mx-auto px-4 py-8">
+    <main className="w-full mx-auto">
       <HeroSection />
       <MovieList />
       <CinemaCorner />
       <Promotion />
     </main>
-  );  
+  );
 }

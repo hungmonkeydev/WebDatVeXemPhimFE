@@ -1,6 +1,5 @@
 import React from 'react';
 
-// 1. ĐỊNH NGHĨA KIỂU DỮ LIỆU CHO PROPS
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'outline' | 'secondary' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
