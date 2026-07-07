@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Tag, Input, Form, Modal, Select, Popconfirm, message, Tooltip, InputNumber } from 'antd';
-import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
+import {
+    Table, Button, Space, Tag, Input, Form, Modal, Select, Popconfirm,
+    message, Tooltip, InputNumber, Descriptions, Badge, Switch
+} from 'antd';
+import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined, LockOutlined, UnlockOutlined, EyeOutlined } from '@ant-design/icons';
 import { userService } from '../../services/userService';
+import { CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons';
 
 interface UserType {
     userId: number;
@@ -11,6 +15,10 @@ interface UserType {
     role: string;
     gender: string;
     isActive: boolean;
+    emailVerified: boolean;
+    phoneVerified: boolean;
+    birthDate?: string;
+    membershipTierId?: number;
 }
 
 export default function UserManage() {
@@ -29,11 +37,27 @@ export default function UserManage() {
     const [banningUser, setBanningUser] = useState<UserType | null>(null);
     const [banForm] = Form.useForm();
 
+    // Thông tin user
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [userDetail, setUserDetail] = useState<any>(null);
+    const [isFetchingDetail, setIsFetchingDetail] = useState(false);
+    const showDetailModal = async (userId: number) => {
+        setIsDetailModalOpen(true);
+        setIsFetchingDetail(true);
+        try {
+            const res = await userService.getUserDetail(userId);
+            setUserDetail(res.data.data);
+        } catch (error) {
+            message.error("Không thể lấy thông tin chi tiết!");
+            setIsDetailModalOpen(false);
+        } finally {
+            setIsFetchingDetail(false);
+        }
+    };
     // Hàm load data
     const fetchUsers = async (page: number, size: number) => {
         setIsLoading(true);
         try {
-            console.log(`👉 Đang gọi API trang ${page}, size ${size}...`);
 
             const res = await userService.getUsers(page, size);
             if (res && res.data) {
@@ -77,30 +101,63 @@ export default function UserManage() {
         try {
             const values = await form.validateFields();
 
-            const submitData = {
-                fullName: values.fullName,
-                email: values.email,
-                phone: values.phone,
-                role: values.role,
-                gender: values.gender,
-                password: values.password
-            };
-
             if (editingUser) {
-                await userService.updateUser(editingUser.userId, submitData);
-                message.success("Cập nhật thành công!");
+                // 1. GỌI API CẬP NHẬT THÔNG TIN CƠ BẢN (8 trường)
+                const updatePayload = {
+                    fullName: values.fullName,
+                    email: values.email,
+                    phone: values.phone,
+                    gender: values.gender,
+                    birthDate: values.birthDate ? values.birthDate : null,
+                    isActive: values.isActive ?? true,
+                    emailVerified: values.emailVerified ?? false,
+                    phoneVerified: values.phoneVerified ?? false,
+                    membershipTierId: values.membershipTierId
+                };
+
+                await userService.updateUser(editingUser.userId, updatePayload);
+
+                // 2. GỌI THÊM API CẬP NHẬT ROLE (Nếu Admin có thay đổi)
+                if (values.role !== editingUser.role) {
+                    try {
+                        // Lưu ý: Tùy backend của Hưng yêu cầu gửi { role: "ADMIN" } hay sao nhé. 
+                        // Tui đang ví dụ dạng JSON phổ biến nhất:
+                        await userService.updateUserRole(editingUser.userId, { role: values.role });
+                    } catch (roleError) {
+                        console.error("Lỗi cập nhật Role:", roleError);
+                        message.warning("Đã cập nhật thông tin, nhưng lỗi khi đổi Vai trò!");
+                    }
+                }
+
+                message.success("Cập nhật thông tin thành công!");
             } else {
-                await userService.createUser(submitData);
-                message.success("Thêm mới thành công!");
+                // TRƯỜNG HỢP THÊM MỚI (Giữ nguyên)
+                const createPayload = { ...values };
+                if (!createPayload.birthDate) createPayload.birthDate = null;
+
+                await userService.createUser(createPayload);
+                message.success("Thêm tài khoản mới thành công!");
             }
+
             setIsModalOpen(false);
             fetchUsers(currentPage, pageSize);
 
         } catch (error: any) {
             console.log("Chi tiết lỗi:", error);
-            if (error.response && error.response.data) {
-                const errorMessage = error.response.data.message || "Có lỗi xảy ra!";
-                message.error(errorMessage);
+
+            const responseData = error.response?.data;
+
+            // Backend trả lỗi field trong responseData.data (object dạng {field: message})
+            if (responseData?.data && typeof responseData.data === 'object' && !Array.isArray(responseData.data)) {
+                const backendErrors = responseData.data;
+                form.setFields(
+                    Object.keys(backendErrors).map((field) => ({
+                        name: field,
+                        errors: [backendErrors[field]],
+                    }))
+                );
+            } else if (responseData?.message) {
+                message.error(responseData.message);
             } else if (error.errorFields) {
                 message.warning("Vui lòng điền đầy đủ các thông tin bắt buộc!");
             } else {
@@ -130,14 +187,21 @@ export default function UserManage() {
                     reason: values.reason,
                     lockDurationHours: values.lockDurationHours
                 });
-                console.log("👉 BƯỚC 4: Kết quả server trả về:", res);
-
                 message.success(`Đã khóa tài khoản ${banningUser.fullName} thành công!`);
                 setIsBanModalOpen(false);
                 fetchUsers(currentPage, pageSize);
             }
         } catch (error: any) {
             message.error(error.response?.data?.message || "Lỗi khi khóa tài khoản!");
+        }
+    };
+    const handleUnban = async (userId: number) => {
+        try {
+            await userService.unBanUser(userId);
+            message.success("Đã mở khóa tài khoản thành công!");
+            fetchUsers(currentPage, pageSize);
+        } catch (error: any) {
+            message.error(error.response?.data?.message || "Mở khóa thất bại!");
         }
     };
     const columns = [
@@ -170,16 +234,27 @@ export default function UserManage() {
                     <Tooltip title="Chỉnh sửa">
                         <Button type="text" icon={<EditOutlined className="text-blue-500" />} onClick={() => showModal(record)} />
                     </Tooltip>
-                    <Tooltip title={record.isActive ? "Khóa tài khoản" : "Tài khoản đang bị khóa"}>
-                        <Button
-                            type="text"
-                            icon={
-                                record.isActive
-                                    ? <UnlockOutlined className="text-green-500" />   // Đang hoạt động -> khóa mở
-                                    : <LockOutlined className="text-red-500" />        // Đang bị khóa -> khóa đóng
-                            }
-                            onClick={() => showBanModal(record)}
-                        />
+                    {record.isActive ? (
+                        // Đang hoạt động -> hiện khóa MỞ, 
+                        <Tooltip title="Khóa tài khoản">
+                            <Button
+                                type="text"
+                                icon={<UnlockOutlined className="text-green-500" />}
+                                onClick={() => showBanModal(record)}
+                            />
+                        </Tooltip>
+                    ) : (
+                        // Đang bị khóa -> hiện khóa ĐÓNG
+                        <Tooltip title="Mở khóa tài khoản">
+                            <Button
+                                type="text"
+                                icon={<LockOutlined className="text-red-500" />}
+                                onClick={() => handleUnban(record.userId)}
+                            />
+                        </Tooltip>
+                    )}
+                    <Tooltip title="Xem chi tiết">
+                        <Button type="text" icon={<EyeOutlined className="text-green-500" />} onClick={() => showDetailModal(record.userId)} />
                     </Tooltip>
                     <Popconfirm
                         title="Cảnh báo"
@@ -233,14 +308,10 @@ export default function UserManage() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <Form.Item
-                            name="email"
-                            label="Email"
+                            name="email" label="Email"
                             rules={[
                                 { required: true, message: 'Vui lòng nhập email!' },
-                                {
-                                    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                    message: 'Email không đúng định dạng!'
-                                }
+                                { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Email không đúng định dạng!' }
                             ]}
                         >
                             <Input placeholder="Email" disabled={!!editingUser} />
@@ -252,19 +323,47 @@ export default function UserManage() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <Form.Item name="role" label="Vai trò" rules={[{ required: true, message: 'Vui lòng chọn vai trò!' }]}>
-                            <Select options={[
-                                { value: 'CUSTOMER', label: 'Khách hàng' },
-                                { value: 'ADMIN', label: 'Quản trị viên' }
-                            ]} />                        </Form.Item>
+                            <Select options={[{ value: 'CUSTOMER', label: 'Khách hàng' }, { value: 'ADMIN', label: 'Quản trị viên' }]} />
+                        </Form.Item>
                         <Form.Item name="gender" label="Giới tính" rules={[{ required: true }]}>
                             <Select options={[{ value: 'MALE', label: 'Nam' }, { value: 'FEMALE', label: 'Nữ' }, { value: 'OTHER', label: 'Khác' }]} />
                         </Form.Item>
                     </div>
 
+                    {/* KHÚC NÀY MỚI THÊM: Ngày sinh và hạng thành viên */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <Form.Item name="birthDate" label="Ngày sinh">
+                            <Input type="date" className="w-full" />
+                        </Form.Item>
+                        <Form.Item name="membershipTierId" label="Hạng thành viên">
+                            {/* Chỗ này Hưng có thể chỉnh lại số ID hạng theo DB thực tế của Hưng nhé */}
+                            <Select options={[
+                                { value: 1, label: 'Thành viên Đồng' },
+                                { value: 2, label: 'Thành viên Bạc' },
+                                { value: 3, label: 'Thành viên Vàng' }
+                            ]} placeholder="Chọn hạng..." allowClear />
+                        </Form.Item>
+                    </div>
+
                     {!editingUser && (
                         <Form.Item name="password" label="Mật khẩu" rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}>
-                            <Input.Password placeholder="Nhập mật khẩu cho tài khoản mới" autoComplete="new-password" />
+                            <Input.Password placeholder="Nhập mật khẩu" autoComplete="new-password" />
                         </Form.Item>
+                    )}
+
+                    {/* KHÚC NÀY CHỈ HIỆN KHI LÀ CHẾ ĐỘ SỬA: Cho phép Admin tick xác thực tay */}
+                    {editingUser && (
+                        <div className="grid grid-cols-3 gap-4 border-t pt-4 mt-2">
+                            <Form.Item name="isActive" label="Hoạt động" valuePropName="checked">
+                                <Switch checkedChildren="Bật" unCheckedChildren="Tắt" />
+                            </Form.Item>
+                            <Form.Item name="emailVerified" label="Xác thực Email" valuePropName="checked">
+                                <Switch checkedChildren="Đã XN" unCheckedChildren="Chưa" />
+                            </Form.Item>
+                            <Form.Item name="phoneVerified" label="Xác thực SĐT" valuePropName="checked">
+                                <Switch checkedChildren="Đã XN" unCheckedChildren="Chưa" />
+                            </Form.Item>
+                        </div>
                     )}
                 </Form>
                 {/* ====== MODAL KHÓA TÀI KHOẢN ====== */}
@@ -290,6 +389,78 @@ export default function UserManage() {
                     </Form>
                 </Modal>
             )}
+            {/* ====== MODAL CHI TIẾT USER ====== */}
+            <Modal
+                title={<span className="text-lg font-bold">Hồ sơ khách hàng</span>}
+                open={isDetailModalOpen}
+                onCancel={() => setIsDetailModalOpen(false)}
+                footer={[<Button key="close" type="primary" onClick={() => setIsDetailModalOpen(false)}>Đóng</Button>]}
+                width={750}
+                destroyOnHidden
+            >
+                {isFetchingDetail ? (
+                    <p className="text-center my-10">Đang tải dữ liệu...</p>
+                ) : userDetail && (
+                    <Descriptions bordered column={2} size="small" className="mt-4">
+                        {/* Thông tin cơ bản */}
+                        <Descriptions.Item label="Họ và tên" span={2}>
+                            <b className="text-base">{userDetail.fullName}</b>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Email">{userDetail.email}</Descriptions.Item>
+                        <Descriptions.Item label="Số điện thoại">{userDetail.phone}</Descriptions.Item>
+
+                        <Descriptions.Item label="Ngày sinh">
+                            {userDetail.birthDate ? new Date(userDetail.birthDate).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Giới tính">
+                            {userDetail.gender === 'MALE' ? 'Nam' : userDetail.gender === 'FEMALE' ? 'Nữ' : 'Khác'}
+                        </Descriptions.Item>
+
+                        {/* Thông tin thẻ thành viên */}
+                        <Descriptions.Item label="Hạng thành viên">
+                            <Tag color="gold" className="font-bold">{userDetail.membershipTierName}</Tag>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Ngày gia nhập">
+                            {userDetail.memberSince ? new Date(userDetail.memberSince).toLocaleDateString('vi-VN') : 'Chưa có'}
+                        </Descriptions.Item>
+
+                        <Descriptions.Item label="Điểm tích lũy">
+                            <b className="text-blue-600">{userDetail.loyaltyPoints}</b> điểm
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Tổng chi tiêu">
+                            <b className="text-red-500">{userDetail.totalSpent?.toLocaleString()} VNĐ</b>
+                        </Descriptions.Item>
+
+                        {/* Thông tin hệ thống */}
+                        <Descriptions.Item label="Trạng thái tài khoản">
+                            {userDetail.isActive ? <Badge status="success" text="Đang hoạt động" /> : <Badge status="error" text="Đang khóa" />}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Xác thực">
+                            Email: {userDetail.emailVerified
+                                ? <CheckCircleFilled style={{ color: '#52c41a' }} />
+                                : <CloseCircleFilled style={{ color: '#ff4d4f' }} />
+                            }
+                            {' '}| SĐT: {userDetail.phoneVerified
+                                ? <CheckCircleFilled style={{ color: '#52c41a' }} />
+                                : <CloseCircleFilled style={{ color: '#ff4d4f' }} />
+                            }                        </Descriptions.Item>
+
+                        <Descriptions.Item label="Đăng nhập sai">
+                            <b className="text-orange-500">{userDetail.failedLoginAttempts} lần</b>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Lần đăng nhập cuối">
+                            {userDetail.lastLoginAt ? new Date(userDetail.lastLoginAt).toLocaleString('vi-VN') : 'Chưa từng ĐN'}
+                        </Descriptions.Item>
+
+                        <Descriptions.Item label="Ngày tạo tài khoản">
+                            {userDetail.createdAt ? new Date(userDetail.createdAt).toLocaleString('vi-VN') : ''}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Khóa đến lúc">
+                            {userDetail.lockedUntil ? <span className="text-red-500 font-bold">{new Date(userDetail.lockedUntil).toLocaleString('vi-VN')}</span> : 'Không bị khóa'}
+                        </Descriptions.Item>
+                    </Descriptions>
+                )}
+            </Modal>
         </div>
 
     );
