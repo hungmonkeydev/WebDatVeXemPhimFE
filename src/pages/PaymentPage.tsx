@@ -37,7 +37,7 @@ export default function PaymentPage() {
         showtimeInfo,
         roomInfo,
         expireAt,
-        isGuest 
+        isGuest
     } = bookingData;
 
     let startTimeDisplay = '...';
@@ -84,16 +84,16 @@ export default function PaymentPage() {
 
             setGuestErrors(newErrors);
 
-            if (!isValid) return; 
+            if (!isValid) return;
         }
 
         // HIỆN BẢNG XÁC NHẬN (CONFIRM)
         const userConfirmed = window.confirm(
             "Vui lòng kiểm tra lại thông tin ghế, bắp nước và thông tin liên hệ 1 lần nữa.\n\nBạn đã chắc chắn muốn tiến hành thanh toán?"
         );
-        
+
         if (!userConfirmed) {
-            return; 
+            return;
         }
 
         // GỌI API TẠO VÉ VÀ VNPAY
@@ -137,7 +137,7 @@ export default function PaymentPage() {
 
             const vnpayUrl = response.data?.data?.paymentUrl || response.data?.paymentUrl || response.data?.url;
             if (vnpayUrl && vnpayUrl.startsWith('http')) {
-                window.location.href = vnpayUrl; 
+                window.location.href = vnpayUrl;
             } else {
                 alert("Không tìm thấy đường link thanh toán từ Backend trả về!");
             }
@@ -184,7 +184,7 @@ export default function PaymentPage() {
                                         value={guestInfo.fullName}
                                         onChange={(e) => {
                                             setGuestInfo({ ...guestInfo, fullName: e.target.value });
-                                            setGuestErrors({ ...guestErrors, fullName: '' }); 
+                                            setGuestErrors({ ...guestErrors, fullName: '' });
                                         }}
                                         placeholder="VD: Nguyễn Văn A"
                                         className={`w-full border rounded px-4 py-2 focus:outline-none ${guestErrors.fullName ? 'border-red-500 bg-red-50 focus:border-red-500' : 'border-gray-300 focus:border-[#f26b38]'}`}
@@ -237,11 +237,57 @@ export default function PaymentPage() {
                                 </div>
                             </div>
                             <div className="border-t border-gray-200 my-4"></div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Áp dụng điểm Stars</label>
-                                <div className="flex gap-4">
-                                    <input type="number" value={points} onChange={(e) => setPoints(e.target.value)} placeholder="0" className="flex-1 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-[#f26b38]" />
-                                    <button onClick={() => alert(`Đang trừ: ${points} điểm`)} className="bg-[#f26b38] hover:bg-[#d95c2b] text-white font-semibold px-6 py-2 rounded">Áp Dụng</button>
+                            <div className="mb-6">
+                                <div className="flex justify-between items-end mb-2">
+                                    <label className="block text-sm font-semibold text-gray-700">
+                                        Áp dụng điểm Stars
+                                    </label>
+                                    <span className="text-xs text-gray-500">
+                                        Khả dụng: <strong className="text-[#f26b38]">{10}</strong> điểm
+                                    </span>
+                                </div>
+
+                                {/* Ô nhập điểm và nút Áp dụng */}
+                                <div className="flex gap-4 mb-3">
+                                    <input
+                                        type="number"
+                                        value={points}
+                                        onChange={(e) => setPoints(e.target.value)}
+                                        placeholder="Nhập số điểm cần dùng..."
+                                        className="flex-1 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-[#f26b38]"
+                                    />
+                                    <button
+                                        onClick={() => alert(`Đang trừ: ${points} điểm`)}
+                                        className="bg-[#f26b38] hover:bg-[#d95c2b] text-white font-semibold px-6 py-2 rounded transition-colors"
+                                    >
+                                        Áp Dụng
+                                    </button>
+                                </div>
+
+                                {/* BẢNG HƯỚNG DẪN DÀNH CHO KHÁCH HÀNG Ở ĐÂY */}
+                                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-md">
+                                    <h4 className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-1">
+                                        <span>⭐</span> Thông tin điểm Stars
+                                    </h4>
+                                    <ul className="text-[13px] text-blue-700 list-disc pl-5 space-y-1.5">
+                                        <li><strong>Tỷ lệ quy đổi:</strong> 1 điểm Star = 1.000 VNĐ.</li>
+                                        <li>Điểm Stars có thể dùng để giảm giá trực tiếp vào tổng hóa đơn mua vé và bắp nước.</li>
+                                        <li>Tích lũy thêm điểm thưởng sau mỗi giao dịch hoàn tất (1 điểm cho mỗi 10.000 VNĐ thanh toán).</li>
+                                        <li>
+                                            <strong>Đặc quyền chiết khấu theo hạng thành viên:</strong>
+                                            <ul className="list-[circle] pl-5 mt-1 space-y-1 text-blue-800">
+                                                <li>
+                                                    <span className="font-bold text-slate-500">Silver:</span> Giảm 5% (Yêu cầu đạt 1.000 điểm)
+                                                </li>
+                                                <li>
+                                                    <span className="font-bold text-yellow-600">Gold:</span> Giảm 10% (Yêu cầu đạt 5.000 điểm)
+                                                </li>
+                                                <li>
+                                                    <span className="font-bold text-cyan-600">Diamond:</span> Giảm 15% (Yêu cầu đạt 10.000 điểm)
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>

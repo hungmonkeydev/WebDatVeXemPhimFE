@@ -4,7 +4,7 @@ import { useMovieDetail } from '../hooks/useMovieDetail';
 import { useMovies } from '../hooks/useMovies';
 import { useShowtimes } from '../hooks/useShowtimes';
 import Spinner from '../components/ui/Spinner';
-
+import MovieReviews from '../components/Movie/MovieReviews';
 export default function MovieDetail() {
 
     const { id } = useParams();
@@ -21,7 +21,6 @@ export default function MovieDetail() {
             const d = new Date();
             d.setDate(d.getDate() + i);
             const dayLabel = i === 0 ? 'Hôm Nay' : dayNames[d.getDay()];
-            // Tách biến ra cho dễ đọc, đỡ bị rối mắt
             const day = String(d.getDate()).padStart(2, '0');
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const year = d.getFullYear();
@@ -79,10 +78,9 @@ export default function MovieDetail() {
             <div className="max-w-6xl mx-auto px-4 grid grid-cols-12 gap-8 relative">
                 <div className="col-span-12 lg:col-span-9">
 
-                    {/* ====== THAY THẾ TOÀN BỘ KHỐI THÔNG TIN PHIM BẰNG ĐOẠN GRID NÀY ====== */}
                     <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[140px_1fr] md:grid-cols-12 gap-x-4 gap-y-4 md:gap-8">
 
-                        {/* 1. POSTER (Mobile: Cột 1, PC: Cột 1-4 & chiếm 2 hàng) */}
+                        {/* 1. POSTER */}
                         <div className="col-span-1 md:col-span-4 md:row-span-2 -mt-10 md:-mt-40 z-20 shrink-0">
                             <img
                                 src={movie.posterUrl}
@@ -91,7 +89,7 @@ export default function MovieDetail() {
                             />
                         </div>
 
-                        {/* 2. THÔNG TIN CƠ BẢN (Mobile: Cột 2, PC: Cột 5-12 Hàng 1) */}
+                        {/* 2. THÔNG TIN CƠ BẢN */}
                         <div className="col-span-1 md:col-start-5 md:col-span-8 pt-2 md:pt-6">
                             <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-1.5 md:mb-2">
                                 <h1 className="text-xl md:text-3xl font-bold text-gray-800 leading-tight">{movie.title}</h1>
@@ -110,7 +108,7 @@ export default function MovieDetail() {
                             </div>
                         </div>
 
-                        {/* 3. THÔNG TIN CHI TIẾT (Mobile: Tràn 2 cột xuống dòng dưới, PC: Cột 5-12 Hàng 2) */}
+                        {/* 3. THÔNG TIN CHI TIẾT*/}
                         <div className="col-span-2 md:col-start-5 md:col-span-8 flex flex-col gap-3 md:gap-4 text-[13px] md:text-[15px] text-gray-700 mt-2 md:mt-0">
                             <div className="flex gap-2 md:gap-4">
                                 <span className="text-gray-500 w-20 md:w-28 shrink-0">Nhà sản xuất:</span>
@@ -195,7 +193,6 @@ export default function MovieDetail() {
                                         }
                                         className="appearance-none border border-gray-300 rounded w-full px-4 py-2 text-sm outline-none cursor-pointer focus:border-[#f26b38] bg-white">
                                         <option value="Tất cả">Toàn quốc</option>
-                                        {/* Tự động in thành phố từ DB, XÓA HẾT MẤY CÁI OPTION CŨ ĐI NHA */}
                                         {uniqueCities.map((city: any, idx: number) => (
                                             <option key={idx} value={city}>{city}</option>
                                         ))}
@@ -255,6 +252,12 @@ export default function MovieDetail() {
                             )}
                         </div>
                     </div>
+                    <div className="mt-10">
+                        <MovieReviews
+                            movieId={movie?.movieId}
+                            movieTitle={movie?.movieName}
+                        />
+                    </div>
                 </div>
 
                 {/* ================= CỘT PHẢI (3 PHẦN): SIDEBAR ================= */}
@@ -290,7 +293,6 @@ export default function MovieDetail() {
                     </div>
 
                     <div className="mt-6 flex justify-center">
-                        {/* GẮN LINK CHO NÚT XEM THÊM CHUYỂN VỀ TRANG DANH SÁCH PHIM */}
                         <button onClick={() => navigate('/movies')} className="border border-[#f26b38] text-[#f26b38] hover:bg-[#f26b38] hover:text-white transition-colors duration-300 w-full py-2 rounded text-[14px] flex items-center justify-center gap-2">
                             Xem thêm
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>

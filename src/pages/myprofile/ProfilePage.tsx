@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { userService } from '../services/userService';
-import Button from '../components/ui/Button';
-import Toast from '../components/ui/Toast';
-import Spinner from '../components/ui/Spinner';
+import { userService } from '../../services/userService';
+import Button from '../../components/ui/Button';
+import Toast from '../../components/ui/Toast';
+import Spinner from '../../components/ui/Spinner';
 import MyTicketsPage from './MyTicketsPage';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useLoyaltyProgress } from '../../hooks/useLoyaltyProgress';
+import LoyaltyHistory from './LoyaltyHistory';
 export default function Profile() {
     const location = useLocation();
     const navigate = useNavigate();
-
+    const { progressData } = useLoyaltyProgress();
     const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'thong-tin');
     const [profileData, setProfileData] = useState<any>(null);
     const [formData, setFormData] = useState({
@@ -94,12 +96,35 @@ export default function Profile() {
 
     const tabs = [
         { id: 'lich-su', label: 'Lịch Sử Giao Dịch' },
+        { id: 'lich-su-tich-diem', label: 'Lịch sử tích điểm' },
+
         { id: 'thong-tin', label: 'Thông Tin Cá Nhân' },
         { id: 'thong-bao', label: 'Thông Báo' },
         { id: 'qua-tang', label: 'Quà Tặng' }
     ];
-    const totalSpent = profileData?.statistics?.totalSpent || 0;
-    const progressPercent = Math.min((totalSpent / 4000000) * 100, 100);
+    const currentPts = progressData?.currentPoints || 0;
+    const totalSpent = currentPts * 10000;
+
+    // 2. Tính % thanh Tiến độ (Dùng thuật toán nội suy từng chặng)
+    let progressPercent = 0;
+
+    if (totalSpent <= 10000000) {
+        // Chặng 1: Member -> Silver (0 - 10 Tr) | Chiếm 33.33% chiều dài thanh
+        progressPercent = (totalSpent / 10000000) * 33.33;
+    } else if (totalSpent <= 50000000) {
+        // Chặng 2: Silver -> Gold (10 Tr - 50 Tr) | Từ 33.33% đến 66.66%
+        const excess = totalSpent - 10000000; // Số tiền dư ra sau khi đạt Silver
+        const interval = 40000000; // Khoảng cách chặng này là 40 Triệu
+        progressPercent = 33.33 + ((excess / interval) * 33.33);
+    } else if (totalSpent <= 100000000) {
+        // Chặng 3: Gold -> Diamond (50 Tr - 100 Tr) | Từ 66.66% đến 100%
+        const excess = totalSpent - 50000000; // Số tiền dư ra sau khi đạt Gold
+        const interval = 50000000; // Khoảng cách chặng này là 50 Triệu
+        progressPercent = 66.66 + ((excess / interval) * 33.33);
+    } else {
+        // Chặng MAX: Trên 100 Triệu (Diamond)
+        progressPercent = 100;
+    }
     return (
         <div className="min-h-screen bg-[#f4f4f4] py-10 px-4">
             <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-6">
@@ -114,10 +139,12 @@ export default function Profile() {
                             <div>
                                 <h3 className="font-bold text-gray-800 text-[17px]">{formData.fullName || 'Khách hàng'}</h3>
                                 <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
-                                    <span className="text-orange-500">🎁</span> {formData.loyalty_points} Stars
-                                </p>
-                                <span className="text-[10px] font-bold bg-gradient-to-r from-gray-700 to-gray-900 text-white px-2 py-0.5 rounded mt-1 inline-block uppercase">
-                                    {profileData?.membership?.tierName || 'MEMBER'}
+                                    <span className="text-orange-500">🎁</span> {progressData?.currentPoints || 0} Stars                                </p>
+                                <span
+                                    className="text-[10px] font-bold text-white px-2 py-0.5 rounded mt-1 inline-block uppercase shadow-sm"
+                                    style={{ backgroundColor: progressData?.tierColorCode || '#A0A0A0' }}
+                                >
+                                    {progressData?.membershipTierName || 'MEMBER'}
                                 </span>
                             </div>
                         </div>
@@ -128,14 +155,35 @@ export default function Profile() {
                                 <span className="text-gray-700 font-medium text-[15px]">Tổng chi tiêu 2026</span>
                                 <span className="font-bold text-[#f26b38]">{Number(totalSpent).toLocaleString('vi-VN')} ₫</span>
                             </div>
-                            <div className="relative w-full h-1.5 bg-gray-200 rounded-full mb-8 mt-6">
+                            <div className="relative w-full h-1.5 bg-gray-200 rounded-full mb-10 mt-6">
+                                {/* Thanh chạy màu cam */}
                                 <div className="absolute top-0 left-0 h-full bg-[#f26b38] rounded-full" style={{ width: `${progressPercent}%` }}></div>
+
+                                {/* 4 Chấm tròn đánh dấu mốc (Member, Silver, Gold, Diamond) */}
                                 <div className="absolute top-1/2 -translate-y-1/2 left-0 w-4 h-4 bg-white border-2 border-[#f26b38] rounded-full"></div>
-                                <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-4 h-4 bg-white border-2 border-blue-400 rounded-full"></div>
-                                <div className="absolute top-1/2 -translate-y-1/2 right-0 w-4 h-4 bg-white border-2 border-blue-400 rounded-full"></div>
-                                <div className="absolute top-4 left-0 -translate-x-1/2 text-[12px] text-gray-500 whitespace-nowrap">0 ₫</div>
-                                <div className="absolute top-4 left-1/2 -translate-x-1/2 text-[12px] text-gray-500 whitespace-nowrap">2.000.000 ₫</div>
-                                <div className="absolute top-4 right-0 translate-x-1/4 text-[12px] text-gray-500 whitespace-nowrap">4.000.000 ₫</div>
+                                <div className={`absolute top-1/2 -translate-y-1/2 left-[33%] w-4 h-4 bg-white border-2 rounded-full transition-colors duration-300 ${totalSpent >= 10000000 ? 'border-[#f26b38]' : 'border-gray-300'}`}></div>
+                                <div className={`absolute top-1/2 -translate-y-1/2 left-[66%] w-4 h-4 bg-white border-2 rounded-full transition-colors duration-300 ${totalSpent >= 50000000 ? 'border-[#f26b38]' : 'border-gray-300'}`}></div>
+                                <div className={`absolute top-1/2 -translate-y-1/2 right-0 w-4 h-4 bg-white border-2 rounded-full transition-colors duration-300 ${totalSpent >= 100000000 ? 'border-[#f26b38]' : 'border-gray-300'}`}></div>
+                                {/* Chữ hiển thị số tiền dưới các mốc */}
+                                <div className="absolute top-4 left-0 -translate-x-1/4 text-center">
+                                    <div className="text-[10px] font-bold text-gray-400">MEMBER</div>
+                                    <div className="text-[12px] text-gray-500 whitespace-nowrap">0 ₫</div>
+                                </div>
+
+                                <div className="absolute top-4 left-[33%] -translate-x-1/2 text-center">
+                                    <div className="text-[10px] font-bold text-[#C0C0C0]">SILVER</div>
+                                    <div className="text-[12px] text-gray-500 whitespace-nowrap">10 Tr ₫</div>
+                                </div>
+
+                                <div className="absolute top-4 left-[66%] -translate-x-1/2 text-center">
+                                    <div className="text-[10px] font-bold text-[#FFD700]">GOLD</div>
+                                    <div className="text-[12px] text-gray-500 whitespace-nowrap">50 Tr ₫</div>
+                                </div>
+
+                                <div className="absolute top-4 right-0 translate-x-1/4 text-center">
+                                    <div className="text-[10px] font-bold text-[#B9F2FF]">DIAMOND</div>
+                                    <div className="text-[12px] text-gray-500 whitespace-nowrap">100 Tr ₫</div>
+                                </div>
                             </div>
                         </div>
                         <div className='w-full flex flex-col gap-2'>
@@ -298,15 +346,21 @@ export default function Profile() {
                         </div>
                     )}
 
-                    {/* CÁC TAB KHÁC (DỰ PHÒNG CHỜ PHÁT TRIỂN) */}
-                    {activeTab !== 'thong-tin' && (
-                        <div className="p-8 text-center text-gray-400">
-                            Tính năng {tabs.find(t => t.id === activeTab)?.label} đang được nâng cấp!
-                        </div>
-                    )}
+
                     {activeTab === 'lich-su' && (
                         <div className="p-4 md:p-8">
                             <MyTicketsPage />
+                        </div>
+                    )}
+                    {activeTab === 'lich-su-tich-diem' && (
+                        <div className="p-4 md:p-8 bg-gray-50/30">
+                            <LoyaltyHistory />
+                        </div>
+                    )}
+                    {/* CÁC TAB KHÁC (DỰ PHÒNG CHỜ PHÁT TRIỂN) */}
+                    {activeTab !== 'thong-tin' && activeTab !== 'lich-su' && activeTab !== 'lich-su-tich-diem' && (
+                        <div className="p-8 text-center text-gray-400">
+                            Tính năng {tabs.find(t => t.id === activeTab)?.label} đang được nâng cấp!
                         </div>
                     )}
                 </div>

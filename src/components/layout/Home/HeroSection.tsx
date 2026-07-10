@@ -5,11 +5,11 @@ export default function HeroSection() {
   return (
     <section className="relative w-full mb-0 md:mb-10">
       <BannerSlider />
-      <div className="hidden md:block absolute left-0 right-0 md:-bottom-4 z-10">
-        <div className="max-w-6xl mx-auto px-4">
-          <BookingBar />
-        </div>
+
+      <div className="hidden md:block relative z-10 mt-8 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <BookingBar />
       </div>
+
 
     </section>
   );

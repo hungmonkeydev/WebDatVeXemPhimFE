@@ -5,6 +5,7 @@ import { useCombos } from '../hooks/useCombos';
 import { useEffect } from 'react';
 import BookingSummary from '../components/booking/BookingSummary';
 import { bookingService } from '../services/bookingService';
+import api from '../services/api';
 export default function FoodSelection() {
     const navigate = useNavigate();
     const { id } = useParams();
@@ -127,9 +128,17 @@ export default function FoodSelection() {
                     totalPrice={finalTotalPrice}
                     remainingSeconds={bookingData.remainingSeconds || 600}
                     expireAt={expireAt}
-                    onTimeout={() => {
-                        alert("Đã hết thời gian giữ ghế! Vui lòng chọn lại từ đầu.");
-                        navigate(`/dat-ve/${id}/chon-ghe`); 
+                    onTimeout={async () => {
+                        try {
+                            await bookingService.releaseAllSeats();
+                            console.log("Đã gọi API nhả ghế thành công!");
+                        } catch (error) {
+                            console.error("Lỗi khi nhả ghế:", error);
+                        } finally {
+                            alert("Đã hết thời gian giữ ghế! Vui lòng chọn lại từ đầu.");
+                            // Dùng cái này thay cho navigate để F5 lại toàn bộ trang
+                            window.location.href = `/dat-ve/${id}/chon-ghe`;
+                        }
                     }}
                     combos={combos}
                     comboCart={comboCart}
@@ -151,10 +160,10 @@ export default function FoodSelection() {
                                     showtimeInfo,
                                     roomInfo,
                                     expireAt,
-                                    isGuest: true 
+                                    isGuest: true
                                 }
                             });
-                            return; 
+                            return;
                         }
 
                         // LUỒNG USER (ĐÃ ĐĂNG NHẬP): TẠO VÉ LUÔN
@@ -189,7 +198,7 @@ export default function FoodSelection() {
                                     showtimeInfo,
                                     roomInfo,
                                     expireAt,
-                                    bookingId: newBookingId, 
+                                    bookingId: newBookingId,
                                     isGuest: false
                                 }
                             });

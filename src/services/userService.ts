@@ -20,6 +20,14 @@ export const userService = {
   unBanUser: async (userId: number) => {
     return await api.post(`/admin/users/${userId}/unban`);
   },
+  getMyPointsProgress: async () => {
+    const response = await api.get('/loyalty/my-points');
+    return response.data;
+  },
+  getLoyaltyHistory: async () => {
+    const response = await api.get('/loyalty/history');
+    return response.data;
+  },
 
   //Admin 
   getUsers: async (page: number, size: number) => {

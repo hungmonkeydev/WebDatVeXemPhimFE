@@ -35,8 +35,8 @@ export const bookingService = {
     return await api.post('/bookings/release-seat', payload);
   },
 
-  releaseAllSeats: async (payload: { showtimeId: number }) => {
-    return await api.post('/bookings/release-seats', payload);
+  releaseAllSeats: async () => {
+    return await api.post('/bookings/release-seats');
   },
   createPaymentUrl: async (payload: { bookingId: number, amount: number, orderInfo: string, bankCode?: string, locale?: string }) => {
     const response = await api.post('/payments/vnpay/create', payload, {

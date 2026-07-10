@@ -20,7 +20,7 @@ export default function BookingBar() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg w-full h-[55px] md:h-[68px] flex overflow-hidden border border-gray-100">
+    <div className="bg-white rounded-lg shadow-lg w-full h-[30px] md:h-[52px] flex overflow-hidden border border-gray-100">
       
       <div className="flex-1 flex overflow-x-auto scrollbar-hide">
         <div className="flex items-center h-full w-max md:w-full">

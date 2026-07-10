@@ -1,4 +1,4 @@
-import { Routes, Route,Outlet } from 'react-router-dom';
+import { Routes, Route, Outlet } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import HomePage from '../pages/HomePage';
 import Footer from '../components/layout/Footer';
@@ -6,7 +6,7 @@ import MovieDetail from '../pages/MovieDetailPage';
 import SeatSelection from '../pages/SeatSelectionPage';
 import FoodSelection from '../pages/FoodSelection';
 import ScrollToTop from '../components/ScrollToTop';
-import ProfilePage from '../pages/ProfilePage';
+import ProfilePage from '../pages/myprofile/ProfilePage';
 import BookingLayout from '../components/layout/BookingLayout';
 import PaymentPage from '../pages/PaymentPage';
 import BookingSuccessPage from '../pages/BookingSuccessPage';
@@ -25,7 +25,7 @@ const CustomerLayout = () => (
 
 export default function AppRoutes() {
     return (
-       <>
+        <>
             <ScrollToTop />
             <Routes>
                 <Route path="/admin/*" element={<AdminRoutes />} />

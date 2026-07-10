@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import TicketDetailCard from '../components/booking/TicketDetailCard';
+import TicketDetailCard from '../../components/booking/TicketDetailCard';
 export default function MyTicketsPage() {
     const [history, setHistory] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -116,28 +116,28 @@ export default function MyTicketsPage() {
                         <div className="md:w-2/12 flex justify-start md:justify-end pr-0 md:pr-4">
                             <button
                                 onClick={() => setSelectedTicket(ticket)}
-                                 className="text-[#f26b38] font-medium text-[14px] hover:text-[#d95a2b] transition-colors border-b border-dotted border-[#f26b38] pb-[1px]"
+                                className="text-[#f26b38] font-medium text-[14px] hover:text-[#d95a2b] transition-colors border-b border-dotted border-[#f26b38] pb-[1px]"
                             >
                                 Chi tiết
                             </button>
                         </div>
 
                     </div>
-                    
+
                 );
             })}
             {selectedTicket && (
-            <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                <div className="absolute inset-0" onClick={() => setSelectedTicket(null)}></div>
-                
-                <div className="relative z-10 w-full max-w-[380px] flex justify-center animate-slide-up">
-                    <TicketDetailCard 
-                        booking={selectedTicket} 
-                        onClose={() => setSelectedTicket(null)} 
-                    />
+                <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="absolute inset-0" onClick={() => setSelectedTicket(null)}></div>
+
+                    <div className="relative z-10 w-full max-w-[380px] flex justify-center animate-slide-up">
+                        <TicketDetailCard
+                            booking={selectedTicket}
+                            onClose={() => setSelectedTicket(null)}
+                        />
+                    </div>
                 </div>
-            </div>
-        )}
+            )}
         </div>
     );
 }

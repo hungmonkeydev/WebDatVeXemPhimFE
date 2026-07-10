@@ -9,6 +9,7 @@ import img2 from '../../../../public/hero/image1.png';
 import img3 from '../../../../public/hero/image2.png';
 import img4 from '../../../../public/hero/image3.png';
 
+
 export default function BannerSlider() {
   const banners = [
     { id: 1, imgUrl: img1 },
@@ -18,7 +19,7 @@ export default function BannerSlider() {
   ];
 
   return (
-    <div className="w-full aspect-[16/9] md:aspect-[2.5/1] 2xl:max-h-[600px] mt-10 bg-white overflow-hidden">
+    <div className="w-full mt-10 bg-white overflow-hidden">
       <Swiper
         modules={[Autoplay, Pagination, Navigation]}
         breakpoints={{
@@ -37,11 +38,12 @@ export default function BannerSlider() {
         className="w-full h-full"
       >
         {banners.map((banner) => (
-          <SwiperSlide key={banner.id} className="w-full h-full">
+          <SwiperSlide key={banner.id} className="w-full">
             <img
               src={banner.imgUrl}
               alt={`Banner ${banner.id}`}
-              className="w-full h-full object-cover object-center md:rounded-2xl"
+              // Thay chữ cover thành contain nè pro
+              className="w-full h-full object-contain object-center"
             />
           </SwiperSlide>
         ))}
