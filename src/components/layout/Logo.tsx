@@ -1,4 +1,4 @@
-import logoImg from '../../assets/galaxy-logo-mobile.074abeac.png';
+import logoImg from '../../../public/logo/logoViecinema.png';
 
 export default function Logo() {
   return (
@@ -6,7 +6,7 @@ export default function Logo() {
       <img 
         src={logoImg} 
         alt="Galaxy Cinema" 
-        className="h-12 w-auto object-contain mr-10" 
+        className="h-16 w-auto object-contain mr-10" 
       />
     </a>
   );

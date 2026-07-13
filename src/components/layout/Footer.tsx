@@ -38,7 +38,7 @@ export default function Footer() {
                     {/* Cột 4: Kết Nối & Chứng Nhận */}
                     <div className="flex flex-col gap-4 items-center sm:items-start sm:col-span-2 lg:col-span-1 mt-4 sm:mt-0">
                         <h2 className="w-32 md:w-full max-w-[150px] mb-2">
-                            <img src="/logo/logogalaxy.png" alt="VieCinema Logo" className="w-full h-auto" />
+                            <img src="/logo/logoViecinema.png" alt="VieCinema Logo" className="w-full h-auto" />
                         </h2>
 
                         <div className="flex items-center gap-4">
@@ -64,7 +64,7 @@ export default function Footer() {
                 {/* ====== PHẦN 2: BẢN QUYỀN ====== */}
                 <div className="pt-8 border-t border-gray-600 flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
                     <h2 className="w-24 md:w-32 opacity-50 shrink-0">
-                        <img src="logo/logogalaxy.png" alt="VieCinema Logo" className="w-full h-auto" />
+                        <img src="/logo/logoViecinema.png" alt="VieCinema Logo" className="w-full h-auto" />
                     </h2>
                     <div className="flex-1">
                         <h4 className="text-white font-bold mb-1 uppercase text-[15px]">Công Ty Cổ Phần Giải Trí VieCinema</h4>
