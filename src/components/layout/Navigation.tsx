@@ -3,10 +3,9 @@ import NavItem from './NavItem';
 export default function Navigation() {
   const menuItems = [
     { title: 'Phim', isMegaMenu: true },
-    { title: 'Star Shop', subMenu: ['Seasonal Merchandise', 'Movie Merchandise'] },
     { title: 'Góc Điện Ảnh', subMenu: ['Thể Loại Phim', 'Diễn Viên', 'Đạo Diễn', 'Bình Luận Phim', 'Blog Điện Ảnh'] },
-    { title: 'Sự Kiện' },
-    { title: 'Rạp/Giá Vé' },
+    { title: 'Sự Kiện', subMenu: ['Sự Kiện Đang Diễn Ra','Sự Kiện Sắp Diễn Ra'] },
+    { title: 'Rạp/Giá Vé',subMenu:['Rạp/Giá Vé'] },
   ];
 
   return (

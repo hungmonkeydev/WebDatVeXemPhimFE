@@ -12,7 +12,6 @@ export const useSeats = (showtimeId: string | undefined) => {
         if (!showtimeId) return;
 
         const fetchSeats = async () => {
-            setIsLoadingSeats(true);
             try {
                 const response = await bookingService.getSeats(showtimeId);
                 const data = response.data.data;
@@ -31,13 +30,21 @@ export const useSeats = (showtimeId: string | undefined) => {
             } catch (error) {
                 console.error("Lỗi khi tải sơ đồ ghế:", error);
                 setSeatRows([]);
-            } finally {
-                setIsLoadingSeats(false);
             }
         };
-
-        fetchSeats();
+        const initialLoad = async () => {
+            setIsLoadingSeats(true);
+            await fetchSeats();
+            setIsLoadingSeats(false);
+        };
+        initialLoad();
+        const pollingInterval = setInterval(() => {
+            fetchSeats();
+        }, 3000);
+        return () => {
+            clearInterval(pollingInterval);
+        };
     }, [showtimeId]);
 
-    return { seatRows, seatTypes, showtimeInfo, roomInfo, isLoadingSeats }; 
+    return { seatRows, seatTypes, showtimeInfo, roomInfo, isLoadingSeats };
 };
