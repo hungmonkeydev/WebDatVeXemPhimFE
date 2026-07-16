@@ -1,10 +1,10 @@
-import Modal from '../ui/Modal';
-import Button from '../ui/Button';
+import Modal from '../UI/Modal';
+import Button from '../UI/Button';
 import img from '../../../public/iconlogin/icon-login.fbbf1b2d.svg';
 import { useState } from 'react';
-import Toast from '../ui/Toast';
-import Spinner from '../ui/Spinner';
-import { useAuth } from '../../hooks/useAuth';
+import Toast from '../UI/Toast';
+import Spinner from '../UI/Spinner';
+import { useAuth } from '../../Hooks/useAuth';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -16,7 +16,7 @@ interface LoginModalProps {
 export default function LoginModal({ isOpen, onClose, onSwitchToRegister, onSuccess }: LoginModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); 
+  const [showPassword, setShowPassword] = useState(false);
 
   const [toast, setToast] = useState({
     isOpen: false,
@@ -95,37 +95,37 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister, onSucc
                     </svg>
                   )}
                 </button>
+              </div>
             </div>
-        </div>
 
-        {/* Nút Đăng Nhập */}
-        <Button fullWidth type="submit" size="lg" disabled={isLoading}>
-          {isLoading ? (
-            <div className="flex items-center justify-center gap-2">
-              <Spinner size="sm" color="white" />
-              <span>Đang đăng nhập...</span>
+            {/* Nút Đăng Nhập */}
+            <Button fullWidth type="submit" size="lg" disabled={isLoading}>
+              {isLoading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Spinner size="sm" color="white" />
+                  <span>Đang đăng nhập...</span>
+                </div>
+              ) : (
+                'ĐĂNG NHẬP'
+              )}
+            </Button>
+          </form>
+          <div className="w-full text-left mt-4 mb-6">
+            <button className="text-gray-500 hover:text-[#f26b38] text-[13px] transition-colors">Quên mật khẩu?</button>
+          </div>
+
+          {onSwitchToRegister && (
+            <div className="w-full text-center border-t border-gray-200 pt-5 mt-2">
+              <p className="text-[13px] text-gray-500 mb-3">Bạn chưa có tài khoản?</p>
+              <Button variant="outline" fullWidth type="button" onClick={onSwitchToRegister}>
+                Đăng ký
+              </Button>
             </div>
-          ) : (
-            'ĐĂNG NHẬP'
           )}
-        </Button>
-      </form>
-      <div className="w-full text-left mt-4 mb-6">
-        <button className="text-gray-500 hover:text-[#f26b38] text-[13px] transition-colors">Quên mật khẩu?</button>
-      </div>
-
-      {onSwitchToRegister && (
-        <div className="w-full text-center border-t border-gray-200 pt-5 mt-2">
-          <p className="text-[13px] text-gray-500 mb-3">Bạn chưa có tài khoản?</p>
-          <Button variant="outline" fullWidth type="button" onClick={onSwitchToRegister}>
-            Đăng ký
-          </Button>
-        </div>
-      )}
-    </div >
+        </div >
       </Modal >
 
-    <Toast isOpen={toast.isOpen} message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, isOpen: false })} />
+      <Toast isOpen={toast.isOpen} message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, isOpen: false })} />
     </>
   );
 }

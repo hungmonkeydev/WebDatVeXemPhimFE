@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useMemo } from 'react';
-import { useMovies } from '../../hooks/useMovies';
+import { useMovies } from '../../Hooks/useMovies';
 export default function CinemaCorner() {
   const { moviesList, isLoading } = useMovies('dang_chieu');
 

@@ -1,9 +1,9 @@
 // src/pages/FoodSelection.tsx
 import { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useCombos } from '../hooks/useCombos';
+import { useCombos } from '../Hooks/useCombos';
 import { useEffect } from 'react';
-import BookingSummary from '../components/booking/BookingSummary';
+import BookingSummary from '../components/Booking/BookingSummary';
 import { bookingService } from '../services/bookingService';
 import api from '../services/api';
 export default function FoodSelection() {
@@ -136,7 +136,6 @@ export default function FoodSelection() {
                             console.error("Lỗi khi nhả ghế:", error);
                         } finally {
                             alert("Đã hết thời gian giữ ghế! Vui lòng chọn lại từ đầu.");
-                            // Dùng cái này thay cho navigate để F5 lại toàn bộ trang
                             window.location.href = `/dat-ve/${id}/chon-ghe`;
                         }
                     }}
@@ -144,69 +143,24 @@ export default function FoodSelection() {
                     comboCart={comboCart}
 
                     onBack={() => navigate(-1)}
-                    onNext={async () => {
+                    onNext={() => {
                         const rawToken = localStorage.getItem('access_token');
                         const isValidToken = rawToken && rawToken !== 'null' && rawToken !== 'undefined';
 
-                        // LUỒNG KHÁCH VÃNG LAI: CHƯA TẠO VÉ VỘI
-                        if (!isValidToken) {
-                            console.log("Khách vãng lai -> Chuyển sang trang Thanh Toán để điền thông tin!");
-                            navigate(`/dat-ve/${id}/thanh-toan`, {
-                                state: {
-                                    selectedSeats,
-                                    comboCart,
-                                    combos,
-                                    finalTotalPrice,
-                                    showtimeInfo,
-                                    roomInfo,
-                                    expireAt,
-                                    isGuest: true
-                                }
-                            });
-                            return;
-                        }
+                        console.log("Chuyển sang trang Thanh Toán, KHÔNG tạo vé trước!");
 
-                        // LUỒNG USER (ĐÃ ĐĂNG NHẬP): TẠO VÉ LUÔN
-                        try {
-                            const payload = {
-                                showtimeId: Number(id),
-                                seatIds: selectedSeats.map((seat: any) => seat.id || seat.seatId),
-                                combos: Object.keys(comboCart).map(comboId => ({
-                                    comboId: Number(comboId),
-                                    quantity: comboCart[Number(comboId)]
-                                }))
-                            };
-
-                            console.log("Đang gửi yêu cầu tạo vé cho User:", payload);
-                            const response = await bookingService.createBooking(payload);
-
-                            const newBookingId = response.data?.bookingId || response.data?.id || response.data?.data?.bookingId;
-
-                            if (!newBookingId) {
-                                alert("Không thể tạo vé lúc này. Vui lòng thử lại!");
-                                return;
+                        navigate(`/dat-ve/${id}/thanh-toan`, {
+                            state: {
+                                selectedSeats,
+                                comboCart,
+                                combos,
+                                finalTotalPrice,
+                                showtimeInfo,
+                                roomInfo,
+                                expireAt,
+                                isGuest: !isValidToken
                             }
-
-                            console.log("Tạo vé thành công! ID:", newBookingId);
-
-                            navigate(`/dat-ve/${id}/thanh-toan`, {
-                                state: {
-                                    selectedSeats,
-                                    comboCart,
-                                    combos,
-                                    finalTotalPrice,
-                                    showtimeInfo,
-                                    roomInfo,
-                                    expireAt,
-                                    bookingId: newBookingId,
-                                    isGuest: false
-                                }
-                            });
-
-                        } catch (error: any) {
-                            console.error("Lỗi tạo vé:", error);
-                            alert("Có lỗi xảy ra khi tạo vé: " + (error.response?.data?.message || "Lỗi mạng"));
-                        }
+                        });
                     }}
                     nextLabel="Tiếp tục"
                 />

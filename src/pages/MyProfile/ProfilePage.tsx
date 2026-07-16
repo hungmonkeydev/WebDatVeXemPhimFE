@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { userService } from '../../services/userService';
-import Button from '../../components/ui/Button';
-import Toast from '../../components/ui/Toast';
-import Spinner from '../../components/ui/Spinner';
+import Button from '../../components/UI/Button';
+import Toast from '../../components/UI/Toast';
+import Spinner from '../../components/UI/Spinner';
 import MyTicketsPage from './MyTicketsPage';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useLoyaltyProgress } from '../../hooks/useLoyaltyProgress';
+import { useLoyaltyProgress } from '../../Hooks/useLoyaltyProgress';
 import LoyaltyHistory from './LoyaltyHistory';
 export default function Profile() {
     const location = useLocation();

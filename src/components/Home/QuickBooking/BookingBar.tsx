@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import BookingSelect from './BookingSelect';
-import { useQuickBooking } from '../../../../hooks/useQuickBooking'; // Chỉnh lại đường dẫn cho đúng nha
+import { useQuickBooking } from '../../../Hooks/useQuickBooking'; // Chỉnh lại đường dẫn cho đúng nha
 
 export default function BookingBar() {
   const navigate = useNavigate();
-  
+
   // Lôi toàn bộ data và hàm xử lý từ Hook ra
   const {
     movies, cinemas, dates, times, isLoading,
@@ -21,10 +21,10 @@ export default function BookingBar() {
 
   return (
     <div className="bg-white rounded-lg shadow-lg w-full h-[30px] md:h-[52px] flex overflow-hidden border border-gray-100">
-      
+
       <div className="flex-1 flex overflow-x-auto scrollbar-hide">
         <div className="flex items-center h-full w-max md:w-full">
-          
+
           {/* Ô 1: Chọn Phim */}
           <div className="relative md:flex-1 h-full">
             <select
@@ -39,9 +39,9 @@ export default function BookingBar() {
                 </option>
               ))}
             </select>
-            <BookingSelect 
-              stepNumber={1} 
-              placeholder={movies?.find((m: any) => m.movieId === selectedMovieId)?.title || "Chọn Phim"} 
+            <BookingSelect
+              stepNumber={1}
+              placeholder={movies?.find((m: any) => m.movieId === selectedMovieId)?.title || "Chọn Phim"}
             />
           </div>
 
@@ -60,9 +60,9 @@ export default function BookingBar() {
                 </option>
               ))}
             </select>
-            <BookingSelect 
-              stepNumber={2} 
-              placeholder={isLoading ? "Đang tải..." : (cinemas?.find((c: any) => c.id === selectedCinemaId)?.name || "Chọn Rạp")} 
+            <BookingSelect
+              stepNumber={2}
+              placeholder={isLoading ? "Đang tải..." : (cinemas?.find((c: any) => c.id === selectedCinemaId)?.name || "Chọn Rạp")}
             />
           </div>
 
@@ -81,9 +81,9 @@ export default function BookingBar() {
                 </option>
               ))}
             </select>
-            <BookingSelect 
-              stepNumber={3} 
-              placeholder={selectedDate || "Chọn Ngày"} 
+            <BookingSelect
+              stepNumber={3}
+              placeholder={selectedDate || "Chọn Ngày"}
             />
           </div>
 
@@ -102,16 +102,16 @@ export default function BookingBar() {
                 </option>
               ))}
             </select>
-            <BookingSelect 
-              stepNumber={4} 
-              placeholder={times?.find((t: any) => t.showtimeId === selectedShowtimeId)?.timeLabel || "Chọn Suất"} 
+            <BookingSelect
+              stepNumber={4}
+              placeholder={times?.find((t: any) => t.showtimeId === selectedShowtimeId)?.timeLabel || "Chọn Suất"}
             />
           </div>
 
         </div>
       </div>
 
-      <button 
+      <button
         onClick={handleBuyTicket}
         disabled={!selectedShowtimeId}
         className="h-full bg-[#f26b38] hover:bg-[#d95c2b] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors px-4 md:px-10 text-white font-semibold text-[13px] md:text-[15px] shrink-0 shadow-[-8px_0_12px_rgba(0,0,0,0.05)] relative z-10"

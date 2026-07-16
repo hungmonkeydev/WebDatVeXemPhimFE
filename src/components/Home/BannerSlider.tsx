@@ -4,11 +4,11 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
-import img1 from '../../../../public/hero/image.png';
-import img2 from '../../../../public/hero/image1.png';
-import img3 from '../../../../public/hero/image2.png';
-import img4 from '../../../../public/hero/image3.png';
-
+import img1 from '../../../public/hero/image.png';
+import img2 from '../../../public/hero/image1.png';
+import img3 from '../../../public/hero/image2.png';
+import img4 from '../../../public/hero/image3.png';
+import imgCoCo from '../../../public/hero/bannerCoCo.png';
 
 export default function BannerSlider() {
   const banners = [
@@ -16,6 +16,8 @@ export default function BannerSlider() {
     { id: 2, imgUrl: img2 },
     { id: 3, imgUrl: img3 },
     { id: 4, imgUrl: img4 },
+    { id: 5, imgUrl: imgCoCo },
+
   ];
 
   return (
@@ -42,7 +44,6 @@ export default function BannerSlider() {
             <img
               src={banner.imgUrl}
               alt={`Banner ${banner.id}`}
-              // Thay chữ cover thành contain nè pro
               className="w-full h-full object-contain object-center"
             />
           </SwiperSlide>

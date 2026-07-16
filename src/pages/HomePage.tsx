@@ -1,5 +1,5 @@
 // src/pages/HomePage.tsx
-import HeroSection from '../components/layout/Home/HeroSection';
+import HeroSection from '../components/Home/HeroSection';
 import MovieList from '../components/Movie/MovieList';
 import CinemaCorner from '../components/News/CinemaCorner';
 import Promotion from '../components/News/Promotion';

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import TicketDetailCard from '../../components/booking/TicketDetailCard';
+import TicketDetailCard from '../../components/Booking/TicketDetailCard';
 export default function MyTicketsPage() {
     const [history, setHistory] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);

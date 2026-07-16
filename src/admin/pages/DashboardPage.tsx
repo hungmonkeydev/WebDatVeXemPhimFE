@@ -1,16 +1,16 @@
 import React from 'react';
 import { Card, Col, Row, Statistic, Spin } from 'antd';
-import { 
-    UserOutlined, 
-    UserAddOutlined, 
-    DollarCircleOutlined, 
-    TagOutlined 
+import {
+    UserOutlined,
+    UserAddOutlined,
+    DollarCircleOutlined,
+    TagOutlined
 } from '@ant-design/icons';
-import { 
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-    PieChart, Pie, Cell, Legend 
+import {
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { useAdminDashboard } from '../../hooks/useAdminDashboard';
+import { useAdminDashboard } from '../../Hooks/useAdminDashboard';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042']; // Bảng màu cho Biểu đồ tròn
 
@@ -22,11 +22,11 @@ const AdminDashboard = () => {
     }
 
     // Tiền xử lý dữ liệu cho Biểu đồ Tròn (chuyển Object thành Array để recharts đọc được)
-    const roleData = userStats?.roleDistribution 
+    const roleData = userStats?.roleDistribution
         ? Object.keys(userStats.roleDistribution).map((key) => ({
             name: key,
             value: userStats.roleDistribution[key]
-        })) 
+        }))
         : [];
 
     return (
@@ -59,7 +59,7 @@ const AdminDashboard = () => {
 
             {/* ================= KHU VỰC 2: BIỂU ĐỒ ================= */}
             <Row gutter={[16, 16]} className="mt-6">
-                
+
                 {/* Biểu đồ Đường: Lượng đăng ký hàng ngày (Lấy 16 cột) */}
                 <Col xs={24} lg={16}>
                     <Card title="Lượng Đăng Ký Mới (30 ngày qua)" className="shadow-sm h-full min-h-[350px]">
@@ -67,7 +67,7 @@ const AdminDashboard = () => {
                             <ResponsiveContainer width="100%" height={300}>
                                 <LineChart data={userStats.dailyRegistrations} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="date" tick={{fontSize: 12}} />
+                                    <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                                     <YAxis allowDecimals={false} />
                                     <Tooltip />
                                     <Line type="monotone" dataKey="count" name="Người dùng mới" stroke="#8884d8" strokeWidth={3} activeDot={{ r: 8 }} />

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import Button from '../ui/Button'; 
+import Button from '../UI/Button';
 
 interface MovieCardProps {
   readonly id: number;
@@ -8,32 +8,32 @@ interface MovieCardProps {
   readonly rating: string;
   readonly ageTag: string;
   readonly trailerUrl?: string;
-  readonly onOpenTrailer: (url: string) => void; 
+  readonly onOpenTrailer: (url: string) => void;
 }
 
-export default function MovieCard({id, title, imageUrl, rating, ageTag, trailerUrl, onOpenTrailer }: MovieCardProps) {
+export default function MovieCard({ id, title, imageUrl, rating, ageTag, trailerUrl, onOpenTrailer }: MovieCardProps) {
   const navigate = useNavigate();
-  
+
   const handleGoToDetail = (e: React.MouseEvent) => {
-    e.stopPropagation(); 
-    navigate(`/phim/${id}`); 
+    e.stopPropagation();
+    navigate(`/phim/${id}`);
   };
   return (
     <div className="flex flex-col gap-3 cursor-pointer group" onClick={handleGoToDetail}>
-      
+
       {/* KHUNG ẢNH POSTER CÓ CHỨA LỚP PHỦ */}
-      <div className="relative rounded-lg overflow-hidden"> 
-        <img 
-          src={imageUrl} 
-          alt={title} 
-          className="w-full aspect-[2/3] object-cover transition-transform duration-500 group-hover:scale-105" 
+      <div className="relative rounded-lg overflow-hidden">
+        <img
+          src={imageUrl}
+          alt={title}
+          className="w-full aspect-[2/3] object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-3 z-10">
-          
+
           {/* Nút Mua vé */}
-          <Button 
+          <Button
             onClick={handleGoToDetail}
-            className="w-32" 
+            className="w-32"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
@@ -42,13 +42,13 @@ export default function MovieCard({id, title, imageUrl, rating, ageTag, trailerU
           </Button>
 
           {/* Nút Trailer*/}
-          <Button 
+          <Button
             variant="ghost"
             className="w-32"
             onClick={(e) => {
-              e.stopPropagation(); 
+              e.stopPropagation();
               if (trailerUrl) {
-                onOpenTrailer(trailerUrl); 
+                onOpenTrailer(trailerUrl);
               }
             }}
           >
@@ -58,7 +58,7 @@ export default function MovieCard({id, title, imageUrl, rating, ageTag, trailerU
             </svg>
             Trailer
           </Button>
-          
+
         </div>
 
         <div className="absolute bottom-2 right-2 flex items-center gap-1.5 z-20">

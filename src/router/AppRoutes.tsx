@@ -1,13 +1,13 @@
 import { Routes, Route, Outlet } from 'react-router-dom';
-import Header from '../components/layout/Header';
+import Header from '../components/Layout/Header';
 import HomePage from '../pages/HomePage';
-import Footer from '../components/layout/Footer';
+import Footer from '../components/Layout/Footer';
 import MovieDetail from '../pages/MovieDetailPage';
 import SeatSelection from '../pages/SeatSelectionPage';
 import FoodSelection from '../pages/FoodSelection';
 import ScrollToTop from '../components/ScrollToTop';
-import ProfilePage from '../pages/myprofile/ProfilePage';
-import BookingLayout from '../components/layout/BookingLayout';
+import ProfilePage from '../pages/MyProfile/ProfilePage';
+import BookingLayout from '../components/Layout/BookingLayout';
 import PaymentPage from '../pages/PaymentPage';
 import BookingSuccessPage from '../pages/BookingSuccessPage';
 import MoviesPage from '../pages/MoviesPage';

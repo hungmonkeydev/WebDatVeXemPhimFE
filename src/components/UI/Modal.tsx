@@ -1,11 +1,11 @@
-// src/components/ui/Modal.tsx
+// src/components/UI/Modal.tsx
 import React from 'react';
-import useScrollLock from '../../hooks/useScrollLock';
+import useScrollLock from '../../Hooks/useScrollLock';
 interface ModalProps {
-  isOpen: boolean;             
-  onClose: () => void;         
-  children: React.ReactNode;   
-  maxWidth?: string;           
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+  maxWidth?: string;
 }
 
 export default function Modal({

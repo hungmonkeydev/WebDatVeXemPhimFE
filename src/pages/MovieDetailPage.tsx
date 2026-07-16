@@ -1,9 +1,9 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useState, useMemo } from 'react';
-import { useMovieDetail } from '../hooks/useMovieDetail';
-import { useMovies } from '../hooks/useMovies';
-import { useShowtimes } from '../hooks/useShowtimes';
-import Spinner from '../components/ui/Spinner';
+import { useMovieDetail } from '../Hooks/useMovieDetail';
+import { useMovies } from '../Hooks/useMovies';
+import { useShowtimes } from '../Hooks/useShowtimes';
+import Spinner from '../components/UI/Spinner';
 import MovieReviews from '../components/Movie/MovieReviews';
 import MovieSidebar from '../components/Movie/MovieSidebar'; // Trigger HMR
 export default function MovieDetail() {

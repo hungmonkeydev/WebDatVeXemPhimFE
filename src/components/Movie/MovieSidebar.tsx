@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useMovies } from '../../hooks/useMovies';
+import { useMovies } from '../../Hooks/useMovies';
 
 export default function MovieSidebar() {
     const navigate = useNavigate();

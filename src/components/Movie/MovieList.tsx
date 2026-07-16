@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import MovieCard from '../Movie/MovieCard';
-import { useMovies } from '../../hooks/useMovies';
+import { useMovies } from '../../Hooks/useMovies';
 
 interface MovieListProps {
     isFullPage?: boolean;

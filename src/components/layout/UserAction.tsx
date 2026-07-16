@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import img from '../../../public/logo/join-member-Gstar.svg';
 import img1 from '../../../public/iconlogin/icon-login.fbbf1b2d.svg';
-import Button from '../ui/Button';
+import Button from '../UI/Button';
 import { useNavigate } from 'react-router-dom';
 interface UserActionProps {
   onOpenLogin: () => void;
@@ -41,24 +41,24 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('user_info');
-    
+
     setIsMenuOpen(false);
-    
+
     window.dispatchEvent(new Event('authChange'));
 
     navigate('/');
   };
-  
+
   return (
     <div className="flex items-center gap-4">
-     <input
-          type="text"
-          placeholder='Tìm kiếm phim, diễn viên...'
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={handleSearchKeyDown}
-          className='border border-gray-200 rounded-full pl-4 pr-10 py-2 text-[14px] outline-none focus:border-[#f26b38] w-[250px] transition-all'
-        />
+      <input
+        type="text"
+        placeholder='Tìm kiếm phim, diễn viên...'
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        onKeyDown={handleSearchKeyDown}
+        className='border border-gray-200 rounded-full pl-4 pr-10 py-2 text-[14px] outline-none focus:border-[#f26b38] w-[250px] transition-all'
+      />
       {currentUser ? (
 
         <div className="relative">
@@ -100,11 +100,11 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
                 Tài Khoản
               </a>
 
-              <button 
-                onClick={() => { 
-                  setIsMenuOpen(false); 
-                  navigate('/profile', { state: { activeTab: 'lich-su' } }); 
-                }} 
+              <button
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  navigate('/profile', { state: { activeTab: 'lich-su' } });
+                }}
                 className="w-full flex items-center gap-3 px-5 py-2.5 text-[14.5px] text-gray-700 hover:bg-orange-50 hover:text-[#f26b38] border-l-4 border-transparent hover:border-[#f26b38] transition-all"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>

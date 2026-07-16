@@ -1,10 +1,10 @@
 // src/pages/SeatSelection.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSeats } from '../hooks/useSeats';
-import Spinner from '../components/ui/Spinner';
-import { useHoldSeats } from '../hooks/useHoldSeats';
-import BookingSummary from '../components/booking/BookingSummary';
+import { useSeats } from '../Hooks/useSeats';
+import Spinner from '../components/UI/Spinner';
+import { useHoldSeats } from '../Hooks/useHoldSeats';
+import BookingSummary from '../components/Booking/BookingSummary';
 import { bookingService } from '../services/bookingService';
 
 export default function SeatSelection() {
@@ -34,44 +34,32 @@ export default function SeatSelection() {
   // --- HÀM MỚI: XỬ LÝ CHỌN CẢ NHÓM GHẾ (COUPLE HOẶC SINGLE) ---
   const toggleSeatGroup = async (seatsToToggle: any[]) => {
     const isAnySeatNotSelectable = seatsToToggle.some(seat => !seat.isSelectable);
-    if (isAnySeatNotSelectable) return;
+    // Nếu ghế bị khóa và KHÔNG PHẢI do mình đang chọn thì mới chặn click
+    const isAlreadySelectedByMe = selectedSeats.some(s => s.seatId === seatsToToggle[0].seatId);
+    if (isAnySeatNotSelectable && !isAlreadySelectedByMe) return;
 
-    // Lấy token ra để kiểm tra xem là Khách hay User
     const token = localStorage.getItem('access_token');
+    const seatIdsToToggle = seatsToToggle.map(s => s.seatId);
 
-    setSelectedSeats((prev) => {
-      // Dựa vào ghế đầu tiên để biết là đang muốn "Chọn" hay "Bỏ chọn"
-      const isExist = prev.find((s) => s.seatId === seatsToToggle[0].seatId);
-      
-      let newSeats = [...prev];
-      const seatIdsToToggle = seatsToToggle.map(s => s.seatId);
-
-      if (isExist) {
-        // 1. BỎ CHỌN GHẾ
-        newSeats = prev.filter((s) => !seatIdsToToggle.includes(s.seatId));
-
-        // CHỈ GỌI API NHẢ GHẾ NẾU LÀ USER ĐÃ ĐĂNG NHẬP
-        if (token) {
-          seatsToToggle.forEach(seat => {
-            bookingService.releaseSeat({ showtimeId: Number(id), seatId: seat.seatId })
-              .catch(err => console.error("Lỗi nhả ghế:", err));
-          });
-        }
-      } else {
-        // 2. CHỌN THÊM GHẾ
-        newSeats = [...prev, ...seatsToToggle];
-
-        // CHỈ GỌI API GIỮ GHẾ NẾU LÀ USER ĐÃ ĐĂNG NHẬP
-        if (token) {
-          bookingService.holdSeats(id as string, seatIdsToToggle)
-            .catch(err => console.error("Lỗi giữ ghế nhóm:", err));
-        }
+    // GỌI API TRƯỚC HOẶC NGAY SAU KHI XỬ LÝ LOGIC, KHÔNG ĐỂ TRONG SET STATE
+    if (isAlreadySelectedByMe) {
+      // 1. Luồng BỎ CHỌN
+      if (token) {
+        seatsToToggle.forEach(seat => {
+          bookingService.releaseSeat({ showtimeId: Number(id), seatId: seat.seatId })
+            .catch(err => console.error("Lỗi nhả ghế:", err));
+        });
       }
-
-      return newSeats;
-    });
+      setSelectedSeats(prev => prev.filter(s => !seatIdsToToggle.includes(s.seatId)));
+    } else {
+      // 2. Luồng CHỌN THÊM
+      if (token) {
+        bookingService.holdSeats(id as string, seatIdsToToggle)
+          .catch(err => console.error("Lỗi giữ ghế nhóm:", err));
+      }
+      setSelectedSeats(prev => [...prev, ...seatsToToggle]);
+    }
   };
-
   const SEAT_COLORS: Record<number, string> = {
     1: '#4CAF50', // Thường (Xanh lá)
     2: '#FFD700', // VIP (Vàng)
@@ -134,7 +122,7 @@ export default function SeatSelection() {
       </div>
     );
   }
-  
+
   if (!seatRows || seatRows.length === 0 || !showtimeInfo) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gray-50">
@@ -187,14 +175,14 @@ export default function SeatSelection() {
                   <div className="flex items-center gap-2">
                     {(() => {
                       const renderSeatBtn = (seat: any, groupSeats: any[]) => {
-                        const isSold = !seat.isSelectable;
                         const isSelected = selectedSeats.some((s) => s.seatId === seat.seatId);
+                        const isSold = !seat.isSelectable && !isSelected;
                         const seatColor = SEAT_COLORS[seat.seatTypeId] || '#e5e7eb';
 
                         return (
                           <button
                             key={seat.seatId}
-                            onClick={() => toggleSeatGroup(groupSeats)} 
+                            onClick={() => toggleSeatGroup(groupSeats)}
                             disabled={isSold}
                             style={{
                               backgroundColor: isSelected ? '#f26b38' : isSold ? '#d1d5db' : seatColor,
@@ -284,7 +272,7 @@ export default function SeatSelection() {
                   <div className="w-5 h-5 bg-[#E91E63] rounded border-b-2 border-[#C2185B]"></div>
                   Couple
                 </div>
-                
+
                 {/* Ghế Deluxe (Tím) */}
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 bg-[#9C27B0] rounded border-b-2 border-[#7B1FA2]"></div>

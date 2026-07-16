@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { bookingService } from '../services/bookingService';
-import TicketDetailCard from '../components/booking/TicketDetailCard';
+import TicketDetailCard from '../components/Booking/TicketDetailCard';
 
 export default function BookingSuccessPage() {
     const navigate = useNavigate();

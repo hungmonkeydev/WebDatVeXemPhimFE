@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import AdminLayout from '../components/layout/AdminPlayout'; // Nhớ check lại đường dẫn nha
+import AdminLayout from '../components/Layout/AdminPlayout'; // Nhớ check lại đường dẫn nha
 import Dashboard from '../admin/pages/DashboardPage';
 import MovieManage from '../admin/pages/MoviesAdminPage';
 import UserPage from '../admin/pages/UsersPage';

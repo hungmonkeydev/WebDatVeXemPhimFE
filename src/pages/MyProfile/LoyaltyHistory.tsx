@@ -1,6 +1,6 @@
 import React from 'react';
 import { Spin, Empty, Tag } from 'antd';
-import { useLoyaltyHistory } from '../../hooks/useLoyaltyHistory';
+import { useLoyaltyHistory } from '../../Hooks/useLoyaltyHistory';
 
 export default function LoyaltyHistory() {
     const { historyData, isLoading } = useLoyaltyHistory();
@@ -18,7 +18,7 @@ export default function LoyaltyHistory() {
             {historyData.map((item: any, index: number) => {
                 // Kiểm tra xem là cộng điểm hay trừ điểm (dựa vào số âm/dương hoặc type do BE trả về)
                 const isEarn = item.pointsChange > 0 || item.pointsType === 'EARN';
-                
+
                 return (
                     <div key={index} className="bg-white border border-gray-100 rounded-lg p-4 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
                         <div className="flex flex-col gap-1">
@@ -29,9 +29,9 @@ export default function LoyaltyHistory() {
                                 {item.createdAt ? new Date(item.createdAt).toLocaleString('vi-VN') : 'Đang cập nhật'}
                             </p>
                         </div>
-                        
+
                         <div className={`text-lg font-bold flex items-center gap-1 ${isEarn ? 'text-green-600' : 'text-red-500'}`}>
-                            {isEarn ? '+' : ''}{item.pointsChange} 
+                            {isEarn ? '+' : ''}{item.pointsChange}
                             <span className="text-[12px] font-normal text-gray-500 ml-1">Stars</span>
                         </div>
                     </div>

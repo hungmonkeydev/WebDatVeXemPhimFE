@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Modal, Rate, Input, Button } from 'antd';
-import { useSubmitReview } from '../../hooks/useSubmitReview';
+import { useSubmitReview } from '../../Hooks/useSubmitReview';
 
 const { TextArea } = Input;
 
 interface ReviewModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  movieId: number;
-  movieTitle: string;
-  onSuccess?: () => void; // Hàm callback để reload lại trang/điểm số sau khi review thành công
+    isOpen: boolean;
+    onClose: () => void;
+    movieId: number;
+    movieTitle: string;
+    onSuccess?: () => void; // Hàm callback để reload lại trang/điểm số sau khi review thành công
 }
 
 export default function ReviewModal({ isOpen, onClose, movieId, movieTitle, onSuccess }: ReviewModalProps) {
@@ -21,7 +21,7 @@ export default function ReviewModal({ isOpen, onClose, movieId, movieTitle, onSu
         if (!rating) {
             return Modal.error({ title: 'Lỗi', content: 'Vui lòng chọn số sao để đánh giá phim!' });
         }
-        
+
         const result = await submitReview(movieId, rating, comment);
         if (result.success) {
             setComment('');
@@ -40,11 +40,11 @@ export default function ReviewModal({ isOpen, onClose, movieId, movieTitle, onSu
                 <Button key="back" onClick={onClose} disabled={isSubmitting}>
                     Hủy bỏ
                 </Button>,
-                <Button 
-                    key="submit" 
-                    type="primary" 
+                <Button
+                    key="submit"
+                    type="primary"
                     className="bg-[#f26b38] hover:bg-[#d95c2b] border-none font-medium"
-                    loading={isSubmitting} 
+                    loading={isSubmitting}
                     onClick={handleSubmit}
                 >
                     Gửi đánh giá
@@ -55,14 +55,14 @@ export default function ReviewModal({ isOpen, onClose, movieId, movieTitle, onSu
                 <p className="text-gray-500 text-sm text-center px-4">
                     Chia sẻ cảm nghĩ của bạn về bộ phim để nhận ngay <span className="font-bold text-orange-500">20 Stars</span> điểm thưởng vào tài khoản nhé!
                 </p>
-                
+
                 {/* Khu vực chọn Sao */}
                 <div className="flex flex-col items-center gap-1 bg-orange-50/50 w-full py-3 rounded-lg border border-orange-100/50">
                     <span className="text-[13px] font-semibold text-gray-600">Bạn thấy phim này thế nào?</span>
-                    <Rate 
-                        allowClear={false} 
-                        value={rating} 
-                        onChange={setRating} 
+                    <Rate
+                        allowClear={false}
+                        value={rating}
+                        onChange={setRating}
                         className="text-3xl text-yellow-400"
                     />
                 </div>

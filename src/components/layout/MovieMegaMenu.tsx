@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { useMovies } from '../../hooks/useMovies';
+import { useMovies } from '../../Hooks/useMovies';
 
 export default function MovieMegaMenu() {
   const { moviesList: nowShowing } = useMovies('dang_chieu');

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Spin, Rate, Button } from 'antd';
 import { EditOutlined, UserOutlined } from '@ant-design/icons';
 import ReviewModal from './ReviewModal';
-import { useMovieReviews } from '../../hooks/useMovieReviews';
+import { useMovieReviews } from '../../Hooks/useMovieReviews';
 
 interface MovieReviewsProps {
     movieId: number;
