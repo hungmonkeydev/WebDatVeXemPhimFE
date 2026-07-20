@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState,useEffect  } from 'react';
 import Logo from './Logo';
-import TicketButton from './TicketButton';
-import Navigation from './Navigation';
-import UserAction from './UserAction';
+import TicketButton from '../Layout/TicketButton';
+import Navigation from '../Layout/Navigation';
+import UserAction from '../Layout/UserAction';
 import LoginModal from '../Auth/LoginModal';
 import RegisterModal from '../Auth/RegisterModal';
+import { useLocation } from 'react-router-dom';
 
 export default function Header() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -12,6 +13,12 @@ export default function Header() {
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); 
 
+   const location = useLocation();
+    useEffect(() => {
+    if (location.state?.openLogin) {
+      setIsLoginOpen(true);
+    }
+  }, [location]);
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 relative z-50">
       <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">

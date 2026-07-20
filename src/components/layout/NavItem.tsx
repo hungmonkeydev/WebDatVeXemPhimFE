@@ -1,12 +1,23 @@
+import { Link } from 'react-router-dom';
 import MovieMegaMenu from './MovieMegaMenu';
 interface NavItemProps {
   readonly title: string;
   readonly subMenu?: string[];
   readonly isMegaMenu?: boolean;
+  path?: string;
 }
 
 
-export default function NavItem({ title, subMenu, isMegaMenu }: NavItemProps) {
+export default function NavItem({ title, subMenu, isMegaMenu, path }: NavItemProps) {
+  if (path) {
+    return (
+      <li className="list-none">
+        <Link to={path} className="hover:text-blue-600 transition-colors">
+          {title}
+        </Link>
+      </li>
+    );
+  }
   return (
     <li className="relative flex items-center gap-1 hover:text-orange-500 cursor-pointer group transition-colors text-[15px] py-4">
       {title}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { reviewService } from '../services/reViewService';
+import { reviewService } from '../services/reviewService';
 import { message } from 'antd';
 
 export const useSubmitReview = () => {

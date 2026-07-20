@@ -13,6 +13,11 @@ export const authService = {
     const response = await api.post('/auth/register', userData);
     return response.data;
   },
+  resendVerification: async (email: string) => {          
+    const response = await api.post('/auth/resend-verification', { email });
+    return response.data;
+  },
+
   logout: () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('user_info');

@@ -12,24 +12,23 @@ export const useShowtimes = (movieId: string | undefined, selectedDate: string) 
             setIsLoadingShowtimes(true);
             try {
                 const response = await showtimeService.getShowtimes({
-                    movieId:movieId, 
+                    movieId: movieId,
                     date: selectedDate
                 });
 
                 const rawData = response.data.data;
                 const formattedCinemas = rawData.map((cinema: any) => {
-                    const formatType = '2D - Phụ Đề';
                     return {
                         name: cinema.cinemaName,
                         address: cinema.address,
                         city: cinema.city,
                         formats: [
                             {
-                                type: formatType,
                                 times: cinema.showtimes.map((st: any) => ({
-                                    time: st.startTime.substring(11, 16), 
+                                    time: st.startTime.substring(11, 16),
                                     showtimeId: st.showtimeId,
-                                    price: st.basePrice
+                                    price: st.basePrice,
+                                    roomName: st.room?.roomName || 'Đang cập nhật',
                                 }))
                             }
                         ]

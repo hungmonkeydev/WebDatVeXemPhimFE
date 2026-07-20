@@ -217,13 +217,20 @@ export default function PaymentPage() {
             return;
         }
         let discount = 0;
-        if (selectedVoucher.voucherType === 'TICKET_DISCOUNT' || selectedVoucher.voucherType === 'COMBO_DISCOUNT') {
+
+        // Voucher tặng combo -> lấy giá combo tương ứng trong danh sách combos để trừ
+        if (selectedVoucher.voucherType === 'COMBO_DISCOUNT' && selectedVoucher.comboId && selectedVoucher.discountValue == null) {
+            const matchedCombo = bookingData.combos?.find((c: any) => (c.comboId ?? c.id) === selectedVoucher.comboId);
+            discount = matchedCombo ? matchedCombo.price * selectedVoucher.comboQuantity : 0;
+        }
+        else if (selectedVoucher.voucherType === 'TICKET_DISCOUNT' || selectedVoucher.voucherType === 'COMBO_DISCOUNT') {
             discount = selectedVoucher.discountType === 'PERCENTAGE'
                 ? Math.round(finalTotalPrice * (selectedVoucher.discountValue / 100))
                 : selectedVoucher.discountValue;
         } else {
             discount = Math.min(selectedVoucher.currentBalance ?? 0, finalTotalPrice);
         }
+
         setDiscountAmount(discount);
         setIsVoucherApplied(true);
         alert(`Áp dụng voucher thành công! Giảm ${discount.toLocaleString('vi-VN')} đ`);
@@ -309,99 +316,70 @@ export default function PaymentPage() {
                             <h2 className="text-lg font-bold text-gray-800 mb-6">Khuyến mãi</h2>
                             {/* VOUCHER DROPDOWN THAY CHO Ô NHẬP TAY */}
                             <div className="mb-6">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Chọn mã khuyến mãi của bạn</label>
-                                <div className="flex gap-4">
-                                    <select
-                                        value={selectedVoucher?.code || ''}
-                                        onChange={(e) => {
-                                            const found = myVoucher?.find((v: any) => v.code === e.target.value);
-                                            setSelectedVoucher(found || null);
-                                            setIsVoucherApplied(false);   // đổi lựa chọn -> bắt buộc bấm Áp Dụng lại
-                                            setDiscountAmount(0);
-                                        }}
-                                        className="flex-1 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-[#f26b38]"
-                                        disabled={isLoadingVoucher}
-                                    >
-                                        <option value="">{isLoadingVoucher ? 'Đang tải ưu đãi...' : '-- Không sử dụng khuyến mãi --'}</option>
-                                        {myVoucher?.map((v: any) => (
-                                            <option key={v.voucherId} value={v.code}>
-                                                {v.voucherType === 'DISCOUNT' ? `Giảm ${v.discountValue}...` : `Thẻ quà tặng ${v.currentBalance}đ`}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <button onClick={handleApplyVoucher} className="bg-[#f26b38] hover:bg-[#d95c2b] text-white font-semibold px-6 py-2 rounded">
-                                        Áp Dụng
-                                    </button>
-                                </div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-3">Chọn mã khuyến mãi của bạn</label>
+
+                                {isLoadingVoucher && (
+                                    <p className="text-sm text-gray-400 py-4">Đang tải ưu đãi...</p>
+                                )}
+
+                                {!isLoadingVoucher && (!myVoucher || myVoucher.length === 0) && (
+                                    <p className="text-sm text-gray-400 py-4">Bạn chưa có voucher nào khả dụng.</p>
+                                )}
+
+                                {!isLoadingVoucher && myVoucher && myVoucher.length > 0 && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                                        {myVoucher.map((v: any) => {
+                                            const isSelected = selectedVoucher?.voucherId === v.voucherId;
+                                            const label = v.voucherType === 'TICKET_DISCOUNT' || v.voucherType === 'COMBO_DISCOUNT' || v.voucherType === 'DISCOUNT'
+                                                ? (v.discountType === 'PERCENTAGE'
+                                                    ? `Giảm ${v.discountValue}%`
+                                                    : `Giảm ${Number(v.discountValue || 0).toLocaleString('vi-VN')} đ`)
+                                                : `Thẻ quà tặng ${Number(v.currentBalance || 0).toLocaleString('vi-VN')} đ`;
+
+                                            return (
+                                                <button
+                                                    key={v.voucherId}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        // Bấm lại voucher đang chọn -> bỏ chọn
+                                                        if (isSelected) {
+                                                            setSelectedVoucher(null);
+                                                        } else {
+                                                            setSelectedVoucher(v);
+                                                        }
+                                                        setIsVoucherApplied(false);
+                                                        setDiscountAmount(0);
+                                                    }}
+                                                    className={`text-left flex items-center gap-3 border rounded-lg p-3 transition-colors ${isSelected
+                                                        ? 'border-[#f26b38] bg-orange-50 ring-1 ring-[#f26b38]'
+                                                        : 'border-gray-200 hover:border-orange-300'
+                                                        }`}
+                                                >
+                                                    <div className={`w-1.5 self-stretch rounded ${isSelected ? 'bg-[#f26b38]' : 'bg-gray-200'}`} />
+                                                    <div className="flex-1">
+                                                        <p className="font-bold text-gray-800 text-sm">{label}</p>
+                                                        <p className="text-xs text-gray-400 font-mono mt-0.5">{v.code}</p>
+                                                    </div>
+                                                    {isSelected && <span className="text-[#f26b38] text-lg leading-none">✓</span>}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                <button
+                                    onClick={handleApplyVoucher}
+                                    disabled={!myVoucher || myVoucher.length === 0}
+                                    className="bg-[#f26b38] hover:bg-[#d95c2b] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold px-6 py-2 rounded"
+                                >
+                                    Áp Dụng
+                                </button>
+
                                 {discountAmount > 0 && (
                                     <p className="text-green-600 text-sm mt-2 font-medium">
                                         ✓ Đã giảm: {discountAmount.toLocaleString('vi-VN')} đ
                                     </p>
                                 )}
-                            </div>
-                            <div className="border-t border-gray-200 my-4"></div>
-                            <div className="mb-6">
-                                <div className="flex justify-between items-end mb-2">
-                                    <label className="block text-sm font-semibold text-gray-700">
-                                        Áp dụng điểm Stars
-                                    </label>
-                                    <span className="text-xs text-gray-500">
-                                        {/* Đã thay số 10 gán cứng thành biến điểm thật */}
-                                        Khả dụng: <strong className="text-[#f26b38]">{availablePoints}</strong> điểm
-                                    </span>
-                                </div>
-
-                                {/* Ô nhập điểm và nút Áp dụng */}
-                                <div className="flex gap-4 mb-3">
-                                    <input
-                                        type="number"
-                                        value={points}
-                                        onChange={(e) => setPoints(e.target.value)}
-                                        placeholder="Nhập số điểm cần dùng..."
-                                        className="flex-1 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-[#f26b38]"
-                                    />
-                                    <button
-                                        // Đã thay thế alert bằng hàm xử lý thật
-                                        onClick={handleApplyPoints}
-                                        className="bg-[#f26b38] hover:bg-[#d95c2b] text-white font-semibold px-6 py-2 rounded transition-colors"
-                                    >
-                                        Áp Dụng
-                                    </button>
-                                </div>
-
-                                {/* THÊM MỚI: Dòng chữ xanh lá báo hiệu trừ điểm thành công */}
-                                {usedPoints > 0 && (
-                                    <p className="text-green-600 text-sm mt-1 mb-4 font-medium">
-                                        ✓ Đã dùng {usedPoints} điểm (Giảm {(usedPoints * 1000).toLocaleString('vi-VN')} đ)
-                                    </p>
-                                )}
-
-
-                                {/* BẢNG HƯỚNG DẪN DÀNH CHO KHÁCH HÀNG Ở ĐÂY */}
-                                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-md">
-                                    <h4 className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-1">
-                                        <span>⭐</span> Thông tin điểm Stars
-                                    </h4>
-                                    <ul className="text-[13px] text-blue-700 list-disc pl-5 space-y-1.5">
-                                        <li><strong>Tỷ lệ quy đổi:</strong> 1 điểm Star = 1.000 VNĐ.</li>
-                                        <li>Điểm Stars có thể dùng để giảm giá trực tiếp vào tổng hóa đơn mua vé và bắp nước.</li>
-                                        <li>Tích lũy thêm điểm thưởng sau mỗi giao dịch hoàn tất (1 điểm cho mỗi 10.000 VNĐ thanh toán).</li>
-                                        <li>
-                                            <strong>Đặc quyền chiết khấu theo hạng thành viên:</strong>
-                                            <ul className="list-[circle] pl-5 mt-1 space-y-1 text-blue-800">
-                                                <li>
-                                                    <span className="font-bold text-slate-500">Silver:</span> Giảm 5% (Yêu cầu đạt 1.000 điểm)
-                                                </li>
-                                                <li>
-                                                    <span className="font-bold text-yellow-600">Gold:</span> Giảm 10% (Yêu cầu đạt 5.000 điểm)
-                                                </li>
-                                                <li>
-                                                    <span className="font-bold text-cyan-600">Diamond:</span> Giảm 15% (Yêu cầu đạt 10.000 điểm)
-                                                </li>
-                                            </ul>
-                                        </li>
-                                    </ul>
-                                </div>
                             </div>
                         </div>
                     )}

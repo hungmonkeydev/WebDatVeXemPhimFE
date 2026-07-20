@@ -13,7 +13,7 @@ export const useMyVoucher = (isGuest: boolean) => {
             setIsLoadingVoucher(true);
             try {
                 const res = await loyaltyService.getMyVouchers();
-                const active = (res.data?.data || []).filter(v => v.status === 'PENDING');
+                const active = (res.data?.data || []).filter(v => v.status === 'ACTIVE');
                 setVouchers(active);
             } catch (error) {
                 console.error("Lỗi lấy danh sách voucher:", error);

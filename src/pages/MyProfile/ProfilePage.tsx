@@ -3,10 +3,11 @@ import { userService } from '../../services/userService';
 import Button from '../../components/UI/Button';
 import Toast from '../../components/UI/Toast';
 import Spinner from '../../components/UI/Spinner';
-import MyTicketsPage from './MyTicketsPage';
+import MyTicketsPage from '../MyProfile/MyTicketsPage';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLoyaltyProgress } from '../../Hooks/useLoyaltyProgress';
-import LoyaltyHistory from './LoyaltyHistory';
+import LoyaltyHistory from '../MyProfile/LoyaltyHistory';
+import MyVouchers from '../../pages/MyProfile/MyVouchers';
 export default function Profile() {
     const location = useLocation();
     const navigate = useNavigate();
@@ -97,15 +98,15 @@ export default function Profile() {
     const tabs = [
         { id: 'lich-su', label: 'Lịch Sử Giao Dịch' },
         { id: 'lich-su-tich-diem', label: 'Lịch sử tích điểm' },
+        { id: 'myvoucher', label: 'Voucher Của Tôi' },
 
         { id: 'thong-tin', label: 'Thông Tin Cá Nhân' },
         { id: 'thong-bao', label: 'Thông Báo' },
         { id: 'qua-tang', label: 'Quà Tặng' }
     ];
-    const currentPts = progressData?.currentPoints || 0;
-    const totalSpent = currentPts * 10000;
+    const totalSpent = progressData?.totalSpent || 0;
 
-    // 2. Tính % thanh Tiến độ (Dùng thuật toán nội suy từng chặng)
+
     let progressPercent = 0;
 
     if (totalSpent <= 10000000) {
@@ -139,13 +140,14 @@ export default function Profile() {
                             <div>
                                 <h3 className="font-bold text-gray-800 text-[17px]">{formData.fullName || 'Khách hàng'}</h3>
                                 <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
-                                    <span className="text-orange-500">🎁</span> {progressData?.currentPoints || 0} Stars                                </p>
-                                <span
-                                    className="text-[10px] font-bold text-white px-2 py-0.5 rounded mt-1 inline-block uppercase shadow-sm"
-                                    style={{ backgroundColor: progressData?.tierColorCode || '#A0A0A0' }}
-                                >
-                                    {progressData?.membershipTierName || 'MEMBER'}
-                                </span>
+                                    <span className="text-orange-500">🎁</span> {progressData?.currentPoints || 0} Stars
+                                    <span
+                                        className="text-[10px] font-bold text-white px-2 py-0.5 rounded mt-1 inline-block uppercase shadow-sm"
+                                        style={{ backgroundColor: progressData?.tierColorCode || '#A0A0A0' }}
+                                    >
+                                        {progressData?.membershipTierName || 'MEMBER'}
+                                    </span>
+                                </p>
                             </div>
                         </div>
 
@@ -355,6 +357,11 @@ export default function Profile() {
                     {activeTab === 'lich-su-tich-diem' && (
                         <div className="p-4 md:p-8 bg-gray-50/30">
                             <LoyaltyHistory />
+                        </div>
+                    )}
+                    {activeTab === 'myvoucher' && (
+                        <div className="p-4 md:p-8 bg-gray-50/30">
+                            <MyVouchers />
                         </div>
                     )}
                     {/* CÁC TAB KHÁC (DỰ PHÒNG CHỜ PHÁT TRIỂN) */}

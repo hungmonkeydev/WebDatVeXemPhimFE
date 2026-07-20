@@ -1,7 +1,8 @@
 import api from './api';
 
-export type VoucherType = 'GIFT_CARD' | 'DISCOUNT' | 'COMBO';
-export type DiscountType = 'AMOUNT' | 'PERCENTAGE';
+// Định nghĩa lại Type cho chuẩn với Enum bên Backend
+export type VoucherType = 'GIFT_CARD' | 'TICKET_DISCOUNT' | 'COMBO_DISCOUNT';
+export type RedemptionType = 'VOUCHER' | 'COMBO';
 
 export interface VoucherItem {
     voucherId: number;
@@ -10,9 +11,17 @@ export interface VoucherItem {
     status: string;
     originalValue: number;
     currentBalance: number;
-    discountType: DiscountType;
+    discountType: 'AMOUNT' | 'PERCENTAGE' | 'FIXED_AMOUNT';
     discountValue: number;
     comboName?: string;
+}
+
+// Thêm Interface cho Payload gửi lên
+export interface RedeemRequestPayload {
+    redemptionType: RedemptionType;
+    pointsToUse?: number; // Dành cho VOUCHER
+    comboId?: number;     // Dành cho COMBO
+    quantity?: number;    // Dành cho COMBO (thường là 1)
 }
 
 export interface ApiResponse<T> {
@@ -27,7 +36,11 @@ export const loyaltyService = {
     getMyVouchers: () => {
         return api.get<ApiResponse<VoucherItem[]>>('/loyalty/my-vouchers');
     },
-    redeemPoints: (pointsToRedeem: number) => {
-        return api.post<ApiResponse<any>>('/loyalty/redeem', { points: pointsToRedeem });
+
+    redeemPoints: (payload: RedeemRequestPayload) => {
+        return api.post<ApiResponse<any>>('/loyalty/redeem', payload);
+    },
+    getMyPointsSummary: () => {
+        return api.get<ApiResponse<any>>('/loyalty/my-points');
     }
 };

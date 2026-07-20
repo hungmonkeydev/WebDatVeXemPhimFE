@@ -224,23 +224,32 @@ export default function MovieDetail() {
                         {/* Render Rạp & Suất Chiếu từ API */}
                         <div className="flex flex-col gap-6">
                             {isLoadingShowtimes ? (
-                                <div className="py-10 flex justify-center"><Spinner size="md" color="primary" /> Đang tải lịch chiếu...</div>
+                                <div className="py-10 flex justify-center items-center gap-2 text-gray-500">
+                                    <Spinner size="md" color="primary" /> Đang tải lịch chiếu...
+                                </div>
                             ) : filteredCinemas.length > 0 ? (
                                 filteredCinemas.map((cinema: any, idx: number) => (
                                     <div key={idx} className="bg-gray-50 p-6 rounded-lg border border-gray-100">
                                         <h3 className="text-lg font-bold text-gray-800 mb-4">{cinema.name}</h3>
 
                                         {cinema.formats?.map((format: any, fIdx: number) => (
-                                            <div key={fIdx} className="flex flex-col md:flex-row md:items-center gap-4 mb-2">
-                                                <span className="text-sm font-semibold text-gray-700 w-48 shrink-0">{format.type}</span>
+                                            <div key={fIdx} className="flex flex-col md:flex-row md:items-start gap-2 md:gap-4 mb-2">
+                                                <span className="text-sm font-semibold text-gray-700 w-48 shrink-0 pt-2.5">
+                                                    {format.type}
+                                                </span>
                                                 <div className="flex flex-wrap gap-3">
                                                     {format.times?.map((timeobj: any, tIdx: number) => (
                                                         <button
                                                             key={tIdx}
                                                             onClick={() => navigate(`/dat-ve/${timeobj.showtimeId}/chon-ghe`)}
-                                                            className="border border-gray-300 bg-white text-gray-700 font-medium py-1.5 px-4 rounded hover:border-[#f26b38] hover:text-[#f26b38] transition-colors"
+                                                            className="flex flex-col items-center justify-center min-w-[84px] px-4 py-2 rounded-lg border border-gray-300 bg-white hover:border-[#f26b38] hover:bg-orange-50 transition-colors group"
                                                         >
-                                                            {timeobj.time}
+                                                            <span className="text-sm font-bold text-gray-800 group-hover:text-[#f26b38]">
+                                                                {timeobj.time}
+                                                            </span>
+                                                            <span className="text-[11px] text-gray-400 group-hover:text-[#f26b38]/70 mt-0.5 whitespace-nowrap">
+                                                                {timeobj.roomName}
+                                                            </span>
                                                         </button>
                                                     ))}
                                                 </div>
@@ -249,7 +258,9 @@ export default function MovieDetail() {
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-center text-gray-500 py-6 border border-dashed border-gray-300 rounded-lg">Không có suất chiếu nào cho ngày này.</div>
+                                <div className="text-center text-gray-500 py-6 border border-dashed border-gray-300 rounded-lg">
+                                    Không có suất chiếu nào cho ngày này.
+                                </div>
                             )}
                         </div>
                     </div>

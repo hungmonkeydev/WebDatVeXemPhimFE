@@ -4,19 +4,20 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
-import img1 from '../../../public/hero/image.png';
 import img2 from '../../../public/hero/image1.png';
 import img3 from '../../../public/hero/image2.png';
 import img4 from '../../../public/hero/image3.png';
+import img5 from '../../../public/hero/image4.png';
+
 import imgCoCo from '../../../public/hero/bannerCoCo.png';
 
 export default function BannerSlider() {
   const banners = [
-    { id: 1, imgUrl: img1 },
-    { id: 2, imgUrl: img2 },
-    { id: 3, imgUrl: img3 },
-    { id: 4, imgUrl: img4 },
-    { id: 5, imgUrl: imgCoCo },
+    { id: 1, imgUrl: img2 },
+    { id: 2, imgUrl: img3 },
+    { id: 3, imgUrl: img4 },
+    { id: 4, imgUrl: imgCoCo },
+    { id: 5, imgUrl: img5 },
 
   ];
 

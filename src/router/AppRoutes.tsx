@@ -12,7 +12,8 @@ import PaymentPage from '../pages/PaymentPage';
 import BookingSuccessPage from '../pages/BookingSuccessPage';
 import MoviesPage from '../pages/MoviesPage';
 import AdminRoutes from './AdminRoutes';
-
+import LoyaltyStore from '../pages/LoyaltyStore';
+import VerifyEmailSuccessPage from '../pages/VerifyEmailSuccessPage';
 const CustomerLayout = () => (
     <div className="min-h-screen bg-gray-50 flex flex-col">
         <Header />
@@ -42,6 +43,9 @@ export default function AppRoutes() {
                     <Route path="/dat-ve/:id/thanh-cong" element={<BookingSuccessPage />} />
                     <Route path="/booking/payment-success" element={<BookingSuccessPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/loyalty-store" element={<LoyaltyStore />} />
+                    <Route path="/verify-email-success" element={<VerifyEmailSuccessPage />} />
+
                 </Route>
             </Routes>
         </>
