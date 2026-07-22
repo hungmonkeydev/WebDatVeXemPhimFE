@@ -33,17 +33,15 @@ export default function SeatSelection() {
 
   // --- HÀM MỚI: XỬ LÝ CHỌN CẢ NHÓM GHẾ (COUPLE HOẶC SINGLE) ---
   const toggleSeatGroup = async (seatsToToggle: any[]) => {
-    const isAnySeatNotSelectable = seatsToToggle.some(seat => !seat.isSelectable);
-    // Nếu ghế bị khóa và KHÔNG PHẢI do mình đang chọn thì mới chặn click
     const isAlreadySelectedByMe = selectedSeats.some(s => s.seatId === seatsToToggle[0].seatId);
+    const isAnySeatNotSelectable = seatsToToggle.some(seat => !seat.isSelectable);
     if (isAnySeatNotSelectable && !isAlreadySelectedByMe) return;
 
-    const token = localStorage.getItem('access_token');
     const seatIdsToToggle = seatsToToggle.map(s => s.seatId);
+    const token = localStorage.getItem('access_token');
 
-    // GỌI API TRƯỚC HOẶC NGAY SAU KHI XỬ LÝ LOGIC, KHÔNG ĐỂ TRONG SET STATE
     if (isAlreadySelectedByMe) {
-      // 1. Luồng BỎ CHỌN
+      // Bỏ chọn → nhả ghế
       if (token) {
         seatsToToggle.forEach(seat => {
           bookingService.releaseSeat({ showtimeId: Number(id), seatId: seat.seatId })
@@ -52,11 +50,7 @@ export default function SeatSelection() {
       }
       setSelectedSeats(prev => prev.filter(s => !seatIdsToToggle.includes(s.seatId)));
     } else {
-      // 2. Luồng CHỌN THÊM
-      if (token) {
-        bookingService.holdSeats(id as string, seatIdsToToggle)
-          .catch(err => console.error("Lỗi giữ ghế nhóm:", err));
-      }
+      // Chọn thêm → chỉ update UI, KHÔNG gọi holdSeats
       setSelectedSeats(prev => [...prev, ...seatsToToggle]);
     }
   };
@@ -78,11 +72,10 @@ export default function SeatSelection() {
     const rawToken = localStorage.getItem('access_token');
     const isValidToken = rawToken && rawToken !== 'null' && rawToken !== 'undefined';
 
-    // 🚦 1. NẾU LÀ KHÁCH VÃNG LAI -> ĐI THẲNG LUÔN, BỎ QUA API
+    // NẾU LÀ KHÁCH VÃNG LAI -> ĐI THẲNG LUÔN, BỎ QUA API
     if (!isValidToken) {
       console.log("Khách vãng lai đi thẳng qua trang thức ăn!");
-      const expireAt = Date.now() + (300 * 1000); // Tạm set 5 phút
-
+      const expireAt = Date.now() + (300 * 1000); 
       navigate(`/dat-ve/${id}/thuc-an`, {
         state: {
           selectedSeats: selectedSeats,

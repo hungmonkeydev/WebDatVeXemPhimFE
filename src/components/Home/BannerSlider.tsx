@@ -1,25 +1,29 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
-
-import img2 from '../../../public/hero/image1.png';
-import img3 from '../../../public/hero/image2.png';
-import img4 from '../../../public/hero/image3.png';
-import img5 from '../../../public/hero/image4.png';
-
-import imgCoCo from '../../../public/hero/bannerCoCo.png';
+import { useMovies } from '../../Hooks/useMovies';
 
 export default function BannerSlider() {
-  const banners = [
-    { id: 1, imgUrl: img2 },
-    { id: 2, imgUrl: img3 },
-    { id: 3, imgUrl: img4 },
-    { id: 4, imgUrl: imgCoCo },
-    { id: 5, imgUrl: img5 },
+  const { moviesList, isLoading } = useMovies('outstanding');
 
-  ];
+  const banners = useMemo(() => {
+    if (!moviesList || moviesList.length === 0) return [];
+    return moviesList.filter((m: any) => m.bannerUrl);
+  }, [moviesList]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full mt-10 flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-200 border-t-blue-600" />
+      </div>
+    );
+  }
+
+  if (banners.length === 0) return null;
 
   return (
     <div className="w-full mt-10 bg-white overflow-hidden">
@@ -31,22 +35,24 @@ export default function BannerSlider() {
           1024: { slidesPerView: 1.2, spaceBetween: 40 }
         }}
         centeredSlides={true}
-        loop={true}
+        loop={banners.length > 1}
         autoplay={{
           delay: 4000,
           disableOnInteraction: false,
         }}
         pagination={{ clickable: true }}
         navigation={false}
-        className="w-full h-full"
+        className="w-full h-[220px] sm:h-[320px] md:h-[450px]"
       >
-        {banners.map((banner) => (
-          <SwiperSlide key={banner.id} className="w-full">
-            <img
-              src={banner.imgUrl}
-              alt={`Banner ${banner.id}`}
-              className="w-full h-full object-contain object-center"
-            />
+        {banners.map((movie: any) => (
+          <SwiperSlide key={movie.movieId} className="w-full h-full">
+            <Link to={`/phim/${movie.movieId}`} className="block w-full h-full">
+              <img
+                src={movie.bannerUrl}
+                alt={movie.title}
+                className="w-full h-full object-cover object-center rounded-lg"
+              />
+            </Link>
           </SwiperSlide>
         ))}
       </Swiper>

@@ -20,6 +20,7 @@ export default function MovieList({ isFullPage = false }: MovieListProps) {
         { id: 'dang_chieu', label: 'Đang chiếu' },
         { id: 'sap_chieu', label: 'Sắp chiếu' },
         { id: 'imax', label: 'Phim IMAX' },
+        { id: 'top_rated', label: 'Đánh giá cao' }
     ];
 
     const { moviesList, nowShowingResults, comingSoonResults, hasSearch, isLoading } = useMovies(activeTab, {

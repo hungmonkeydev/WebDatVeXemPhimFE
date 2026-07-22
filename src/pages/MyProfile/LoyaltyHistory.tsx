@@ -16,7 +16,6 @@ export default function LoyaltyHistory() {
     return (
         <div className="space-y-4">
             {historyData.map((item: any, index: number) => {
-                // Kiểm tra xem là cộng điểm hay trừ điểm (dựa vào số âm/dương hoặc type do BE trả về)
                 const isEarn = item.pointsChange > 0 || item.pointsType === 'EARN';
 
                 return (

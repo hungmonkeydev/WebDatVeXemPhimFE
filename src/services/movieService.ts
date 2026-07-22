@@ -16,6 +16,17 @@ export const movieService = {
   getMovieDetail: async (id: string) => {
     return api.get(`/movies/${id}`);
   },
+  getOutstanding: (limit = 10, minRating = 0, minBookings = 0) => {
+    return api.get('/movies/outstanding', { params: { limit, minRating, minBookings } });
+  },
+  getTopRated: async () => {
+    return api.get("/movies/top-rated", {
+      params: {
+        minReviews: 1, // Ép điều kiện xuống 1 review, ĐẢM BẢO LỚN HƠN HOẶC BẰNG 1 (không bị 400)
+        limit: 10      // (Tùy chọn) Giới hạn số lượng trả về
+      }
+    });
+  },
   searchMovies: async (params: {
     keyword?: string;
     genreIds?: number[];

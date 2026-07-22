@@ -42,6 +42,15 @@ export const useMovies = (activeTab: string, searchParams?: { keyword?: string; 
                 response = await movieService.getComingSoon();
             } else if (activeTab === 'imax') {
                 response = await movieService.getImax();
+            } else if (activeTab === 'outstanding') {
+                response = await movieService.getOutstanding(10, 0, 0); // limit, minRating, minBookings
+                console.log('outstanding response:', response.data);
+
+            } else if (activeTab === "top_rated") {
+                console.log("Calling top rated API");
+
+                response = await movieService.getTopRated();
+                console.log('Reate response:', response.data);
             } else {
                 response = await movieService.getMovies();
             }
