@@ -78,5 +78,55 @@ export const useAuth = () => {
       setIsLoading(false);
     }
   };
-  return { login, register, isLoading };
+  const forgotPassword = async (email: string) => {
+    setIsLoading(true);
+    try {
+      await authService.forgotPassword(email.trim());
+      return { 
+        success: true, 
+        message: 'Mật khẩu tạm thời đã được gửi! Vui lòng kiểm tra email của bạn.' 
+      };
+    } catch (err: any) {
+      console.log("Lỗi quên mật khẩu:", err.response?.data);
+      let errorMessage = 'Không thể gửi email lúc này. Vui lòng thử lại sau!';
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
+      return { success: false, message: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const changePassword = async (passwordData: { oldPassword: string; newPassword: string; confirmPassword: string }) => {
+    setIsLoading(true);
+    try {
+      await authService.changePassword(passwordData);
+      return { 
+        success: true, 
+        message: 'Đổi mật khẩu thành công!' 
+      };
+    } catch (err: any) {
+      console.log("Lỗi đổi mật khẩu:", err.response?.data);
+      let errorMessage = 'Mật khẩu cũ không chính xác hoặc có lỗi xảy ra!';
+      
+      // Xử lý bắt lỗi Validation từ Backend (giống hàm register)
+      if (err.response?.status === 400 || err.response?.status === 422) {
+        const responseData = err.response.data;
+        errorMessage = responseData.message || 'Dữ liệu không hợp lệ!';
+        if (responseData?.data && typeof responseData.data === 'object') {
+          const errorDetails = Object.values(responseData.data);
+          if (errorDetails.length > 0) {
+            errorMessage = errorDetails[0] as string; // Lấy câu lỗi chi tiết bên trong "data"
+          }
+        }
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
+      
+      return { success: false, message: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  return { login, register, isLoading ,forgotPassword,changePassword};
 };

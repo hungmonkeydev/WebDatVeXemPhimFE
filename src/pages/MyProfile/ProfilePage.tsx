@@ -8,12 +8,19 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useLoyaltyProgress } from '../../Hooks/useLoyaltyProgress';
 import LoyaltyHistory from '../MyProfile/LoyaltyHistory';
 import MyVouchers from '../../pages/MyProfile/MyVouchers';
+import { useAuth } from '../../Hooks/useAuth';
 export default function Profile() {
     const location = useLocation();
     const navigate = useNavigate();
-    const { progressData } = useLoyaltyProgress();
-    const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'thong-tin');
+    const { progressData } = useLoyaltyProgress() || {}; const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'thong-tin');
     const [profileData, setProfileData] = useState<any>(null);
+
+    const { changePassword, isLoading: isPwdLoading } = useAuth();
+    const [isEditingPassword, setIsEditingPassword] = useState(false);
+    const [showOldPassword, setShowOldPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [pwdData, setPwdData] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -92,6 +99,42 @@ export default function Profile() {
             setToast({ isOpen: true, message: 'Cập nhật thất bại. Vui lòng thử lại!', type: 'error' });
         } finally {
             setIsLoading(false);
+        }
+    };
+    const handleChangePassword = async () => {
+        if (!pwdData.oldPassword || !pwdData.newPassword || !pwdData.confirmPassword) {
+            setToast({ isOpen: true, message: 'Vui lòng nhập đầy đủ thông tin!', type: 'error' });
+            return;
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{6,}$/;
+        if (!passwordRegex.test(pwdData.newPassword)) {
+            setToast({
+                isOpen: true,
+                message: 'Mật khẩu phải từ 6 ký tự, gồm chữ hoa, chữ thường và ký tự đặc biệt!',
+                type: 'error'
+            });
+            return;
+        }
+
+        if (pwdData.newPassword !== pwdData.confirmPassword) {
+            setToast({ isOpen: true, message: 'Mật khẩu xác nhận không khớp!', type: 'error' });
+            return;
+        }
+
+        setToast({ ...toast, isOpen: false });
+
+        const result = await changePassword({
+            oldPassword: pwdData.oldPassword,
+            newPassword: pwdData.newPassword,
+            confirmPassword: pwdData.confirmPassword
+        });
+        if (result.success) {
+            setToast({ isOpen: true, message: result.message, type: 'success' });
+            setIsEditingPassword(false);
+            setPwdData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+        } else {
+            setToast({ isOpen: true, message: result.message, type: 'error' });
         }
     };
 
@@ -311,43 +354,142 @@ export default function Profile() {
                                 </div>
 
                                 {/* MẬT KHẨU */}
-                                <div className="flex flex-col gap-1.5">
+                                <div className={`flex flex-col gap-1.5 ${isEditingPassword ? 'md:col-span-2' : ''}`}>
                                     <label className="text-[14px] text-gray-600 font-medium">Mật khẩu</label>
-                                    <div className="relative">
-                                        <input
-                                            type="password"
-                                            placeholder='**********'
-                                            readOnly
-                                            className="w-full border border-gray-200 rounded px-4 py-2.5 text-[15px] outline-none bg-gray-50 text-gray-400 cursor-not-allowed"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => alert("Tính năng đổi mật khẩu đang được cập nhật!")}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-[14px] text-[#f26b38] hover:text-[#d95a2b] font-medium"
-                                        >
-                                            Thay đổi
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
 
-                            {/* NÚT BẤM CẬP NHẬT */}
-                            <div className="flex justify-end mt-8 border-t border-gray-100 pt-6">
-                                <Button
-                                    onClick={handleUpdateProfile}
-                                    disabled={isLoading}
-                                    className="px-8 bg-[#f26b38] hover:bg-[#d95a2b] shadow-md transition-colors"
-                                >
-                                    {isLoading ? (
-                                        <div className="flex items-center gap-2">
-                                            <Spinner size="sm" color="white" /> Đang cập nhật...
+                                    {!isEditingPassword ? (
+                                        <div className="relative">
+                                            <input
+                                                type="password"
+                                                placeholder='**********'
+                                                readOnly
+                                                className="w-full border border-gray-200 rounded px-4 py-2.5 text-[15px] outline-none bg-gray-50 text-gray-400 cursor-not-allowed"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsEditingPassword(true)}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-[14px] text-[#f26b38] hover:text-[#d95a2b] font-medium"
+                                            >
+                                                Thay đổi
+                                            </button>
                                         </div>
-                                    ) : 'Cập nhật'}
-                                </Button>
+                                    ) : (
+                                        /* FORM ĐỔI MẬT KHẨU MỞ RỘNG */
+                                        <div className="bg-gray-50 p-5 rounded border border-gray-200 flex flex-col gap-4 mt-1">
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                                                {/* Ô 1: Mật khẩu hiện tại */}
+                                                <div className="relative">
+                                                    <input
+                                                        type={showOldPassword ? "text" : "password"}
+                                                        placeholder="Mật khẩu hiện tại"
+                                                        value={pwdData.oldPassword}
+                                                        onChange={(e) => setPwdData({ ...pwdData, oldPassword: e.target.value })}
+                                                        autoComplete="new-password"
+                                                        className="w-full border border-gray-300 rounded px-3 py-2.5 text-[14px] focus:border-[#f26b38] outline-none pr-10"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowOldPassword(!showOldPassword)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                                    >
+                                                        {showOldPassword ? (
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                        ) : (
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
+                                                        )}
+                                                    </button>
+                                                </div>
+
+                                                {/* Ô 2: Mật khẩu mới */}
+                                                <div className="relative">
+                                                    <input
+                                                        type={showNewPassword ? "text" : "password"}
+                                                        placeholder="Mật khẩu mới"
+                                                        value={pwdData.newPassword}
+                                                        onChange={(e) => setPwdData({ ...pwdData, newPassword: e.target.value })}
+                                                        className="w-full border border-gray-300 rounded px-3 py-2.5 text-[14px] focus:border-[#f26b38] outline-none pr-10"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                                    >
+                                                        {showNewPassword ? (
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                        ) : (
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
+                                                        )}
+                                                    </button>
+                                                </div>
+
+                                                {/* Ô 3: Nhập lại mật khẩu mới */}
+                                                <div className="relative">
+                                                    <input
+                                                        type={showConfirmPassword ? "text" : "password"}
+                                                        placeholder="Nhập lại mật khẩu mới"
+                                                        value={pwdData.confirmPassword}
+                                                        onChange={(e) => setPwdData({ ...pwdData, confirmPassword: e.target.value })}
+                                                        className="w-full border border-gray-300 rounded px-3 py-2.5 text-[14px] focus:border-[#f26b38] outline-none pr-10"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                                    >
+                                                        {showConfirmPassword ? (
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                        ) : (
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
+                                                        )}
+                                                    </button>
+                                                </div>
+
+                                            </div>
+                                            <div className="flex justify-end gap-3 mt-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setIsEditingPassword(false);
+                                                        setPwdData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+                                                    }}
+                                                    className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors"
+                                                >
+                                                    Hủy
+                                                </button>
+                                                <Button
+                                                    onClick={handleChangePassword}
+                                                    disabled={isPwdLoading}
+                                                    className="px-6 bg-[#f26b38] hover:bg-[#d95a2b] transition-colors"
+                                                >
+                                                    {isPwdLoading ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <Spinner size="sm" color="white" /> Đang lưu...
+                                                        </div>
+                                                    ) : 'Lưu mật khẩu'}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* NÚT BẤM CẬP NHẬT */}
+                                <div className="flex justify-end mt-8 border-t border-gray-100 pt-6">
+                                    <Button
+                                        onClick={handleUpdateProfile}
+                                        disabled={isLoading}
+                                        className="px-8 bg-[#f26b38] hover:bg-[#d95a2b] shadow-md transition-colors"
+                                    >
+                                        {isLoading ? (
+                                            <div className="flex items-center gap-2">
+                                                <Spinner size="sm" color="white" /> Đang cập nhật...
+                                            </div>
+                                        ) : 'Cập nhật'}
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     )}
-
 
                     {activeTab === 'lich-su' && (
                         <div className="p-4 md:p-8">

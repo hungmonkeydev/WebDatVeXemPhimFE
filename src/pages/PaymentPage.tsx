@@ -21,7 +21,7 @@ export default function PaymentPage() {
 
     const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
     const [discountAmount, setDiscountAmount] = useState(0);
-    const { progressData } = useLoyaltyProgress();
+const { progressData } = useLoyaltyProgress() || {};
     const { vouchers: myVoucher, isLoadingVoucher } = useMyVoucher(bookingData?.isGuest || false);
     const [usedPoints, setUsedPoints] = useState(0);
     const availablePoints = progressData?.data?.currentPoints || progressData?.currentPoints || 0;
@@ -124,8 +124,7 @@ export default function PaymentPage() {
 
                 console.log("Đang tạo vé cho Guest...", guestPayload);
                 const guestRes = await bookingService.guestCreateBooking(guestPayload);
-                actualBookingId = guestRes.data?.bookingId;
-                if (!actualBookingId) {
+                actualBookingId = guestRes.data?.bookingId || guestRes.data?.id || guestRes.data?.data?.bookingId || guestRes.data?.data?.id; if (!actualBookingId) {
                     alert("Có lỗi khi tạo vé cho khách vãng lai!");
                     return;
                 }
@@ -151,7 +150,7 @@ export default function PaymentPage() {
                     return;
                 }
             }
-
+            localStorage.setItem('successBookingCode', actualBookingId);
             const vnpayPayload = {
                 bookingId: actualBookingId,
                 amount: actualAmountToPay,
@@ -161,8 +160,7 @@ export default function PaymentPage() {
             };
             if (actualAmountToPay === 0) {
 
-                navigate(`/booking/payment-success?vnp_ResponseCode=00&vnp_TransactionStatus=00&vnp_OrderInfo=Thanh toan ma ve ${actualBookingId}`);
-                return;
+                navigate(`/booking-success?bookingCode=${actualBookingId}`); return;
             }
 
             console.log("🚨 ĐANG GỌI API VNPAY VỚI PAYLOAD:", vnpayPayload);

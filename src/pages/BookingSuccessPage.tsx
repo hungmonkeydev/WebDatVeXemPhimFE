@@ -2,33 +2,46 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { bookingService } from '../services/bookingService';
 import TicketDetailCard from '../components/Booking/TicketDetailCard';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function BookingSuccessPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const bookingCode = searchParams.get('bookingCode');
+    
+    // Lấy bookingCode từ URL do Backend redirect về (hoặc fallback qua localStorage)
+    const urlBookingCode = searchParams.get('bookingCode');
+    const bookingCode = urlBookingCode || localStorage.getItem('successBookingCode');
 
     const [booking, setBooking] = useState<any>(null);
+    const [guestTicketData, setGuestTicketData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const isGuest = !localStorage.getItem('access_token');
 
     useEffect(() => {
         const fetchBookingDetails = async () => {
-            if (!bookingCode) {
+            if (!bookingCode && !isGuest) {
                 alert("Không tìm thấy mã vé hợp lệ!");
                 navigate('/');
                 return;
             }
 
             if (isGuest) {
+                // Với Khách vãng lai, lấy thông tin vé đã lưu tạm từ trang Thanh toán
+                const savedData = localStorage.getItem('pendingTicket');
+                if (savedData) {
+                    setGuestTicketData(JSON.parse(savedData));
+                }
                 setIsLoading(false);
                 return;
             }
+            
             try {
+                // Với User đã đăng nhập, gọi API lấy danh sách vé
                 const response = await bookingService.getMyBookings();
                 const allMyTickets = response.data?.data || response.data || [];
+                
                 const currentTicket = allMyTickets.find((ticket: any) =>
-                    ticket.bookingCode == bookingCode || ticket.booking_code == bookingCode
+                    ticket.bookingCode == bookingCode || ticket.booking_code == bookingCode || ticket.id == bookingCode
                 );
 
                 if (currentTicket) {
@@ -42,8 +55,12 @@ export default function BookingSuccessPage() {
                 alert("Không thể tải thông tin vé lúc này!");
             } finally {
                 setIsLoading(false);
+                // Dọn rác storage sau khi đã load xong
+                localStorage.removeItem('successBookingCode');
+                localStorage.removeItem('pendingTicket');
             }
         };
+
         fetchBookingDetails();
     }, [bookingCode, navigate, isGuest]);
 
@@ -55,23 +72,51 @@ export default function BookingSuccessPage() {
         );
     }
 
+    // GIAO DIỆN CHO KHÁCH VÃNG LAI (Hiển thị vé giống PaymentSuccess.tsx của bạn)
     if (isGuest) {
         return (
-            <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center gap-4 px-4">
-                <div className="bg-white rounded-lg shadow-md p-8 max-w-md w-full text-center">
+            <div className="min-h-screen bg-gray-50 py-10 flex justify-center items-center">
+                <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
                     <div className="text-5xl mb-4">✅</div>
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">Thanh toán thành công!</h2>
-                    <p className="text-gray-600 mb-1">Mã vé của bạn:</p>
-                    <p className="text-lg font-bold text-[#f26b38] mb-4">{bookingCode}</p>
-                    <p className="text-sm text-gray-500 mb-6">
-                        Vé điện tử đã được gửi đến email bạn đã đăng ký. Vui lòng kiểm tra hộp thư để xem chi tiết.
+                    <h2 className="text-2xl font-bold text-green-600 mb-2">Thanh toán thành công!</h2>
+                    <p className="text-gray-500 mb-6">
+                        Vé điện tử đã được gửi về email của bạn.
                     </p>
-                    <button
-                        onClick={() => navigate('/')}
-                        className="bg-[#f26b38] text-white px-6 py-2 rounded-md font-bold hover:bg-[#d95a2b] transition-colors w-full"
-                    >
-                        Về trang chủ
-                    </button>
+
+                    {guestTicketData && (
+                        <div className="mt-4 p-4 bg-gray-100 rounded-lg border-dashed border-2 border-gray-300 text-left">
+                            <h3 className="text-center text-lg font-bold mb-4">Thông tin vé</h3>
+                            
+                            {/* Hiển thị Mã QR dựa vào bookingCode */}
+                            <div className="flex flex-col items-center mb-4">
+                                <div className="p-2 bg-white rounded shadow-sm">
+                                    <QRCodeSVG value={bookingCode || 'VIECINEMA'} size={140} />
+                                </div>
+                                <p className="font-bold text-blue-600 mt-2 text-xl">
+                                    Mã ĐH: {bookingCode}
+                                </p>
+                                <p className="text-xs text-red-500 mt-2 italic px-2 text-center">
+                                    *Lưu ý: Mã QR này chỉ mang tính chất minh họa. Vui lòng sử dụng mã QR được gửi trong Email để quét vé qua cổng.
+                                </p>
+                            </div>
+
+                            <div className="space-y-2 text-sm text-gray-700 border-t pt-4">
+                                <p><strong>Phim:</strong> {guestTicketData.movieName}</p>
+                                <p><strong>Cụm rạp:</strong> {guestTicketData.cinemaName} - {guestTicketData.roomName}</p>
+                                <p><strong>Suất chiếu:</strong> {guestTicketData.showTime}</p>
+                                <p><strong>Ghế:</strong> <span className="text-red-500 font-bold">{guestTicketData.seatLabels}</span></p>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="mt-8 flex gap-4 justify-center">
+                        <button 
+                            onClick={() => navigate('/')}
+                            className="bg-[#f26b38] text-white px-6 py-2 rounded font-semibold hover:bg-[#d95c2b] w-full transition-colors"
+                        >
+                            Về trang chủ
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -86,9 +131,25 @@ export default function BookingSuccessPage() {
         );
     }
 
+    // GIAO DIỆN CHI TIẾT CHO USER ĐÃ ĐĂNG NHẬP
+    // Chú ý: Ở file TicketDetailCard của bạn, nếu bạn muốn show QR thì bạn cũng 
+    // import QRCodeSVG vào component TicketDetailCard và truyền giá trị là booking.qrCodeData nhé
     return (
-        <div className="min-h-screen bg-gray-100 flex justify-center items-center py-10 px-4">
+        <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center py-10 px-4">
+            <div className="mb-6 text-center">
+                <div className="text-5xl mb-4">✅</div>
+                <h2 className="text-3xl font-bold text-green-600">Thanh toán thành công!</h2>
+                <p className="text-gray-600 mt-2">Vé điện tử kèm mã QR đã được gửi đến email của bạn.</p>
+            </div>
+            
             <TicketDetailCard booking={booking} />
+            
+            <button 
+                onClick={() => navigate('/')}
+                className="mt-6 bg-[#f26b38] text-white px-8 py-3 rounded-md font-bold hover:bg-[#d95a2b] transition-colors"
+            >
+                Về trang chủ
+            </button>
         </div>
     );
 }
