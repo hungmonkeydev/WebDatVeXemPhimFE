@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { useAdminDashboard } from '../../Hooks/useAdminDashboard';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042']; // Bảng màu cho Biểu đồ tròn
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042']; 
 
 const AdminDashboard = () => {
     const { userStats, isLoading } = useAdminDashboard();
@@ -21,7 +21,6 @@ const AdminDashboard = () => {
         return <div className="text-center mt-20"><Spin size="large" tip="Đang tải dữ liệu..." /></div>;
     }
 
-    // Tiền xử lý dữ liệu cho Biểu đồ Tròn (chuyển Object thành Array để recharts đọc được)
     const roleData = userStats?.roleDistribution
         ? Object.keys(userStats.roleDistribution).map((key) => ({
             name: key,
@@ -79,10 +78,8 @@ const AdminDashboard = () => {
                     </Card>
                 </Col>
 
-                {/* Biểu đồ Tròn & Thanh Tiến độ (Lấy 8 cột) */}
                 <Col xs={24} lg={8}>
                     <Card title="Cơ cấu Người Dùng" className="shadow-sm h-full min-h-[350px]">
-                        {/* 1. Biểu đồ tròn cho Role */}
                         <div className="h-48 mb-4">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -97,7 +94,6 @@ const AdminDashboard = () => {
                             </ResponsiveContainer>
                         </div>
 
-                        {/* 2. Thanh tiến độ Active/Banned */}
                         <div className="flex flex-col space-y-4 pt-4 border-t">
                             <div className="w-full">
                                 <div className="flex justify-between mb-1 text-sm">

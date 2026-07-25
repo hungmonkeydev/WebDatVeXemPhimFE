@@ -126,7 +126,7 @@ export default function FoodSelection() {
                     dateDisplay={dateDisplay}
                     selectedSeats={selectedSeats}
                     totalPrice={finalTotalPrice}
-                    remainingSeconds={bookingData.remainingSeconds || 600}
+                    remainingSeconds={bookingData.remainingSeconds ?? 600}
                     expireAt={expireAt}
                     onTimeout={async () => {
                         try {
@@ -158,6 +158,7 @@ export default function FoodSelection() {
                                 showtimeInfo,
                                 roomInfo,
                                 expireAt,
+                                remainingSeconds: bookingData.remainingSeconds,
                                 isGuest: !isValidToken
                             }
                         });

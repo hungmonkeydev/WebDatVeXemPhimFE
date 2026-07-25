@@ -75,15 +75,14 @@ export default function SeatSelection() {
     // NẾU LÀ KHÁCH VÃNG LAI -> ĐI THẲNG LUÔN, BỎ QUA API
     if (!isValidToken) {
       console.log("Khách vãng lai đi thẳng qua trang thức ăn!");
-      const expireAt = Date.now() + (300 * 1000); 
       navigate(`/dat-ve/${id}/thuc-an`, {
         state: {
           selectedSeats: selectedSeats,
           showtimeInfo: showtimeInfo,
           roomInfo: roomInfo,
           totalTicketPrice: totalPrice,
-          remainingSeconds: 300,
-          expireAt
+          remainingSeconds: 0,
+          expireAt: 0
         }
       });
       return;
@@ -92,14 +91,14 @@ export default function SeatSelection() {
     const result = await holdSeats(id, seatIds);
 
     if (result.success) {
-      const expireAt = Date.now() + (result.remainingSeconds * 1000);
+      const expireAt = Date.now() + (300 * 1000); // Luôn luôn đếm 5 phút (300s) cho User
       navigate(`/dat-ve/${id}/thuc-an`, {
         state: {
           selectedSeats: selectedSeats,
           showtimeInfo: showtimeInfo,
           roomInfo: roomInfo,
           totalTicketPrice: totalPrice,
-          remainingSeconds: result.remainingSeconds,
+          remainingSeconds: 300, // Luôn luôn đếm 5 phút (300s) cho User
           expireAt
         }
       });

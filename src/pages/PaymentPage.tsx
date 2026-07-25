@@ -404,7 +404,7 @@ const { progressData } = useLoyaltyProgress() || {};
                     dateDisplay={dateDisplay}
                     selectedSeats={selectedSeats}
                     totalPrice={actualAmountToPay}
-                    remainingSeconds={bookingData.remainingSeconds || 600}
+                    remainingSeconds={bookingData.remainingSeconds ?? 600}
                     expireAt={expireAt}
                     onTimeout={() => {
                         alert("Đã hết thời gian giữ ghế! Vui lòng chọn lại từ đầu.");

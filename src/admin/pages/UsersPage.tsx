@@ -102,7 +102,6 @@ export default function UserManage() {
             const values = await form.validateFields();
 
             if (editingUser) {
-                // 1. GỌI API CẬP NHẬT THÔNG TIN CƠ BẢN (8 trường)
                 const updatePayload = {
                     fullName: values.fullName,
                     email: values.email,
@@ -117,11 +116,8 @@ export default function UserManage() {
 
                 await userService.updateUser(editingUser.userId, updatePayload);
 
-                // 2. GỌI THÊM API CẬP NHẬT ROLE (Nếu Admin có thay đổi)
                 if (values.role !== editingUser.role) {
                     try {
-                        // Lưu ý: Tùy backend của Hưng yêu cầu gửi { role: "ADMIN" } hay sao nhé. 
-                        // Tui đang ví dụ dạng JSON phổ biến nhất:
                         await userService.updateUserRole(editingUser.userId, { role: values.role });
                     } catch (roleError) {
                         console.error("Lỗi cập nhật Role:", roleError);
@@ -131,7 +127,6 @@ export default function UserManage() {
 
                 message.success("Cập nhật thông tin thành công!");
             } else {
-                // TRƯỜNG HỢP THÊM MỚI (Giữ nguyên)
                 const createPayload = { ...values };
                 if (!createPayload.birthDate) createPayload.birthDate = null;
 
@@ -147,7 +142,6 @@ export default function UserManage() {
 
             const responseData = error.response?.data;
 
-            // Backend trả lỗi field trong responseData.data (object dạng {field: message})
             if (responseData?.data && typeof responseData.data === 'object' && !Array.isArray(responseData.data)) {
                 const backendErrors = responseData.data;
                 form.setFields(
@@ -176,7 +170,7 @@ export default function UserManage() {
     };
     const showBanModal = (record: UserType) => {
         setBanningUser(record);
-        setIsBanModalOpen(true); // Chỉ cần ra lệnh mở Modal, không ép dữ liệu ở đây nữa
+        setIsBanModalOpen(true); 
     };
     const handleBanSubmit = async () => {
         try {
@@ -235,7 +229,6 @@ export default function UserManage() {
                         <Button type="text" icon={<EditOutlined className="text-blue-500" />} onClick={() => showModal(record)} />
                     </Tooltip>
                     {record.isActive ? (
-                        // Đang hoạt động -> hiện khóa MỞ, 
                         <Tooltip title="Khóa tài khoản">
                             <Button
                                 type="text"
@@ -244,7 +237,6 @@ export default function UserManage() {
                             />
                         </Tooltip>
                     ) : (
-                        // Đang bị khóa -> hiện khóa ĐÓNG
                         <Tooltip title="Mở khóa tài khoản">
                             <Button
                                 type="text"
@@ -330,13 +322,11 @@ export default function UserManage() {
                         </Form.Item>
                     </div>
 
-                    {/* KHÚC NÀY MỚI THÊM: Ngày sinh và hạng thành viên */}
                     <div className="grid grid-cols-2 gap-4">
                         <Form.Item name="birthDate" label="Ngày sinh">
                             <Input type="date" className="w-full" />
                         </Form.Item>
                         <Form.Item name="membershipTierId" label="Hạng thành viên">
-                            {/* Chỗ này Hưng có thể chỉnh lại số ID hạng theo DB thực tế của Hưng nhé */}
                             <Select options={[
                                 { value: 1, label: 'Thành viên Đồng' },
                                 { value: 2, label: 'Thành viên Bạc' },
@@ -351,7 +341,6 @@ export default function UserManage() {
                         </Form.Item>
                     )}
 
-                    {/* KHÚC NÀY CHỈ HIỆN KHI LÀ CHẾ ĐỘ SỬA: Cho phép Admin tick xác thực tay */}
                     {editingUser && (
                         <div className="grid grid-cols-3 gap-4 border-t pt-4 mt-2">
                             <Form.Item name="isActive" label="Hoạt động" valuePropName="checked">
