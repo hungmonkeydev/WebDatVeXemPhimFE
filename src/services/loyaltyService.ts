@@ -1,6 +1,5 @@
 import api from './api';
 
-// Định nghĩa lại Type cho chuẩn với Enum bên Backend
 export type VoucherType = 'GIFT_CARD' | 'TICKET_DISCOUNT' | 'COMBO_DISCOUNT';
 export type RedemptionType = 'VOUCHER' | 'COMBO';
 
@@ -16,12 +15,11 @@ export interface VoucherItem {
     comboName?: string;
 }
 
-// Thêm Interface cho Payload gửi lên
 export interface RedeemRequestPayload {
     redemptionType: RedemptionType;
-    pointsToUse?: number; // Dành cho VOUCHER
-    comboId?: number;     // Dành cho COMBO
-    quantity?: number;    // Dành cho COMBO (thường là 1)
+    pointsToUse?: number;
+    comboId?: number;
+    quantity?: number;
 }
 
 export interface ApiResponse<T> {

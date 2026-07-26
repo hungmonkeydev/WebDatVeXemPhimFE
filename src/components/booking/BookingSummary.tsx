@@ -6,14 +6,11 @@ interface BookingSummaryProps {
     dateDisplay: string;
     selectedSeats: any[];
     totalPrice: number;
-    // Dành riêng cho trang Bắp Nước
     combos?: any[];
     comboCart?: Record<number, number>;
-    // DÀNH CHO ĐỒNG HỒ ĐẾM NGƯỢC
     remainingSeconds?: number;
     expireAt?: number;
-    onTimeout?: () => void; // Hàm sẽ chạy khi hết giờ
-    // Nút bấm
+    onTimeout?: () => void;
     onBack: () => void;
     onNext: () => void;
     nextLabel?: string;
@@ -58,7 +55,6 @@ export default function BookingSummary({
         return () => clearInterval(timer);
     }, [timeLeft, remainingSeconds, onTimeout]);
 
-    // Đổi từ Giây sang định dạng Phút:Giây (VD: 09:59)
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
     const timeFormatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -109,7 +105,6 @@ export default function BookingSummary({
                         </span>
                     </div>
 
-                    {/* Combo (Chỉ hiển thị nếu có mua) */}
                     {combos.length > 0 && Object.keys(comboCart).length > 0 && (
                         <div className="mt-3">
                             {combos.map(combo => {

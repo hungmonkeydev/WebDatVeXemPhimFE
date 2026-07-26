@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { userService } from '../services/userService';
+import { adminUserService } from '../services/adminUserService';
 import { message } from 'antd';
 
 export const useAdminDashboard = () => {
@@ -10,7 +10,7 @@ export const useAdminDashboard = () => {
         const fetchDashboardData = async () => {
             try {
                 setIsLoading(true);
-                const responseData = await userService.getDashboardStats();
+                const responseData = await adminUserService.getDashboardStats();
                 setUserStats(responseData.data); 
             } catch (err: any) {
                 console.error("Lỗi chi tiết từ Backend:", err.response?.data);

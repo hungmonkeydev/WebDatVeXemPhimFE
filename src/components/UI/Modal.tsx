@@ -1,4 +1,3 @@
-// src/components/UI/Modal.tsx
 import React from 'react';
 import useScrollLock from '../../Hooks/useScrollLock';
 interface ModalProps {

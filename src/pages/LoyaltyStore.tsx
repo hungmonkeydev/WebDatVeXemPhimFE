@@ -63,7 +63,7 @@ const LoyaltyStore = () => {
             if (res.data.status === 'success') {
                 alert(`🎉 Đổi thành công! Voucher đã được thêm vào ví của bạn.`);
                 setCurrentPoints(res.data.data.remainingPoints);
-                setPointsInput(''); // Reset ô nhập
+                setPointsInput(''); 
             }
         } catch (error: any) {
             alert("Đổi quà thất bại: " + (error.response?.data?.message || "Lỗi hệ thống"));
@@ -108,7 +108,7 @@ const LoyaltyStore = () => {
             <div className="bg-gradient-to-r from-blue-700 to-indigo-600 text-white rounded-2xl p-8 mb-10 text-center shadow-xl">
                 <h1 className="text-3xl font-bold mb-2">VieCinema Rewards</h1>
 
-                {/* 👉 Render Hạng Thành Viên Bằng Cục JSON Mới */}
+                {/* Render Hạng Thành Viên*/}
                 {loyaltyData && (
                     <div className="mb-4">
                         <span

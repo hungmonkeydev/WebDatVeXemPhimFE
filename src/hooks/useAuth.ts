@@ -109,14 +109,13 @@ export const useAuth = () => {
       console.log("Lỗi đổi mật khẩu:", err.response?.data);
       let errorMessage = 'Mật khẩu cũ không chính xác hoặc có lỗi xảy ra!';
       
-      // Xử lý bắt lỗi Validation từ Backend (giống hàm register)
       if (err.response?.status === 400 || err.response?.status === 422) {
         const responseData = err.response.data;
         errorMessage = responseData.message || 'Dữ liệu không hợp lệ!';
         if (responseData?.data && typeof responseData.data === 'object') {
           const errorDetails = Object.values(responseData.data);
           if (errorDetails.length > 0) {
-            errorMessage = errorDetails[0] as string; // Lấy câu lỗi chi tiết bên trong "data"
+            errorMessage = errorDetails[0] as string; 
           }
         }
       } else if (err.response?.data?.message) {

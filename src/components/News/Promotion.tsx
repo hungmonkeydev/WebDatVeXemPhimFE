@@ -64,22 +64,18 @@ export default function Promotion() {
         }}
         navigation={false}
         breakpoints={{
-          // Mobile nhỏ: 1.2 thẻ, khoảng cách nhỏ (16px)
           0: {
             slidesPerView: 1,
             spaceBetween: 16,
           },
-          // Điện thoại bự / Tablet dọc
           480: {
             slidesPerView: 2,
             spaceBetween: 16,
           },
-          // Tablet ngang
           768: {
             slidesPerView: 3,
             spaceBetween: 20,
           },
-          // PC: 4 thẻ, khoảng cách lớn (24px)
           1024: {
             slidesPerView: 4,
             spaceBetween: 24,

@@ -216,7 +216,6 @@ const { progressData } = useLoyaltyProgress() || {};
         }
         let discount = 0;
 
-        // Voucher tặng combo -> lấy giá combo tương ứng trong danh sách combos để trừ
         if (selectedVoucher.voucherType === 'COMBO_DISCOUNT' && selectedVoucher.comboId && selectedVoucher.discountValue == null) {
             const matchedCombo = bookingData.combos?.find((c: any) => (c.comboId ?? c.id) === selectedVoucher.comboId);
             discount = matchedCombo ? matchedCombo.price * selectedVoucher.comboQuantity : 0;
@@ -312,7 +311,6 @@ const { progressData } = useLoyaltyProgress() || {};
                     {!isGuest && (
                         <div className="bg-white p-6 rounded-lg shadow-sm">
                             <h2 className="text-lg font-bold text-gray-800 mb-6">Khuyến mãi</h2>
-                            {/* VOUCHER DROPDOWN THAY CHO Ô NHẬP TAY */}
                             <div className="mb-6">
                                 <label className="block text-sm font-semibold text-gray-700 mb-3">Chọn mã khuyến mãi của bạn</label>
 
@@ -339,7 +337,6 @@ const { progressData } = useLoyaltyProgress() || {};
                                                     key={v.voucherId}
                                                     type="button"
                                                     onClick={() => {
-                                                        // Bấm lại voucher đang chọn -> bỏ chọn
                                                         if (isSelected) {
                                                             setSelectedVoucher(null);
                                                         } else {

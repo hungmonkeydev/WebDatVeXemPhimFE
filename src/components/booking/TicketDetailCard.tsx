@@ -43,7 +43,6 @@ export default function TicketDetailCard({ booking, onClose }: TicketDetailCardP
     return (
         <div className="bg-white w-full max-w-[380px] rounded-lg shadow-2xl relative flex flex-col font-sans overflow-hidden border border-gray-100">
 
-            {/* NÚT TẮT NẰM GÓC PHẢI TRÊN (NỔI) */}
             <button
                 onClick={() => {
                     if (onClose) onClose();
@@ -78,7 +77,6 @@ export default function TicketDetailCard({ booking, onClose }: TicketDetailCardP
 
             {/* PHẦN 2: THÔNG TIN RẠP, GIỜ CHIẾU, GHẾ VÀ COMBO */}
             <div className="px-6 py-5 flex flex-col items-center w-full">
-                {/* Rạp và Giờ */}
                 <p className="font-bold text-gray-700 text-[16px] mb-1 text-center">{cinemaName}</p>
                 {roomName && <p className="text-[14px] text-gray-500 mb-1">{roomName}</p>}
                 
@@ -86,13 +84,10 @@ export default function TicketDetailCard({ booking, onClose }: TicketDetailCardP
                     Suất: <span className="font-bold text-[#f26b38]">{showTime}</span> - {dayOfWeek}, <span className="font-bold text-gray-800">{showDate}</span>
                 </p>
 
-                {/* Khung chứa Ghế và Combo */}
                 <div className="w-full bg-gray-50 rounded-lg p-3 border border-gray-100 flex flex-col gap-2">                    <div className="flex justify-between items-start">
                         <span className="text-[13px] text-gray-500 w-16 shrink-0">Ghế ngồi:</span>
                         <span className="font-bold text-gray-800 text-[14px] text-right break-words">{seatsDisplay}</span>
                     </div>
-
-                    {/* Hàng Combo */}
                     {hasCombo && (
                         <>
                             <div className="w-full border-t border-gray-200/60 my-0.5"></div>

@@ -31,7 +31,6 @@ export default function SeatSelection() {
     dateDisplay = `${dayOfWeek}, ${dateStr}`;
   }
 
-  // --- HÀM MỚI: XỬ LÝ CHỌN CẢ NHÓM GHẾ (COUPLE HOẶC SINGLE) ---
   const toggleSeatGroup = async (seatsToToggle: any[]) => {
     const isAlreadySelectedByMe = selectedSeats.some(s => s.seatId === seatsToToggle[0].seatId);
     const isAnySeatNotSelectable = seatsToToggle.some(seat => !seat.isSelectable);
@@ -41,7 +40,6 @@ export default function SeatSelection() {
     const token = localStorage.getItem('access_token');
 
     if (isAlreadySelectedByMe) {
-      // Bỏ chọn → nhả ghế
       if (token) {
         seatsToToggle.forEach(seat => {
           bookingService.releaseSeat({ showtimeId: Number(id), seatId: seat.seatId })
@@ -50,15 +48,14 @@ export default function SeatSelection() {
       }
       setSelectedSeats(prev => prev.filter(s => !seatIdsToToggle.includes(s.seatId)));
     } else {
-      // Chọn thêm → chỉ update UI, KHÔNG gọi holdSeats
       setSelectedSeats(prev => [...prev, ...seatsToToggle]);
     }
   };
   const SEAT_COLORS: Record<number, string> = {
-    1: '#4CAF50', // Thường (Xanh lá)
-    2: '#FFD700', // VIP (Vàng)
-    3: '#E91E63', // Couple (Hồng)
-    4: '#9C27B0', // Deluxe (Tím)
+    1: '#4CAF50', 
+    2: '#FFD700', 
+    3: '#E91E63', 
+    4: '#9C27B0', 
   };
 
   const totalPrice = selectedSeats.reduce((total, seat) => {
@@ -67,12 +64,8 @@ export default function SeatSelection() {
 
   const handleNext = async () => {
     const seatIds = selectedSeats.map(seat => seat.seatId);
-
-    // Kiểm tra token
     const rawToken = localStorage.getItem('access_token');
     const isValidToken = rawToken && rawToken !== 'null' && rawToken !== 'undefined';
-
-    // NẾU LÀ KHÁCH VÃNG LAI -> ĐI THẲNG LUÔN, BỎ QUA API
     if (!isValidToken) {
       console.log("Khách vãng lai đi thẳng qua trang thức ăn!");
       navigate(`/dat-ve/${id}/thuc-an`, {
@@ -195,13 +188,12 @@ export default function SeatSelection() {
                       let i = 0;
                       while (i < rowItem.seats.length) {
                         const seat = rowItem.seats[i];
-                        // Nếu là ghế Couple và cái tiếp theo cũng là Couple
                         if (seat.seatTypeId === 3 && i + 1 < rowItem.seats.length && rowItem.seats[i + 1].seatTypeId === 3) {
                           groupedSeats.push({ isCouple: true, seats: [seat, rowItem.seats[i + 1]] });
-                          i += 2; // Nhảy cóc qua 2 ghế
+                          i += 2; 
                         } else {
                           groupedSeats.push({ isCouple: false, seats: [seat] });
-                          i += 1; // Đi tiếp từng ghế
+                          i += 1; 
                         }
                       }
 
@@ -235,31 +227,23 @@ export default function SeatSelection() {
 
               {/* Chú thích màu ghế */}
               <div className="flex flex-wrap gap-6 text-xs text-gray-600 justify-center mt-4">
-                {/* Ghế đã bán */}
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 bg-gray-300 rounded border-b-2 border-gray-400 text-gray-500 flex items-center justify-center font-bold">X</div>
                   Đã bán
                 </div>
 
-                {/* Ghế đang chọn */}
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 bg-[#f26b38] rounded border-b-2 border-[#d95a2b]"></div>
                   Đang chọn
                 </div>
-
-                {/* Ghế Thường */}
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 bg-[#4CAF50] rounded border-b-2 border-[#388E3C]"></div>
                   Thường
                 </div>
-
-                {/* Ghế VIP (Vàng) */}
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 bg-[#FFD700] rounded border-b-2 border-[#FFA000]"></div>
                   VIP
                 </div>
-
-                {/* Ghế Couple (Hồng) */}
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 bg-[#E91E63] rounded border-b-2 border-[#C2185B]"></div>
                   Couple

@@ -172,7 +172,7 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
                 />
               </div>
 
-              {/* Giới tính (Radio) */}
+              {/* Giới tính  */}
               <div className="flex items-center gap-6 mt-1 mb-1">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input

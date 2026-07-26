@@ -26,7 +26,6 @@ const AdminLayout: React.FC = () => {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken();
 
-    // Bắt sự kiện mỗi khi vào /admin
     useEffect(() => {
         const token = localStorage.getItem('access_token');
         if (!token) {
@@ -39,15 +38,15 @@ const AdminLayout: React.FC = () => {
 
     // Hàm xử lý khi Đăng nhập thành công từ Modal
     const handleLoginSuccess = () => {
-        setIsLoginModalOpen(false); 
-        setIsAuthenticated(true); 
+        setIsLoginModalOpen(false);
+        setIsAuthenticated(true);
         message.success('Chào mừng Admin đã quay trở lại!');
     };
 
     // Hàm xử lý Đăng xuất
     const handleLogout = () => {
         localStorage.removeItem('access_token');
-        setIsAuthenticated(false); 
+        setIsAuthenticated(false);
         setIsLoginModalOpen(true);
         navigate('/admin/dashboard');
     };
@@ -63,11 +62,11 @@ const AdminLayout: React.FC = () => {
                 { key: '/admin/showtimes', icon: <CalendarOutlined />, label: 'Lịch chiếu' },
             ],
         },
-        { key: '/admin/cinemas', icon: <ShopOutlined />, label: 'Cụm Rạp & Phòng' },
+       // { key: '/admin/cinemas', icon: <ShopOutlined />, label: 'Cụm Rạp & Phòng' },
         { key: '/admin/orders', icon: <ShoppingCartOutlined />, label: 'Quản lý Đơn hàng' },
         { key: '/admin/users', icon: <TeamOutlined />, label: 'Quản lý Người dùng' },
         { key: '/admin/combos', icon: <CoffeeOutlined />, label: 'Quản lý Bắp nước' },
-        { key: '/admin/promotions', icon: <TagOutlined />, label: 'Quản lý Khuyến mãi' },
+        { key: '/admin/vouchers', icon: <TagOutlined />, label: 'Quản lý Khuyến mãi' },
     ];
 
     const userDropdownItems: MenuProps['items'] = [
@@ -95,7 +94,7 @@ const AdminLayout: React.FC = () => {
                     isOpen={isLoginModalOpen}
                     onClose={() => {
                         setIsLoginModalOpen(false);
-                        navigate('/'); 
+                        navigate('/');
                     }}
                     onSuccess={handleLoginSuccess}
                 />

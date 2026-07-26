@@ -30,14 +30,13 @@ export const useAdminShowtimes = () => {
             return {
                 success: false,
                 message: responseData?.message || "Vui lòng kiểm tra lại thông tin!",
-                fieldErrors: responseData?.data // 👉 Bổ sung dòng này để lấy chi tiết lỗi (Ví dụ: { startTime: "Thời gian không hợp lệ" })
+                fieldErrors: responseData?.data 
             };
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Tương tự, cập nhật lại catch của hàm updateShowtime
     const updateShowtime = async (id: number, payload: any) => {
         setIsLoading(true);
         try {
@@ -54,8 +53,6 @@ export const useAdminShowtimes = () => {
             setIsLoading(false);
         }
     };
-
-    // Xóa
     const deleteShowtime = async (id: number) => {
         setIsLoading(true);
         try {

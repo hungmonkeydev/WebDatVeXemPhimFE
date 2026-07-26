@@ -9,11 +9,11 @@ interface ReviewModalProps {
     onClose: () => void;
     movieId: number;
     movieTitle: string;
-    onSuccess?: () => void; // Hàm callback để reload lại trang/điểm số sau khi review thành công
+    onSuccess?: () => void;
 }
 
 export default function ReviewModal({ isOpen, onClose, movieId, movieTitle, onSuccess }: ReviewModalProps) {
-    const [rating, setRating] = useState<number>(5); // Mặc định cho sẵn 5 sao
+    const [rating, setRating] = useState<number>(5);
     const [comment, setComment] = useState<string>('');
     const { submitReview, isSubmitting } = useSubmitReview();
 
@@ -26,8 +26,8 @@ export default function ReviewModal({ isOpen, onClose, movieId, movieTitle, onSu
         if (result.success) {
             setComment('');
             setRating(5);
-            if (onSuccess) onSuccess(); // Chạy hàm reload data nếu có truyền vào
-            onClose(); // Đóng modal
+            if (onSuccess) onSuccess();
+            onClose();
         }
     };
 

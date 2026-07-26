@@ -5,7 +5,7 @@ import { useMovies } from '../Hooks/useMovies';
 import { useShowtimes } from '../Hooks/useShowtimes';
 import Spinner from '../components/UI/Spinner';
 import MovieReviews from '../components/Movie/MovieReviews';
-import MovieSidebar from '../components/Movie/MovieSidebar'; // Trigger HMR
+import MovieSidebar from '../components/Movie/MovieSidebar'; 
 export default function MovieDetail() {
 
     const { id } = useParams();
@@ -28,7 +28,7 @@ export default function MovieDetail() {
             return {
                 dayLabel,
                 displayDate: `${day}/${month}`,
-                apiDate: `${year}-${month}-${day}` // Chuẩn format YYYY-MM-DD
+                apiDate: `${year}-${month}-${day}` 
             };
         });
     }, []);
@@ -164,7 +164,6 @@ export default function MovieDetail() {
                             <div className="w-1 h-5 bg-blue-700"></div>
                             <h2 className="text-lg font-bold text-gray-800 uppercase">Lịch Chiếu</h2>
                         </div>
-                        {/* Nút chọn ngày */}
                         <div className="flex flex-col md:flex-row justify-between items-center border-b border-gray-300 mb-8 gap-4">
                             <div className="flex">
                                 {dates.map((item) => (

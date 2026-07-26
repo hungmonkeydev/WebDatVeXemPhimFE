@@ -4,7 +4,7 @@ import {
     message, Tooltip, InputNumber, Descriptions, Badge, Switch
 } from 'antd';
 import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined, LockOutlined, UnlockOutlined, EyeOutlined } from '@ant-design/icons';
-import { userService } from '../../services/userService';
+import { adminUserService } from '../../services/adminUserService';
 import { CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons';
 
 interface UserType {
@@ -45,7 +45,7 @@ export default function UserManage() {
         setIsDetailModalOpen(true);
         setIsFetchingDetail(true);
         try {
-            const res = await userService.getUserDetail(userId);
+            const res = await adminUserService.getUserDetail(userId);
             setUserDetail(res.data.data);
         } catch (error) {
             message.error("Không thể lấy thông tin chi tiết!");
@@ -59,7 +59,7 @@ export default function UserManage() {
         setIsLoading(true);
         try {
 
-            const res = await userService.getUsers(page, size);
+            const res = await adminUserService.getUsers(page, size);
             if (res && res.data) {
                 setUsers(res.data.content);
                 setTotalUsers(res.data.totalElements);
@@ -114,11 +114,11 @@ export default function UserManage() {
                     membershipTierId: values.membershipTierId
                 };
 
-                await userService.updateUser(editingUser.userId, updatePayload);
+                await adminUserService.updateUser(editingUser.userId, updatePayload);
 
                 if (values.role !== editingUser.role) {
                     try {
-                        await userService.updateUserRole(editingUser.userId, { role: values.role });
+                        await adminUserService.updateUserRole(editingUser.userId, { role: values.role });
                     } catch (roleError) {
                         console.error("Lỗi cập nhật Role:", roleError);
                         message.warning("Đã cập nhật thông tin, nhưng lỗi khi đổi Vai trò!");
@@ -130,7 +130,7 @@ export default function UserManage() {
                 const createPayload = { ...values };
                 if (!createPayload.birthDate) createPayload.birthDate = null;
 
-                await userService.createUser(createPayload);
+                await adminUserService.createUser(createPayload);
                 message.success("Thêm tài khoản mới thành công!");
             }
 
@@ -161,7 +161,7 @@ export default function UserManage() {
     };
     const handleDelete = async (userId: number) => {
         try {
-            await userService.deleteUser(userId);
+            await adminUserService.deleteUser(userId);
             message.success("Đã xóa người dùng thành công!");
             fetchUsers(currentPage, pageSize);
         } catch (error) {
@@ -170,14 +170,14 @@ export default function UserManage() {
     };
     const showBanModal = (record: UserType) => {
         setBanningUser(record);
-        setIsBanModalOpen(true); 
+        setIsBanModalOpen(true);
     };
     const handleBanSubmit = async () => {
         try {
             const values = await banForm.validateFields();
 
             if (banningUser) {
-                const res = await userService.banUser(banningUser.userId, {
+                const res = await adminUserService.banUser(banningUser.userId, {
                     reason: values.reason,
                     lockDurationHours: values.lockDurationHours
                 });
@@ -191,7 +191,7 @@ export default function UserManage() {
     };
     const handleUnban = async (userId: number) => {
         try {
-            await userService.unBanUser(userId);
+            await adminUserService.unBanUser(userId);
             message.success("Đã mở khóa tài khoản thành công!");
             fetchUsers(currentPage, pageSize);
         } catch (error: any) {
@@ -419,8 +419,6 @@ export default function UserManage() {
                         <Descriptions.Item label="Tổng chi tiêu">
                             <b className="text-red-500">{userDetail.totalSpent?.toLocaleString()} VNĐ</b>
                         </Descriptions.Item>
-
-                        {/* Thông tin hệ thống */}
                         <Descriptions.Item label="Trạng thái tài khoản">
                             {userDetail.isActive ? <Badge status="success" text="Đang hoạt động" /> : <Badge status="error" text="Đang khóa" />}
                         </Descriptions.Item>

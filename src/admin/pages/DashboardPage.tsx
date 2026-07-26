@@ -12,13 +12,13 @@ import {
 } from 'recharts';
 import { useAdminDashboard } from '../../Hooks/useAdminDashboard';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042']; 
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const AdminDashboard = () => {
     const { userStats, isLoading } = useAdminDashboard();
 
     if (isLoading) {
-        return <div className="text-center mt-20"><Spin size="large" tip="Đang tải dữ liệu..." /></div>;
+        return <div className="text-center mt-20"><Spin size="large" description="Đang tải dữ liệu..." /></div>;
     }
 
     const roleData = userStats?.roleDistribution
@@ -58,8 +58,6 @@ const AdminDashboard = () => {
 
             {/* ================= KHU VỰC 2: BIỂU ĐỒ ================= */}
             <Row gutter={[16, 16]} className="mt-6">
-
-                {/* Biểu đồ Đường: Lượng đăng ký hàng ngày (Lấy 16 cột) */}
                 <Col xs={24} lg={16}>
                     <Card title="Lượng Đăng Ký Mới (30 ngày qua)" className="shadow-sm h-full min-h-[350px]">
                         {userStats?.dailyRegistrations?.length > 0 ? (

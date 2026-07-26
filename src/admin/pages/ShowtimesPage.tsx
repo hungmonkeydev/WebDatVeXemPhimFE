@@ -5,7 +5,6 @@ import {
 } from 'antd';
 import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-// 👉 Dùng Hook AdminShowtime (Nhớ check lại đường dẫn nếu file có chữ 's' hay không nha)
 import { useAdminShowtimes } from '../../Hooks/useAdminShowtime';
 import { movieService } from '../../services/movieService';
 
@@ -26,13 +25,11 @@ export default function ShowtimeManage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // 👉 1. GỌI HOOK XỬ LÝ API CHO SUẤT CHIẾU
   const {
     showtimes, totalShowtimes, isLoading,
     fetchShowtimes, createShowtime, updateShowtime, deleteShowtime
   } = useAdminShowtimes();
 
-  // 👉 2. KHAI BÁO CÁC STATE CHO MODAL & DROPDOWN
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingShowtime, setEditingShowtime] = useState<ShowtimeType | null>(null);
   const [form] = Form.useForm();
@@ -44,7 +41,6 @@ export default function ShowtimeManage() {
     { value: 2, label: 'Phòng 2 - Cinema Q10' }
   ]);
 
-  // 👉 3. LẤY DANH SÁCH PHIM ĐANG CHIẾU & SẮP CHIẾU ĐỔ VÀO DROPDOWN
   useEffect(() => {
     const fetchMoviesForDropdown = async () => {
       setIsMovieLoading(true);
@@ -62,7 +58,6 @@ export default function ShowtimeManage() {
           label: m.title
         }));
 
-        // Lọc trùng lặp
         const uniqueMovies = Array.from(
           new Map(combinedMovies.map(item => [item.value, item])).values()
         );
@@ -103,7 +98,7 @@ export default function ShowtimeManage() {
     setPageSize(pagination.pageSize);
   };
 
-  // 👉 5. XỬ LÝ MỞ MODAL THÊM/SỬA
+  // XỬ LÝ MỞ MODAL THÊM/SỬA
   const showModal = (record?: any) => {
     if (record) {
       setEditingShowtime(record);

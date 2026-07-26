@@ -153,20 +153,16 @@ export default function Profile() {
     let progressPercent = 0;
 
     if (totalSpent <= 10000000) {
-        // Chặng 1: Member -> Silver (0 - 10 Tr) | Chiếm 33.33% chiều dài thanh
         progressPercent = (totalSpent / 10000000) * 33.33;
     } else if (totalSpent <= 50000000) {
-        // Chặng 2: Silver -> Gold (10 Tr - 50 Tr) | Từ 33.33% đến 66.66%
-        const excess = totalSpent - 10000000; // Số tiền dư ra sau khi đạt Silver
-        const interval = 40000000; // Khoảng cách chặng này là 40 Triệu
+        const excess = totalSpent - 10000000;
+        const interval = 40000000;
         progressPercent = 33.33 + ((excess / interval) * 33.33);
     } else if (totalSpent <= 100000000) {
-        // Chặng 3: Gold -> Diamond (50 Tr - 100 Tr) | Từ 66.66% đến 100%
-        const excess = totalSpent - 50000000; // Số tiền dư ra sau khi đạt Gold
-        const interval = 50000000; // Khoảng cách chặng này là 50 Triệu
+        const excess = totalSpent - 50000000; 
+        const interval = 50000000; 
         progressPercent = 66.66 + ((excess / interval) * 33.33);
     } else {
-        // Chặng MAX: Trên 100 Triệu (Diamond)
         progressPercent = 100;
     }
     return (
@@ -209,7 +205,6 @@ export default function Profile() {
                                 <div className={`absolute top-1/2 -translate-y-1/2 left-[33%] w-4 h-4 bg-white border-2 rounded-full transition-colors duration-300 ${totalSpent >= 10000000 ? 'border-[#f26b38]' : 'border-gray-300'}`}></div>
                                 <div className={`absolute top-1/2 -translate-y-1/2 left-[66%] w-4 h-4 bg-white border-2 rounded-full transition-colors duration-300 ${totalSpent >= 50000000 ? 'border-[#f26b38]' : 'border-gray-300'}`}></div>
                                 <div className={`absolute top-1/2 -translate-y-1/2 right-0 w-4 h-4 bg-white border-2 rounded-full transition-colors duration-300 ${totalSpent >= 100000000 ? 'border-[#f26b38]' : 'border-gray-300'}`}></div>
-                                {/* Chữ hiển thị số tiền dưới các mốc */}
                                 <div className="absolute top-4 left-0 -translate-x-1/4 text-center">
                                     <div className="text-[10px] font-bold text-gray-400">MEMBER</div>
                                     <div className="text-[12px] text-gray-500 whitespace-nowrap">0 ₫</div>
@@ -245,7 +240,6 @@ export default function Profile() {
 
                 {/* === NỘI DUNG PHẢI === */}
                 <div className="flex-1 bg-white rounded-lg shadow-sm overflow-hidden">
-                    {/* Menu chọn Tab */}
                     <div className="flex items-center overflow-x-auto border-b border-gray-200 custom-scrollbar px-2 bg-gray-50/50">
                         {tabs.map((tab) => (
                             <button

@@ -14,7 +14,6 @@ export const useLoyaltyHistory = () => {
                 console.log("useLoyaltyHistory", response.data);
                 let rawData = response.data?.data || response.data;
 
-                // Bóc mảng ra nếu Backend bọc trong biến 'content' (Phân trang của Spring)
                 if (rawData && rawData.content) {
                     rawData = rawData.content;
                 } setHistoryData(Array.isArray(rawData) ? rawData : []);

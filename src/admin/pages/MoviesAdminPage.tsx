@@ -54,13 +54,11 @@ export default function MovieManage() {
 
       const payload = {
         ...values,
-        // Format ngày tháng gửi xuống DB chuẩn YYYY-MM-DD
         releaseDate: values.releaseDate ? values.releaseDate.format('YYYY-MM-DD') : null,
       };
 
       let result;
       if (editingMovie) {
-        // API hỗ trợ Partial Update nên gửi payload bình thường, thằng nào có nó tự đè
         result = await updateMovie(editingMovie.movieId, payload);
       } else {
         result = await createMovie(payload);
@@ -71,7 +69,6 @@ export default function MovieManage() {
         setIsModalOpen(false);
         fetchMovies(currentPage, pageSize);
       } else {
-        // Bắt lỗi Validation màu đỏ từng field nếu backend ném về
         if (result.fieldErrors && typeof result.fieldErrors === 'object') {
           const formErrors = Object.keys(result.fieldErrors).map((field) => ({
             name: field,

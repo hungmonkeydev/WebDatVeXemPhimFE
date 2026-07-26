@@ -141,13 +141,11 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
       {!currentUser && (
         <>
           <div className="w-[1px] h-6 bg-gray-200"></div>
-          {/* Khối Join Member GStar */}
           <div className="relative group cursor-pointer">
             <button className="flex items-center gap-2 font-bold text-[14px] text-gray-700 hover:text-[#f26b38] transition-colors uppercase">
               <img src={img} alt="Join Member GStar" className="h-10 cursor-pointer object-contain" />
             </button>
 
-            {/* Bảng Dropdown Gstar Mega Menu */}
             <div className="absolute top-full right-0 pt-5 w-[650px] bg-white rounded-lg shadow-2xl border border-gray-100 p-6 z-50 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-300">
               <div className="grid grid-cols-4 gap-4">
                 <div className="flex flex-col items-center text-center">

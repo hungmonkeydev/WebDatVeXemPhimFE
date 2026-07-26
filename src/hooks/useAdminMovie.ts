@@ -11,7 +11,6 @@ export const useAdminMovies = () => {
         try {
             const res = await adminMovieService.getAll({ page: page - 1, size });
             if (res && res.data) {
-                // Tùy cấu trúc trả về, nếu là Page thì dùng content, nếu List thì lấy thẳng
                 setMovies(res.data.content || res.data);
                 setTotalMovies(res.data.totalElements || res.data.length || 0);
             }

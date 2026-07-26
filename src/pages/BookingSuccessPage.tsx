@@ -8,7 +8,6 @@ export default function BookingSuccessPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     
-    // Lấy bookingCode từ URL do Backend redirect về (hoặc fallback qua localStorage)
     const urlBookingCode = searchParams.get('bookingCode');
     const bookingCode = urlBookingCode || localStorage.getItem('successBookingCode');
 
@@ -26,7 +25,6 @@ export default function BookingSuccessPage() {
             }
 
             if (isGuest) {
-                // Với Khách vãng lai, lấy thông tin vé đã lưu tạm từ trang Thanh toán
                 const savedData = localStorage.getItem('pendingTicket');
                 if (savedData) {
                     setGuestTicketData(JSON.parse(savedData));
@@ -36,7 +34,6 @@ export default function BookingSuccessPage() {
             }
             
             try {
-                // Với User đã đăng nhập, gọi API lấy danh sách vé
                 const response = await bookingService.getMyBookings();
                 const allMyTickets = response.data?.data || response.data || [];
                 
@@ -55,7 +52,6 @@ export default function BookingSuccessPage() {
                 alert("Không thể tải thông tin vé lúc này!");
             } finally {
                 setIsLoading(false);
-                // Dọn rác storage sau khi đã load xong
                 localStorage.removeItem('successBookingCode');
                 localStorage.removeItem('pendingTicket');
             }
@@ -72,7 +68,6 @@ export default function BookingSuccessPage() {
         );
     }
 
-    // GIAO DIỆN CHO KHÁCH VÃNG LAI (Hiển thị vé giống PaymentSuccess.tsx của bạn)
     if (isGuest) {
         return (
             <div className="min-h-screen bg-gray-50 py-10 flex justify-center items-center">
@@ -131,9 +126,6 @@ export default function BookingSuccessPage() {
         );
     }
 
-    // GIAO DIỆN CHI TIẾT CHO USER ĐÃ ĐĂNG NHẬP
-    // Chú ý: Ở file TicketDetailCard của bạn, nếu bạn muốn show QR thì bạn cũng 
-    // import QRCodeSVG vào component TicketDetailCard và truyền giá trị là booking.qrCodeData nhé
     return (
         <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center py-10 px-4">
             <div className="mb-6 text-center">

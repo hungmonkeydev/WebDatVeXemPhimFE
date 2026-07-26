@@ -5,7 +5,6 @@ interface BookingSelectProps {
 
 export default function BookingSelect({ stepNumber, placeholder }: BookingSelectProps) {
   return (
-    // ĐỔI CHỖ NÀY: Thêm md:flex-1 để trên PC nó giãn đều 4 ô ra, lấp kín cái thanh trắng
     <div className="w-auto md:flex-1 shrink-0 h-full flex items-center justify-between px-3 md:px-5 cursor-pointer hover:bg-gray-50 transition-colors border-r border-gray-200 group">
 
       <div className="flex items-center gap-1.5 md:gap-3">

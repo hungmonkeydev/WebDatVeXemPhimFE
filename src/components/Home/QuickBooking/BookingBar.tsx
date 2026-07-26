@@ -1,11 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import BookingSelect from './BookingSelect';
-import { useQuickBooking } from '../../../Hooks/useQuickBooking'; // Chỉnh lại đường dẫn cho đúng nha
+import { useQuickBooking } from '../../../Hooks/useQuickBooking';
 
 export default function BookingBar() {
   const navigate = useNavigate();
-
-  // Lôi toàn bộ data và hàm xử lý từ Hook ra
   const {
     movies, cinemas, dates, times, isLoading,
     setSelectedMovieId, setSelectedCinemaId, setSelectedDate, setSelectedShowtimeId,

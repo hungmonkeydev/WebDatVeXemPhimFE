@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 
-// Định nghĩa các loại thông báo
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
 interface ToastProps {
@@ -11,7 +10,7 @@ interface ToastProps {
   duration?: number;
 }
 
-export default function Toast({ 
+export default function Toast({     
   isOpen, 
   message, 
   type = 'info', 
@@ -47,7 +46,6 @@ export default function Toast({
 
   return (
     <>
-      {/* Kẹp thêm xíu CSS để làm hiệu ứng trượt từ phải sang */}
       <style>{`
         @keyframes slideInRight {
           from { transform: translateX(100%); opacity: 0; }
