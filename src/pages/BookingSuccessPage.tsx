@@ -1,65 +1,45 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { bookingService } from '../services/bookingService';
 import TicketDetailCard from '../components/Booking/TicketDetailCard';
 import { QRCodeSVG } from 'qrcode.react';
-
+import { useBooking } from '../Hooks/useBooking';
 export default function BookingSuccessPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    
+
     const urlBookingCode = searchParams.get('bookingCode');
     const bookingCode = urlBookingCode || localStorage.getItem('successBookingCode');
 
-    const [booking, setBooking] = useState<any>(null);
     const [guestTicketData, setGuestTicketData] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(true);
     const isGuest = !localStorage.getItem('access_token');
 
+    const { isLoading, booking, fetchBookingDetail } = useBooking();
+
     useEffect(() => {
-        const fetchBookingDetails = async () => {
-            if (!bookingCode && !isGuest) {
-                alert("Không tìm thấy mã vé hợp lệ!");
+        if (!bookingCode && !isGuest) {
+            alert("Không tìm thấy mã vé hợp lệ!");
+            navigate('/');
+            return;
+        }
+
+        if (isGuest) {
+            const savedData = localStorage.getItem('pendingTicket');
+            if (savedData) setGuestTicketData(JSON.parse(savedData));
+            // Sếp nhớ tạo thêm một state local để tắt loading cho Guest ở đây nếu cần
+            return;
+        }
+
+        // Gọi hàm API siêu gọn gàng
+        fetchBookingDetail(bookingCode as string).then((res) => {
+            if (!res.success) {
+                alert("Không tìm thấy thông tin vé này!");
                 navigate('/');
-                return;
             }
+            localStorage.removeItem('successBookingCode');
+            localStorage.removeItem('pendingTicket');
+        });
 
-            if (isGuest) {
-                const savedData = localStorage.getItem('pendingTicket');
-                if (savedData) {
-                    setGuestTicketData(JSON.parse(savedData));
-                }
-                setIsLoading(false);
-                return;
-            }
-            
-            try {
-                const response = await bookingService.getMyBookings();
-                const allMyTickets = response.data?.data || response.data || [];
-                
-                const currentTicket = allMyTickets.find((ticket: any) =>
-                    ticket.bookingCode == bookingCode || ticket.booking_code == bookingCode || ticket.id == bookingCode
-                );
-
-                if (currentTicket) {
-                    setBooking(currentTicket);
-                } else {
-                    alert("Không tìm thấy thông tin vé này trong lịch sử!");
-                    navigate('/');
-                }
-            } catch (error) {
-                console.error("Lỗi lấy thông tin vé:", error);
-                alert("Không thể tải thông tin vé lúc này!");
-            } finally {
-                setIsLoading(false);
-                localStorage.removeItem('successBookingCode');
-                localStorage.removeItem('pendingTicket');
-            }
-        };
-
-        fetchBookingDetails();
     }, [bookingCode, navigate, isGuest]);
-
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-100 flex justify-center items-center">
@@ -81,7 +61,7 @@ export default function BookingSuccessPage() {
                     {guestTicketData && (
                         <div className="mt-4 p-4 bg-gray-100 rounded-lg border-dashed border-2 border-gray-300 text-left">
                             <h3 className="text-center text-lg font-bold mb-4">Thông tin vé</h3>
-                            
+
                             {/* Hiển thị Mã QR dựa vào bookingCode */}
                             <div className="flex flex-col items-center mb-4">
                                 <div className="p-2 bg-white rounded shadow-sm">
@@ -105,7 +85,7 @@ export default function BookingSuccessPage() {
                     )}
 
                     <div className="mt-8 flex gap-4 justify-center">
-                        <button 
+                        <button
                             onClick={() => navigate('/')}
                             className="bg-[#f26b38] text-white px-6 py-2 rounded font-semibold hover:bg-[#d95c2b] w-full transition-colors"
                         >
@@ -133,10 +113,10 @@ export default function BookingSuccessPage() {
                 <h2 className="text-3xl font-bold text-green-600">Thanh toán thành công!</h2>
                 <p className="text-gray-600 mt-2">Vé điện tử kèm mã QR đã được gửi đến email của bạn.</p>
             </div>
-            
+
             <TicketDetailCard booking={booking} />
-            
-            <button 
+
+            <button
                 onClick={() => navigate('/')}
                 className="mt-6 bg-[#f26b38] text-white px-8 py-3 rounded-md font-bold hover:bg-[#d95a2b] transition-colors"
             >

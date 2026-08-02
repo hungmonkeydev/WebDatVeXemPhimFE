@@ -21,7 +21,7 @@ export default function PaymentPage() {
 
     const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
     const [discountAmount, setDiscountAmount] = useState(0);
-const { progressData } = useLoyaltyProgress() || {};
+    const { progressData } = useLoyaltyProgress() || {};
     const { vouchers: myVoucher, isLoadingVoucher } = useMyVoucher(bookingData?.isGuest || false);
     const [usedPoints, setUsedPoints] = useState(0);
     const availablePoints = progressData?.data?.currentPoints || progressData?.currentPoints || 0;

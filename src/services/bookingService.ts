@@ -11,7 +11,9 @@ export const bookingService = {
       seatIds: seatIds,
     });
   },
-
+  getBookingDetail: async (bookingId: number | string) => {
+    return await api.get(`/bookings/${bookingId}`);
+  },
   getCombos: async () => {
     return api.get('/combos');
   },

@@ -13,7 +13,7 @@ export default function TicketDetailCard({ booking, onClose }: TicketDetailCardP
 
     const movieName = booking.movie?.title || booking.showtime?.movieTitle || 'Đang cập nhật...';
     const ageRating = booking.movie?.ageRating || booking.showtime?.ageRating || 'T18';
-    const formatInfo = `2D Phụ đề`; 
+    const formatInfo = `2D Phụ đề`;
 
     let showDate = '...';
     let showTime = '...';
@@ -30,11 +30,10 @@ export default function TicketDetailCard({ booking, onClose }: TicketDetailCardP
     const roomName = booking.showtime?.roomName || '';
     const totalPrice = booking.finalAmount || booking.totalAmount || 0;
     const qrData = booking.bookingCode || 'NO-CODE';
-    const stars = 4;
-
+    const stars = Math.floor(totalPrice / 10000);
     // LẤY DANH SÁCH GHẾ NGỒI
     const seatsDisplay = booking.seats && booking.seats.length > 0
-        ? booking.seats.map((s:any) => s.seatLabel).join(', ') 
+        ? booking.seats.map((s: any) => s.seatLabel).join(', ')
         : 'Chưa có ghế';
 
     // KIỂM TRA XEM CÓ MUA COMBO KHÔNG
@@ -79,15 +78,15 @@ export default function TicketDetailCard({ booking, onClose }: TicketDetailCardP
             <div className="px-6 py-5 flex flex-col items-center w-full">
                 <p className="font-bold text-gray-700 text-[16px] mb-1 text-center">{cinemaName}</p>
                 {roomName && <p className="text-[14px] text-gray-500 mb-1">{roomName}</p>}
-                
+
                 <p className="text-[15px] text-gray-600 text-center mb-4">
                     Suất: <span className="font-bold text-[#f26b38]">{showTime}</span> - {dayOfWeek}, <span className="font-bold text-gray-800">{showDate}</span>
                 </p>
 
                 <div className="w-full bg-gray-50 rounded-lg p-3 border border-gray-100 flex flex-col gap-2">                    <div className="flex justify-between items-start">
-                        <span className="text-[13px] text-gray-500 w-16 shrink-0">Ghế ngồi:</span>
-                        <span className="font-bold text-gray-800 text-[14px] text-right break-words">{seatsDisplay}</span>
-                    </div>
+                    <span className="text-[13px] text-gray-500 w-16 shrink-0">Ghế ngồi:</span>
+                    <span className="font-bold text-gray-800 text-[14px] text-right break-words">{seatsDisplay}</span>
+                </div>
                     {hasCombo && (
                         <>
                             <div className="w-full border-t border-gray-200/60 my-0.5"></div>
