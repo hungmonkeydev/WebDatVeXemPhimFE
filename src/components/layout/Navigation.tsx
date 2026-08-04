@@ -2,7 +2,7 @@ import NavItem from '../Layout/NavItem';
 
 export default function Navigation() {
   const menuItems = [
-    { title: 'Phim', isMegaMenu: true },
+    { title: 'Phim', isMegaMenu: true, subMenu: ['Phim đang chiếu', 'Phim sắp chiếu', 'Phim IMAX'] },
     { title: 'Góc Điện Ảnh', subMenu: ['Thể Loại Phim', 'Diễn Viên', 'Đạo Diễn', 'Bình Luận Phim', 'Blog Điện Ảnh'] },
     { title: 'Sự Kiện', subMenu: ['Sự Kiện Đang Diễn Ra','Sự Kiện Sắp Diễn Ra'] },
     { title: 'Rạp/Giá Vé',subMenu:['Rạp/Giá Vé'] },

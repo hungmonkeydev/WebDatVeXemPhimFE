@@ -42,16 +42,23 @@ export default function BannerSlider() {
         }}
         pagination={{ clickable: true }}
         navigation={false}
-        className="w-full h-[220px] sm:h-[320px] md:h-[450px]"
+        autoHeight={true}
+
+        className="w-full pb-10"
       >
         {banners.map((movie: any) => (
-          <SwiperSlide key={movie.movieId} className="w-full h-full">
-            <Link to={`/phim/${movie.movieId}`} className="block w-full h-full">
-              <img
-                src={movie.bannerUrl}
-                alt={movie.title}
-                className="w-full h-full object-cover object-center rounded-lg"
-              />
+          <SwiperSlide key={movie.movieId} className="w-full">
+            <Link to={`/phim/${movie.movieId}`} className="block w-full">
+
+              {/* BỎ aspect-[2/1] ở mobile đi, chỉ giữ lại sm:aspect-[3/1] cho Desktop */}
+              <div className="w-full sm:aspect-[3/1] rounded-lg overflow-hidden">
+                <img
+                  src={movie.bannerUrl}
+                  alt={movie.title}
+                  className="w-full h-auto sm:h-full sm:object-cover object-center block"
+                />
+              </div>
+
             </Link>
           </SwiperSlide>
         ))}

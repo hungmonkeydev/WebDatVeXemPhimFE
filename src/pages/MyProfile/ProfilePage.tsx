@@ -9,6 +9,7 @@ import { useLoyaltyProgress } from '../../Hooks/useLoyaltyProgress';
 import LoyaltyHistory from '../MyProfile/LoyaltyHistory';
 import MyVouchers from '../../pages/MyProfile/MyVouchers';
 import { useAuth } from '../../Hooks/useAuth';
+import { message } from 'antd';
 export default function Profile() {
     const location = useLocation();
     const navigate = useNavigate();
@@ -52,7 +53,7 @@ export default function Profile() {
                         email: data.email || '',
                         phone: data.phone || '',
                         birthDate: data.birthDate ? data.birthDate.split('T')[0] : '',
-                        gender: data.gender || 'male',
+                        gender: data.gender ? data.gender.toLowerCase() : 'male',
                         loyalty_points: data.membership?.currentPoints || 0
                     })
                 }
@@ -67,38 +68,19 @@ export default function Profile() {
 
     // HÀM GỌI API CẬP NHẬT
     const handleUpdateProfile = async () => {
-        setIsLoading(true);
-        setToast({ ...toast, isOpen: false });
-
         try {
-            await userService.updateProfile({
+            const payload = {
                 fullName: formData.fullName,
-                email: formData.email,
                 phone: formData.phone,
+                gender: formData.gender ? formData.gender.toUpperCase() : 'MALE',
                 birthDate: formData.birthDate,
-                gender: formData.gender
-            });
-
-            const updatedUser = {
-                ...JSON.parse(localStorage.getItem('user_info') || '{}'),
-                fullName: formData.fullName,
-                email: formData.email,
-                phone: formData.phone,
-                birthDate: formData.birthDate,
-                gender: formData.gender,
-                loyalty_points: formData.loyalty_points
             };
-            localStorage.setItem('user_info', JSON.stringify(updatedUser));
+            await userService.updateProfile(payload);
 
-            window.dispatchEvent(new Event('authChange'));
-
-            setToast({ isOpen: true, message: 'Cập nhật thông tin thành công!', type: 'success' });
-
-        } catch (error: any) {
-            console.error("Lỗi cập nhật profile:", error.response);
-            setToast({ isOpen: true, message: 'Cập nhật thất bại. Vui lòng thử lại!', type: 'error' });
-        } finally {
-            setIsLoading(false);
+            message.success("Cập nhật thông tin thành công!");
+        } catch (error) {
+            message.error("Cập nhật thất bại!");
+            console.error(error);
         }
     };
     const handleChangePassword = async () => {
@@ -159,8 +141,8 @@ export default function Profile() {
         const interval = 40000000;
         progressPercent = 33.33 + ((excess / interval) * 33.33);
     } else if (totalSpent <= 100000000) {
-        const excess = totalSpent - 50000000; 
-        const interval = 50000000; 
+        const excess = totalSpent - 50000000;
+        const interval = 50000000;
         progressPercent = 66.66 + ((excess / interval) * 33.33);
     } else {
         progressPercent = 100;

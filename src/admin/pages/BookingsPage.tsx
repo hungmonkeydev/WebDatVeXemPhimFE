@@ -118,7 +118,7 @@ export default function BookingsPage() {
     },
     {
       title: 'Ngày đặt',
-      dataIndex: 'bookedAt', 
+      dataIndex: 'bookedAt',
       key: 'bookedAt',
       render: (date: string) => <span>{date ? dayjs(date).format('HH:mm DD/MM/YYYY') : ''}</span>,
     },

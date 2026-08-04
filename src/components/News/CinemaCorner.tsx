@@ -26,21 +26,26 @@ export default function CinemaCorner() {
   return (
     <section className="max-w-6xl mx-auto px-4 py-8 md:py-12">
       {/* Header */}
-      <div className="flex items-end gap-3 mb-8 border-b border-gray-200">
-        <div className="flex items-center gap-2 pb-3">
+      <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-3 mb-8 border-b border-gray-200">
+
+        {/* KHU VỰC TIÊU ĐỀ */}
+        <div className="flex items-center gap-2 pb-1 md:pb-3 shrink-0">
           <div className="w-1 h-5 md:h-6 bg-blue-700"></div>
           <h2 className="text-lg md:text-xl font-bold text-gray-800 uppercase tracking-wide">
             Bảng Vàng Khán Giả
           </h2>
         </div>
-        <div className="ml-4 flex gap-6 text-sm font-medium text-gray-500">
-          <span className="text-blue-600 border-b-2 border-blue-600 pb-3 cursor-pointer">
+
+        {/* KHU VỰC TABS (Thêm whitespace-nowrap để không bao giờ bị rớt chữ) */}
+        <div className="md:ml-4 flex gap-5 md:gap-6 text-sm font-medium text-gray-500 whitespace-nowrap overflow-x-auto pb-1 md:pb-0">
+          <span className="text-blue-600 border-b-2 border-blue-600 pb-2 md:pb-3 cursor-pointer">
             Phim xuất sắc
           </span>
-          <span className="hover:text-blue-600 cursor-pointer transition-colors pb-3 border-b-2 border-transparent">
+          <span className="hover:text-blue-600 cursor-pointer transition-colors pb-2 md:pb-3 border-b-2 border-transparent">
             Đánh giá mới nhất
           </span>
         </div>
+
       </div>
 
       {/* ====== BANNER FULL-WIDTH NẰM NGANG (SLIDER) ====== */}

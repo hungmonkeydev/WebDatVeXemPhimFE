@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import {
   Table, Button, Space, Tag, Input, Form, Modal, Popconfirm,
-  message, Tooltip, DatePicker, InputNumber
+  message, Tooltip, DatePicker, InputNumber, Select
 } from 'antd';
 import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useAdminMovies } from '../../Hooks/useAdminMovie';
-
 export default function MovieManage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Gọi Hook
   const {
     movies, totalMovies, isLoading,
-    fetchMovies, createMovie, updateMovie, deleteMovie
+    fetchMovies, createMovie, updateMovie, deleteMovie, fetchCastAndCrew, actors, directors, genres
   } = useAdminMovies();
 
   // State Modal
@@ -25,7 +23,9 @@ export default function MovieManage() {
   // Load data
   useEffect(() => {
     fetchMovies(currentPage, pageSize);
-  }, [currentPage, pageSize, fetchMovies]);
+    fetchCastAndCrew();
+  }, [currentPage, pageSize, fetchMovies, fetchCastAndCrew]);
+
 
   const handleTableChange = (pagination: any) => {
     setCurrentPage(pagination.current);
@@ -39,6 +39,10 @@ export default function MovieManage() {
       form.setFieldsValue({
         ...record,
         releaseDate: record.releaseDate ? dayjs(record.releaseDate) : null,
+        endDate: record.endDate ? dayjs(record.endDate) : null,
+        directorIds: record.directors?.map((d: any) => d.directorId || d.id) || [],
+        actorIds: record.actors?.map((a: any) => a.actorId || a.id) || [],
+        genreIds: record.genres?.map((g: any) => g.genreId || g.id) || [],
       });
     } else {
       setEditingMovie(null);
@@ -55,6 +59,7 @@ export default function MovieManage() {
       const payload = {
         ...values,
         releaseDate: values.releaseDate ? values.releaseDate.format('YYYY-MM-DD') : null,
+        endDate: values.endDate ? values.endDate.format('YYYY-MM-DD') : null,
       };
 
       let result;
@@ -103,8 +108,16 @@ export default function MovieManage() {
       key: 'title',
       render: (text: string) => <div className="font-semibold text-gray-800">{text}</div>,
     },
-    { title: 'Đạo diễn', dataIndex: 'director', key: 'director' },
     {
+      title: 'Đạo diễn',
+      dataIndex: 'directors', // Đổi thành số nhiều cho khớp API
+      key: 'directors',
+      render: (directors: any[]) => {
+        if (!directors || directors.length === 0) return <span className="text-gray-400">Chưa có</span>;
+        // Lấy danh sách name ghép lại bằng dấu phẩy
+        return directors.map(d => d.name).join(', ');
+      }
+    }, {
       title: 'Thời lượng',
       dataIndex: 'duration',
       key: 'duration',
@@ -175,29 +188,101 @@ export default function MovieManage() {
             <Input placeholder="Nhập tên phim..." />
           </Form.Item>
 
+          {/* DÒNG 1: Đạo diễn & Diễn viên */}
           <div className="grid grid-cols-2 gap-4">
-            <Form.Item name="director" label="Đạo diễn" rules={[{ required: true, message: 'Vui lòng nhập đạo diễn!' }]}>
-              <Input placeholder="Tên đạo diễn" />
+            <Form.Item name="directorIds" label="Đạo diễn" rules={[{ required: true, message: 'Vui lòng chọn đạo diễn!' }]}>
+              <Select mode="multiple" allowClear showSearch placeholder="Chọn các đạo diễn..."
+                options={(directors || []).map((d: any) => ({ value: d.directorId || d.id, label: d.name }))}
+                filterOption={(input: string, option: any) => String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())}
+              />
             </Form.Item>
 
-            <Form.Item name="cast" label="Diễn viên">
-              <Input placeholder="Ví dụ: Tom Holland, Zendaya..." />
+            <Form.Item name="actorIds" label="Diễn viên">
+              <Select mode="multiple" allowClear showSearch placeholder="Chọn các diễn viên..."
+                options={(actors || []).map((a: any) => ({ value: a.actorId || a.id, label: a.name }))}
+                filterOption={(input: string, option: any) => String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())}
+              />
             </Form.Item>
           </div>
 
+          {/* DÒNG 2: Thể loại & Nhà sản xuất */}
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item
+              name="genreIds"
+              label="Thể loại"
+              rules={[{ required: true, message: 'Vui lòng chọn thể loại!' }]}
+            >
+              <Select
+                mode="multiple" allowClear showSearch placeholder="Chọn các thể loại..."
+                options={(genres || []).map((g: any) => ({
+                  value: g.genreId,
+                  label: g.name
+                }))}
+                filterOption={(input: string, option: any) =>
+                  String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+              />
+            </Form.Item>
+
+            <Form.Item name="producer" label="Nhà sản xuất">
+              <Input placeholder="Ví dụ: Marvel Studios, Trấn Thành Town..." />
+            </Form.Item>
+          </div>
+
+          {/* DÒNG 3: Thời lượng & Trạng thái */}
           <div className="grid grid-cols-2 gap-4">
             <Form.Item name="duration" label="Thời lượng (Phút)" rules={[{ required: true, message: 'Vui lòng nhập thời lượng!' }]}>
               <InputNumber className="w-full" min={1} placeholder="Ví dụ: 120" />
             </Form.Item>
 
-            <Form.Item name="releaseDate" label="Ngày khởi chiếu" rules={[{ required: true, message: 'Vui lòng chọn ngày chiếu!' }]}>
-              <DatePicker format="YYYY-MM-DD" className="w-full" placeholder="Chọn ngày khởi chiếu" />
+            <Form.Item name="status" label="Trạng thái" rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}>
+              <Select placeholder="Chọn trạng thái...">
+                <Select.Option value="COMING_SOON">Sắp chiếu</Select.Option>
+                <Select.Option value="NOW_SHOWING">Đang chiếu</Select.Option>
+                <Select.Option value="STOPPED">Ngưng chiếu</Select.Option>
+              </Select>
             </Form.Item>
           </div>
 
-          <Form.Item name="genre" label="Thể loại" rules={[{ required: true, message: 'Vui lòng nhập thể loại!' }]}>
-            <Input placeholder="Hành động, Hài hước..." />
-          </Form.Item>
+          {/* DÒNG 4: Ngày chiếu & Ngày kết thúc */}
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item name="releaseDate" label="Ngày khởi chiếu" rules={[{ required: true, message: 'Vui lòng chọn ngày chiếu!' }]}>
+              <DatePicker format="YYYY-MM-DD" className="w-full" placeholder="Chọn ngày khởi chiếu" />
+            </Form.Item>
+
+            <Form.Item name="endDate" label="Ngày kết thúc chiếu" rules={[{ required: true, message: 'Vui lòng chọn ngày kết thúc!' }]}>
+              <DatePicker format="YYYY-MM-DD" className="w-full" placeholder="Chọn ngày kết thúc" />
+            </Form.Item>
+          </div>
+
+          {/* DÒNG 5: Phân loại tuổi & Ngôn ngữ */}
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item name="ageRating" label="Phân loại tuổi" rules={[{ required: true, message: 'Chọn phân loại!' }]}>
+              <Select placeholder="Chọn độ tuổi...">
+                <Select.Option value="P">P - Phổ biến, mọi lứa tuổi</Select.Option>
+                <Select.Option value="C13">C13 - Từ 13 tuổi trở lên</Select.Option>
+                <Select.Option value="C16">C16 - Từ 16 tuổi trở lên</Select.Option>
+                <Select.Option value="C18">C18 - Từ 18 tuổi trở lên</Select.Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item name="language" label="Ngôn ngữ gốc">
+              <Input placeholder="Ví dụ: Tiếng Anh, Tiếng Hàn..." />
+            </Form.Item>
+          </div>
+
+          {/* DÒNG 6: Phụ đề & Trailer */}
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item name="subtitle" label="Phụ đề / Lồng tiếng">
+              <Input placeholder="Ví dụ: Phụ đề Tiếng Việt" />
+            </Form.Item>
+
+            <Form.Item name="trailerUrl" label="Link Trailer (Youtube)">
+              <Input placeholder="Nhập đường dẫn Youtube..." />
+            </Form.Item>
+          </div>
+
+          {/* DÒNG 7: Poster & Banner */}
           <div className="grid grid-cols-2 gap-4">
             <Form.Item name="posterUrl" label="Link Poster (Ảnh dọc)">
               <Input placeholder="Nhập đường dẫn ảnh poster..." />

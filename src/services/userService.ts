@@ -1,21 +1,19 @@
 import api from './api';
+export interface UpdateProfilePayload {
+  fullName: string;
+  phone: string;
+  birthDate: string;
+  gender: string;
+}
 
 export const userService = {
   getProfile: async () => {
     return api.get('/users/profile');
   },
-
-  updateProfile: async (formData: {
-    fullName: string;
-    email: string;
-    phone: string;
-    birthDate: string;
-    gender: string;
-  }) => {
-    return api.patch('/users/profile', formData);
+  updateProfile: async (formData: UpdateProfilePayload) => {
+    const response = await api.put('/users/profile', formData);
+    return response.data;
   },
-
-
   getMyPointsProgress: async () => {
     const response = await api.get('/loyalty/my-points');
     return response.data;
@@ -25,5 +23,5 @@ export const userService = {
     return response.data;
   },
 
-  
+
 };

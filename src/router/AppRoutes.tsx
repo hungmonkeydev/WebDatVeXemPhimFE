@@ -44,7 +44,7 @@ export default function AppRoutes() {
                     <Route path="/booking/payment-success" element={<BookingSuccessPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/loyalty-store" element={<LoyaltyStore />} />
-                    <Route path="/verify-email-success" element={<VerifyEmailSuccessPage />} />
+                    <Route path="/verify-email" element={<VerifyEmailSuccessPage />} />
 
                 </Route>
             </Routes>

@@ -1,17 +1,63 @@
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Button from '../components/UI/Button';
+import { authService } from '../services/authService';
 
 const ERROR_MESSAGES: Record<string, string> = {
     expired: 'Liên kết xác thực đã hết hạn. Vui lòng yêu cầu gửi lại email xác thực.',
     invalid: 'Liên kết xác thực không hợp lệ. Vui lòng kiểm tra lại email hoặc yêu cầu gửi lại.',
+    already_used: 'Tài khoản của bạn đã kích hoạt rồi, bạn có thể đăng nhập ngay.'
 };
 
 export default function VerifyEmailSuccessPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    const status = searchParams.get('status') || 'success';
-    const reason = searchParams.get('reason') || 'invalid';
+    // Thay vì lấy status từ URL, mình dùng state để tự quản lý sau khi gọi API
+    const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+    const [reason, setReason] = useState<string>('');
+
+    const hasCalledAPI = useRef(false);
+
+    useEffect(() => {
+        const token = searchParams.get('token');
+
+        if (!token) {
+            setStatus('error');
+            setReason('invalid');
+            return;
+        }
+
+        if (hasCalledAPI.current) return;
+        hasCalledAPI.current = true;
+
+        const verifyToken = async () => {
+            try {
+                // (6) Frontend gọi API Backend
+                await authService.verifyEmail(token);
+                // Nếu API trả về 200 OK -> Thành công
+                setStatus('success');
+            } catch (error: any) {
+                console.error("Lỗi xác thực email:", error);
+                setStatus('error');
+                // Lấy mã lỗi từ backend nếu có (ví dụ: expired, already_used, invalid)
+                const errorCode = error.response?.data?.reason || 'invalid';
+                setReason(errorCode);
+            }
+        };
+
+        verifyToken();
+    }, [searchParams]);
+
+    // Nếu đang gọi API thì hiện loading
+    if (status === 'loading') {
+        return (
+            <div className="min-h-[70vh] flex flex-col items-center justify-center">
+                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-gray-600 font-medium">Đang xác thực email của bạn...</p>
+            </div>
+        );
+    }
 
     const isPositive = status === 'success' || reason === 'already_used';
 
@@ -21,7 +67,7 @@ export default function VerifyEmailSuccessPage() {
     if (status === 'error') {
         if (reason === 'already_used') {
             title = 'Email đã được xác thực trước đó';
-            description = 'Tài khoản của bạn đã kích hoạt rồi, bạn có thể đăng nhập ngay.';
+            description = ERROR_MESSAGES.already_used;
         } else {
             title = 'Xác thực email thất bại';
             description = ERROR_MESSAGES[reason] || ERROR_MESSAGES.invalid;
@@ -31,8 +77,7 @@ export default function VerifyEmailSuccessPage() {
     return (
         <div className="min-h-[70vh] flex items-center justify-center px-4">
             <div className="max-w-md w-full bg-white rounded-2xl shadow-md p-8 flex flex-col items-center text-center">
-                <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-5 ${isPositive ? 'bg-green-50' : 'bg-red-50'
-                    }`}>
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-5 ${isPositive ? 'bg-green-50' : 'bg-red-50'}`}>
                     {isPositive ? (
                         <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -51,7 +96,8 @@ export default function VerifyEmailSuccessPage() {
                     fullWidth
                     size="lg"
                     type="button"
-                    onClick={() => navigate('/', { state: { openLogin: true } })}                >
+                    onClick={() => navigate('/', { state: { openLogin: true } })}
+                >
                     {isPositive ? 'Đăng nhập ngay' : 'Về trang chủ'}
                 </Button>
             </div>

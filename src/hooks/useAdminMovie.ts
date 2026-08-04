@@ -1,11 +1,15 @@
 import { useState, useCallback } from 'react';
 import { adminMovieService } from '../services/adminMovieService';
+import { actorDirectorService } from '../services/actorDirectorService';
+import { genreService } from '../services/genreService';
 
 export const useAdminMovies = () => {
     const [movies, setMovies] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [totalMovies, setTotalMovies] = useState(0);
-
+    const [actors, setActors] = useState<any[]>([]);
+    const [directors, setDirectors] = useState<any[]>([]);
+    const [genres, setGenres] = useState<any[]>([]);
     const fetchMovies = useCallback(async (page: number, size: number) => {
         setIsLoading(true);
         try {
@@ -69,9 +73,26 @@ export const useAdminMovies = () => {
             setIsLoading(false);
         }
     };
+    const fetchCastAndCrew = useCallback(async () => {
+        try {
+            const actorRes = await actorDirectorService.getActors('', 0, 100);
+            const directorRes = await actorDirectorService.getDirectors('', 0, 100);
+            const genreRes = await genreService.getAllGenres();
+            if (actorRes?.data?.content) setActors(actorRes.data.content);
+            if (directorRes?.data?.content) setDirectors(directorRes.data.content);
+
+            if (Array.isArray(genreRes)) {
+                setGenres(genreRes);
+            } else if (genreRes?.data && Array.isArray(genreRes.data)) {
+                setGenres(genreRes.data);
+            }
+        } catch (error) {
+            console.error("Lỗi load danh sách diễn viên/đạo diễn:", error);
+        }
+    }, []);
 
     return {
-        movies, totalMovies, isLoading,
-        fetchMovies, createMovie, updateMovie, deleteMovie
+        movies, totalMovies, isLoading, actors, directors, genres,
+        fetchMovies, createMovie, updateMovie, deleteMovie, fetchCastAndCrew
     };
 };

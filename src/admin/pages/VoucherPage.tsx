@@ -28,7 +28,9 @@ export default function VoucherManage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVoucher, setEditingVoucher] = useState<any | null>(null);
   const [form] = Form.useForm();
+
   const selectedType = Form.useWatch('voucherType', form);
+
   useEffect(() => {
     fetchVouchers(currentPage, pageSize, {
       keyword: keyword || undefined,
@@ -47,6 +49,8 @@ export default function VoucherManage() {
       setEditingVoucher(record);
       form.setFieldsValue({
         ...record,
+        originalValue: record.voucherType === 'GIFT_CARD' ? (record.originalValue || record.currentBalance) : undefined,
+        discountType: record.discountType || 'PERCENTAGE',
         validDates: record.validFrom && record.expiresAt
           ? [dayjs(record.validFrom), dayjs(record.expiresAt)]
           : null,
@@ -61,18 +65,27 @@ export default function VoucherManage() {
   const handleFormSubmit = async () => {
     try {
       const values = await form.validateFields();
-
-      const payload = {
-        ...values,
-        originalValue: values.discountValue,
-        validFrom: values.validDates ? values.validDates[0].format('YYYY-MM-DDTHH:mm:ss') : null,
-
-        expiresAt: values.validDates ? values.validDates[1].format('YYYY-MM-DDTHH:mm:ss') : null,
-      };
+      const payload = { ...values };
+      if (payload.validDates) {
+        payload.expiresAt = payload.validDates[1].format('YYYY-MM-DD');
+      }
       delete payload.validDates;
+      delete payload.validFrom;
+      if (!payload.code || payload.code.trim() === '') delete payload.code;
+      if (!payload.description) delete payload.description;
+      if (payload.voucherType === 'GIFT_CARD') {
+        payload.originalValue = Number(payload.originalValue);
+        delete payload.discountValue;
+        delete payload.discountType;
+        delete payload.currentBalance;
+      } else {
+        payload.discountValue = Number(payload.discountValue);
+        delete payload.originalValue;
+        delete payload.currentBalance;
+      }
 
+      console.log("Cục Payload trước khi gửi:", payload);
       let result;
-
       const idToUpdate = editingVoucher?.id || editingVoucher?.voucherId;
 
       if (editingVoucher) {
@@ -94,7 +107,6 @@ export default function VoucherManage() {
   };
 
   const handleToggleLock = async (record: any) => {
-    // Dùng id hoặc voucherId tùy theo Backend JSON
     const id = record.id || record.voucherId;
     let result;
 
@@ -123,7 +135,7 @@ export default function VoucherManage() {
   };
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id', width: 70 }, // Ní nhớ check xem backend trả về `id` hay `voucherId` nha
+    { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
     {
       title: 'Mã Voucher',
       dataIndex: 'code',
@@ -153,7 +165,7 @@ export default function VoucherManage() {
             </div>
           );
         }
-        
+
         const isPercent = record.discountType === 'PERCENTAGE';
         return (
           <span className="font-medium text-red-500">
@@ -225,7 +237,6 @@ export default function VoucherManage() {
           <p className="text-gray-500 text-sm">Thêm mới, theo dõi và khóa các mã giảm giá</p>
         </div>
 
-        {/* Thanh tìm kiếm và bộ lọc */}
         <div className="flex gap-3">
           <Input
             placeholder="Tìm mã code hoặc email..."
@@ -255,7 +266,7 @@ export default function VoucherManage() {
       <Table
         columns={columns}
         dataSource={vouchers}
-        rowKey={(record) => record.id || record.voucherId} // Tự động lấy id hợp lệ
+        rowKey={(record) => record.id || record.voucherId}
         loading={isLoading}
         onChange={handleTableChange}
         pagination={{
@@ -265,15 +276,15 @@ export default function VoucherManage() {
         bordered
       />
 
-      {/* Modal Thêm/Sửa Voucher */}
       <Modal
         title={editingVoucher ? "Cập nhật Voucher" : "Tạo Voucher Mới"}
         open={isModalOpen} onOk={handleFormSubmit} onCancel={() => setIsModalOpen(false)}
         okText={editingVoucher ? "Cập nhật" : "Tạo mới"} cancelText="Hủy" destroyOnHidden
         confirmLoading={isLoading}
-        width={600}
+        width={700} // Nới rộng form ra xíu cho thoáng
       >
         <Form form={form} layout="vertical" className="mt-4">
+
           <div className="grid grid-cols-2 gap-4">
             <Form.Item name="code" label="Mã Voucher (Code)">
               <Input placeholder="Bỏ trống hệ thống tự sinh mã" disabled={!!editingVoucher} />
@@ -289,34 +300,49 @@ export default function VoucherManage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Đổi label linh hoạt tùy theo loại khuyến mãi */}
-            <Form.Item
-              name="discountValue"
-              label={selectedType === 'GIFT_CARD' ? 'Số dư hiện tại của thẻ' : 'Mức giảm giá (VNĐ hoặc %)'}
-              rules={[{ required: true, message: 'Vui lòng nhập mức giảm/số dư!' }]}
-            >
-              <InputNumber className="w-full" min={1} placeholder="Ví dụ: 50000" />
-            </Form.Item>
 
-            {/* CHỈ HIỆN Ô NÀY NẾU LÀ GIFT_CARD */}
-            {selectedType === 'GIFT_CARD' && (
+            {/* LOGIC ĐỘNG: Hiển thị 1 Mệnh giá (Gift Card) HOẶC Form chọn %/VNĐ (Vé/Combo) */}
+            {selectedType === 'GIFT_CARD' ? (
               <Form.Item
                 name="originalValue"
-                label="Mệnh giá gốc ban đầu"
-                rules={[{ required: true, message: 'Nhập mệnh giá gốc cho Gift Card!' }]}
+                label="Mệnh giá thẻ quà tặng (VNĐ)"
+                rules={[{ required: true, message: 'Vui lòng nhập mệnh giá thẻ!' }]}
               >
                 <InputNumber className="w-full" min={1} placeholder="Ví dụ: 500000" disabled={!!editingVoucher} />
               </Form.Item>
+            ) : (
+              <Form.Item label="Mức giảm giá" required>
+                <Space.Compact style={{ width: '100%' }}>
+                  <Form.Item
+                    name="discountValue"
+                    noStyle
+                    rules={[{ required: true, message: 'Vui lòng nhập mức giảm!' }]}
+                  >
+                    <InputNumber style={{ width: '70%' }} min={1} placeholder="Ví dụ: 50" />
+                  </Form.Item>
+                  <Form.Item
+                    name="discountType"
+                    noStyle
+                    initialValue="PERCENTAGE"
+                  >
+                    <Select style={{ width: '30%' }}>
+                      <Option value="PERCENTAGE">%</Option>
+                      <Option value="FIXED_AMOUNT">VNĐ</Option>
+                    </Select>
+                  </Form.Item>
+                </Space.Compact>
+              </Form.Item>
             )}
-          </div>
 
-          <Form.Item name="validDates" label="Thời gian áp dụng" rules={[{ required: true, message: 'Vui lòng chọn thời gian!' }]}>
-            <RangePicker showTime format="YYYY-MM-DD HH:mm:ss" className="w-full" />
-          </Form.Item>
+            <Form.Item name="validDates" label="Thời gian áp dụng" rules={[{ required: true, message: 'Vui lòng chọn thời gian!' }]}>
+              <RangePicker showTime format="YYYY-MM-DD HH:mm:ss" className="w-full" />
+            </Form.Item>
+          </div>
 
           <Form.Item name="description" label="Ghi chú (Tùy chọn)">
             <Input.TextArea rows={3} placeholder="Ví dụ: Áp dụng cho thành viên mới..." />
           </Form.Item>
+
         </Form>
       </Modal>
     </div>
