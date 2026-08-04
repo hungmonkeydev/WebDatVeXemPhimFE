@@ -43,12 +43,12 @@ const AdminLayout: React.FC = () => {
         message.success('Chào mừng Admin đã quay trở lại!');
     };
 
-    // Hàm xử lý Đăng xuất
     const handleLogout = () => {
         localStorage.removeItem('access_token');
+        localStorage.removeItem('user_info');
+        window.dispatchEvent(new Event('authChange'));
         setIsAuthenticated(false);
-        setIsLoginModalOpen(true);
-        navigate('/admin/dashboard');
+        navigate('/');
     };
 
     const menuItems = [

@@ -111,12 +111,12 @@ export default function CinemaCorner() {
       </div>
 
       <div className="mt-10 flex justify-center">
-        <button className="border border-[#f26b38] text-[#f26b38] hover:bg-[#f26b38] hover:text-white transition-colors duration-300 px-8 py-2.5 rounded font-medium text-sm flex items-center justify-center gap-2">
+        <Link to="/kham-pha" className="border border-[#f26b38] text-[#f26b38] hover:bg-[#f26b38] hover:text-white transition-colors duration-300 px-8 py-2.5 rounded font-medium text-sm flex items-center justify-center gap-2">
           Xem tất cả đánh giá
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-        </button>
+        </Link>
       </div>
     </section>
   );

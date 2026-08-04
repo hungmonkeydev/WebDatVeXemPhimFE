@@ -7,11 +7,31 @@ import MoviesAdminPage from '../admin/pages/MoviesAdminPage';
 import ComboPage from '../admin/pages/ComboPage';
 import BookingsPage from '../admin/pages/BookingsPage';
 import VoucherManage from '../admin/pages/VoucherPage';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+
+const AdminProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const userInfoStr = localStorage.getItem('user_info');
+  const userInfo = userInfoStr ? JSON.parse(userInfoStr) : null;
+  
+  if (!userInfo || userInfo.role !== 'ADMIN') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
 
 export default function AdminRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<AdminLayout />}>
+      <Route 
+        path="/" 
+        element={
+          <AdminProtectedRoute>
+            <AdminLayout />
+          </AdminProtectedRoute>
+        }
+      >
         <Route index element={<Dashboard />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path='users' element={<UserPage />} />

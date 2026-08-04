@@ -14,6 +14,7 @@ import MoviesPage from '../pages/MoviesPage';
 import AdminRoutes from './AdminRoutes';
 import LoyaltyStore from '../pages/LoyaltyStore';
 import VerifyEmailSuccessPage from '../pages/VerifyEmailSuccessPage';
+import MovieFeedPage from '../pages/MovieFeedPage';
 const CustomerLayout = () => (
     <div className="min-h-screen bg-gray-50 flex flex-col">
         <Header />
@@ -33,6 +34,7 @@ export default function AppRoutes() {
                 <Route element={<CustomerLayout />}>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/movies" element={<MoviesPage />} />
+                    <Route path="/kham-pha" element={<MovieFeedPage />} />
                     <Route path="/phim/:id" element={<MovieDetail />} />
                     {/* BookingLayout nằm lồng bên trong CustomerLayout */}
                     <Route element={<BookingLayout />}>

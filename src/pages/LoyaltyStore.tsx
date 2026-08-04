@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { loyaltyService } from '../services/loyaltyService';
 import { bookingService } from '../services/bookingService';
 
-const REDEEM_RATE = 100;
-const MIN_POINTS_TO_REDEEM = 100;
+const REDEEM_RATE = 1000; 
+const MIN_POINTS_TO_REDEEM = 50;
 
 const LoyaltyStore = () => {
     const [currentPoints, setCurrentPoints] = useState<number>(0);
@@ -43,7 +43,7 @@ const LoyaltyStore = () => {
         const pointsToUse = Number(pointsInput);
 
         if (!pointsToUse || pointsToUse < MIN_POINTS_TO_REDEEM) {
-            alert(`Vui lòng nhập tối thiểu ${MIN_POINTS_TO_REDEEM} điểm!`);
+            alert(`Vui lòng nhập tối thiểu ${MIN_POINTS_TO_REDEEM} điểm (tương đương ${(MIN_POINTS_TO_REDEEM * REDEEM_RATE).toLocaleString()}đ)!`);
             return;
         }
         if (pointsToUse > currentPoints) {
@@ -73,10 +73,11 @@ const LoyaltyStore = () => {
     // Xử lý đổi Combo bắp nước
     const handleRedeemCombo = async (combo: any) => {
         console.log("Cục combo nè:", combo);
+        // Tính toán số điểm cần thiết dựa trên tỉ giá mới (ví dụ combo 85.000đ / 1000 = 85 điểm)
         const pointsNeeded = Math.ceil(combo.price / REDEEM_RATE);
 
         if (currentPoints < pointsNeeded) {
-            alert("Bạn không đủ điểm để đổi Combo này!");
+            alert(`Bạn cần ${pointsNeeded} điểm để đổi Combo này!`);
             return;
         }
 
@@ -147,7 +148,7 @@ const LoyaltyStore = () => {
                             value={pointsInput}
                             onChange={(e) => setPointsInput(e.target.value ? Number(e.target.value) : '')}
                             className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg font-bold text-blue-600"
-                            placeholder="Ví dụ: 500"
+                            placeholder="Ví dụ: 50"
                         />
                     </div>
 
@@ -175,6 +176,7 @@ const LoyaltyStore = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {combos.filter(c => c.isActive).map((combo) => {
+                            // Số điểm = giá combo / 1000
                             const pointsNeeded = Math.ceil(combo.price / REDEEM_RATE);
                             const canAfford = currentPoints >= pointsNeeded;
 

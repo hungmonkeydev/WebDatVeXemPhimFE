@@ -13,7 +13,17 @@ export const useAuth = () => {
       const fullName = response.data?.fullName;
       if (token) {
         localStorage.setItem('access_token', token);
-        localStorage.setItem('user_info', JSON.stringify({ fullName }));
+        
+        let role = 'USER';
+        try {
+          const { default: api } = await import('../services/api');
+          await api.get('/admin/movies?page=0&size=1');
+          role = 'ADMIN';
+        } catch (error) {
+          role = 'USER';
+        }
+        
+        localStorage.setItem('user_info', JSON.stringify({ fullName, role }));
 
         window.dispatchEvent(new Event('authChange'));
 

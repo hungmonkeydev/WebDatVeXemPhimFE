@@ -5,7 +5,7 @@ import { useMovies } from '../Hooks/useMovies';
 import { useShowtimes } from '../Hooks/useShowtimes';
 import Spinner from '../components/UI/Spinner';
 import MovieReviews from '../components/Movie/MovieReviews';
-import MovieSidebar from '../components/Movie/MovieSidebar'; 
+import MovieSidebar from '../components/Movie/MovieSidebar';
 export default function MovieDetail() {
 
     const { id } = useParams();
@@ -28,7 +28,7 @@ export default function MovieDetail() {
             return {
                 dayLabel,
                 displayDate: `${day}/${month}`,
-                apiDate: `${year}-${month}-${day}` 
+                apiDate: `${year}-${month}-${day}`
             };
         });
     }, []);
@@ -104,7 +104,9 @@ export default function MovieDetail() {
 
                             <div className="flex items-center gap-1 md:gap-2">
                                 <span className="text-yellow-500 text-base md:text-xl">★</span>
-                                <span className="font-bold text-sm md:text-lg">{movie.averageRating}</span>
+                                <span className="font-bold text-sm md:text-lg">
+                                    {movie.averageRating ? movie.averageRating.toFixed(1) : '0.0'}/5
+                                </span>
                                 <span className="text-gray-400 text-[12px] md:text-sm">({movie.totalReviews} đánh giá)</span>
                             </div>
                         </div>
