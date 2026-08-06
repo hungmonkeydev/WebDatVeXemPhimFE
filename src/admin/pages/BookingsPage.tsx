@@ -63,7 +63,7 @@ export default function BookingsPage() {
         message.error(result.message);
       }
     } else {
-      setIsStatusModalOpen(false); // Không đổi gì thì đóng luôn
+      setIsStatusModalOpen(false); 
     }
   };
 
@@ -147,7 +147,7 @@ export default function BookingsPage() {
           <Popconfirm
             title="Ép hủy đơn hàng?"
             description="Ghế sẽ tự động được giải phóng. Bạn có chắc chắn?"
-            onConfirm={() => handleCancel(record.bookingId)} // Đã đổi thành bookingId
+            onConfirm={() => handleCancel(record.bookingId)} 
             okText="Hủy đơn" cancelText="Đóng" okButtonProps={{ danger: true }}
             disabled={record.status === 'CANCELLED'}
           >

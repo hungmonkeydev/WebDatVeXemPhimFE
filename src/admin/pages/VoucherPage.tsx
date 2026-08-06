@@ -50,7 +50,7 @@ export default function VoucherManage() {
       form.setFieldsValue({
         ...record,
         originalValue: record.voucherType === 'GIFT_CARD' ? (record.originalValue || record.currentBalance) : undefined,
-        discountType: record.discountType || 'PERCENTAGE',
+        discountType: record.discountType || 'PERCENT',
         validDates: record.validFrom && record.expiresAt
           ? [dayjs(record.validFrom), dayjs(record.expiresAt)]
           : null,
@@ -166,7 +166,7 @@ export default function VoucherManage() {
           );
         }
 
-        const isPercent = record.discountType === 'PERCENTAGE';
+        const isPercent = record.discountType === 'PERCENT';
         return (
           <span className="font-medium text-red-500">
             {record.discountValue?.toLocaleString()}{isPercent ? '%' : 'đ'}
@@ -323,10 +323,10 @@ export default function VoucherManage() {
                   <Form.Item
                     name="discountType"
                     noStyle
-                    initialValue="PERCENTAGE"
+                    initialValue="PERCENT"
                   >
                     <Select style={{ width: '30%' }}>
-                      <Option value="PERCENTAGE">%</Option>
+                      <Option value="PERCENT">%</Option>
                       <Option value="FIXED_AMOUNT">VNĐ</Option>
                     </Select>
                   </Form.Item>

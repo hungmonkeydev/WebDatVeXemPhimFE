@@ -124,7 +124,8 @@ export default function PaymentPage() {
 
                 console.log("Đang tạo vé cho Guest...", guestPayload);
                 const guestRes = await bookingService.guestCreateBooking(guestPayload);
-                actualBookingId = guestRes.data?.bookingId || guestRes.data?.id || guestRes.data?.data?.bookingId || guestRes.data?.data?.id; if (!actualBookingId) {
+                actualBookingId = guestRes.data?.bookingId || guestRes.data?.id || guestRes.data?.data?.bookingId || guestRes.data?.data?.id;
+                if (!actualBookingId) {
                     alert("Có lỗi khi tạo vé cho khách vãng lai!");
                     return;
                 }
@@ -137,12 +138,11 @@ export default function PaymentPage() {
                         comboId: Number(comboId),
                         quantity: comboCart[Number(comboId)]
                     })),
-                    useLoyaltyPoints: usedPoints > 0,        // 👈 THÊM DÒNG NÀY
+                    useLoyaltyPoints: usedPoints > 0,
                     loyaltyPointsToUse: usedPoints > 0 ? usedPoints : 0,
                     ticketVoucherId: isVoucherApplied && selectedVoucher?.voucherType === 'TICKET_DISCOUNT' ? selectedVoucher.voucherId : null,
                     comboVoucherId: isVoucherApplied && selectedVoucher?.voucherType === 'COMBO_DISCOUNT' ? selectedVoucher.voucherId : null,
                 };
-                console.log("Đang tạo vé cho User...", userPayload);
                 const userRes = await bookingService.createBooking(userPayload);
                 actualBookingId = userRes.data?.bookingId || userRes.data?.id || userRes.data?.data?.bookingId;
                 if (!actualBookingId) {
@@ -162,8 +162,6 @@ export default function PaymentPage() {
 
                 navigate(`/booking-success?bookingCode=${actualBookingId}`); return;
             }
-
-            console.log("🚨 ĐANG GỌI API VNPAY VỚI PAYLOAD:", vnpayPayload);
             const response = isGuest
                 ? await bookingService.createPaymentUrlForGuest(vnpayPayload)
                 : await bookingService.createPaymentUrl(vnpayPayload);
@@ -185,29 +183,29 @@ export default function PaymentPage() {
             }
         }
     };
-    const handleApplyPoints = () => {
-        const p = Number(points);
-        if (isNaN(p) || p <= 0) {
-            alert("Vui lòng nhập số điểm hợp lệ!");
-            return;
-        }
-        if (p > availablePoints) {
-            alert(`Rất tiếc, bạn chỉ có tối đa ${availablePoints} điểm Stars!`);
-            return;
-        }
-        const remainingBill = finalTotalPrice - discountAmount;
-        const maxPointsCanUse = Math.ceil(remainingBill / 1000);
+    // const handleApplyPoints = () => {
+    //     const p = Number(points);
+    //     if (isNaN(p) || p <= 0) {
+    //         alert("Vui lòng nhập số điểm hợp lệ!");
+    //         return;
+    //     }
+    //     if (p > availablePoints) {
+    //         alert(`Rất tiếc, bạn chỉ có tối đa ${availablePoints} điểm Stars!`);
+    //         return;
+    //     }
+    //     const remainingBill = finalTotalPrice - discountAmount;
+    //     const maxPointsCanUse = Math.ceil(remainingBill / 1000);
 
-        if (p > maxPointsCanUse) {
-            alert(`Hóa đơn của bạn chỉ cần tối đa ${maxPointsCanUse} điểm là được miễn phí rồi!`);
-            setUsedPoints(maxPointsCanUse);
-            setPoints(maxPointsCanUse.toString());
-            return;
-        }
+    //     if (p > maxPointsCanUse) {
+    //         alert(`Hóa đơn của bạn chỉ cần tối đa ${maxPointsCanUse} điểm là được miễn phí rồi!`);
+    //         setUsedPoints(maxPointsCanUse);
+    //         setPoints(maxPointsCanUse.toString());
+    //         return;
+    //     }
 
-        setUsedPoints(p);
-        alert(`Áp dụng thành công! Bạn dùng ${p} điểm để giảm ${(p * 1000).toLocaleString('vi-VN')} đ`);
-    };
+    //     setUsedPoints(p);
+    //     alert(`Áp dụng thành công! Bạn dùng ${p} điểm để giảm ${(p * 1000).toLocaleString('vi-VN')} đ`);
+    // };
     const handleApplyVoucher = () => {
         if (!selectedVoucher) {
             setDiscountAmount(0);
@@ -221,7 +219,7 @@ export default function PaymentPage() {
             discount = matchedCombo ? matchedCombo.price * selectedVoucher.comboQuantity : 0;
         }
         else if (selectedVoucher.voucherType === 'TICKET_DISCOUNT' || selectedVoucher.voucherType === 'COMBO_DISCOUNT') {
-            discount = selectedVoucher.discountType === 'PERCENTAGE'
+            discount = selectedVoucher.discountType === 'PERCENT'
                 ? Math.round(finalTotalPrice * (selectedVoucher.discountValue / 100))
                 : selectedVoucher.discountValue;
         } else {
@@ -310,7 +308,13 @@ export default function PaymentPage() {
                     {/* KHUYẾN MÃI (CHỈ HIỆN KHI LÀ USER ĐÃ ĐĂNG NHẬP) */}
                     {!isGuest && (
                         <div className="bg-white p-6 rounded-lg shadow-sm">
-                            <h2 className="text-lg font-bold text-gray-800 mb-6">Khuyến mãi</h2>
+                            <div className="flex items-center gap-3 md:gap-8 mb-8 border-b border-gray-200 pb-2 w-full">
+
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <div className="w-1 h-5 md:h-6 bg-blue-700"></div>
+                                    <h2 className="hidden md:block text-lg md:text-xl font-bold text-gray-800 uppercase tracking-wide">Khuyến mãi</h2>
+                                </div>
+                            </div>
                             <div className="mb-6">
                                 <label className="block text-sm font-semibold text-gray-700 mb-3">Chọn mã khuyến mãi của bạn</label>
 
@@ -327,7 +331,7 @@ export default function PaymentPage() {
                                         {myVoucher.map((v: any) => {
                                             const isSelected = selectedVoucher?.voucherId === v.voucherId;
                                             const label = v.voucherType === 'TICKET_DISCOUNT' || v.voucherType === 'COMBO_DISCOUNT' || v.voucherType === 'DISCOUNT'
-                                                ? (v.discountType === 'PERCENTAGE'
+                                                ? (v.discountType === 'PERCENT'
                                                     ? `Giảm ${v.discountValue}%`
                                                     : `Giảm ${Number(v.discountValue || 0).toLocaleString('vi-VN')} đ`)
                                                 : `Thẻ quà tặng ${Number(v.currentBalance || 0).toLocaleString('vi-VN')} đ`;
@@ -381,7 +385,13 @@ export default function PaymentPage() {
 
                     {/* LỰA CHỌN PHƯƠNG THỨC THANH TOÁN */}
                     <div className="bg-white p-6 rounded-lg shadow-sm">
-                        <h2 className="text-lg font-bold text-gray-800 mb-6 border-b pb-4 uppercase">Phương thức thanh toán</h2>
+                        <div className="flex items-center gap-3 md:gap-8 mb-8 border-b border-gray-200 pb-2 w-full">
+
+                            <div className="flex items-center gap-2 shrink-0">
+                                <div className="w-1 h-5 md:h-6 bg-blue-700"></div>
+                                <h2 className="hidden md:block text-lg md:text-xl font-bold text-gray-800 uppercase tracking-wide">Phương thức thanh toán</h2>
+                            </div>
+                        </div>
                         <div className="flex flex-col gap-4">
                             <label className={`flex items-center gap-4 p-4 border rounded cursor-pointer transition-colors ${paymentMethod === 'VNPAY' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}>
                                 <input type="radio" name="payment" value="VNPAY" checked={paymentMethod === 'VNPAY'} onChange={(e) => setPaymentMethod(e.target.value)} className="w-5 h-5 text-blue-600" />

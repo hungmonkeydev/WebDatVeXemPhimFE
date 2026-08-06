@@ -10,7 +10,7 @@ export interface VoucherItem {
     status: string;
     originalValue: number;
     currentBalance: number;
-    discountType: 'AMOUNT' | 'PERCENTAGE' | 'FIXED_AMOUNT';
+    discountType: 'AMOUNT' | 'PERCENT' | 'FIXED_AMOUNT';
     discountValue: number;
     comboName?: string;
 }

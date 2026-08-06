@@ -33,14 +33,11 @@ export default function VerifyEmailSuccessPage() {
 
         const verifyToken = async () => {
             try {
-                // (6) Frontend gọi API Backend
                 await authService.verifyEmail(token);
-                // Nếu API trả về 200 OK -> Thành công
                 setStatus('success');
             } catch (error: any) {
                 console.error("Lỗi xác thực email:", error);
                 setStatus('error');
-                // Lấy mã lỗi từ backend nếu có (ví dụ: expired, already_used, invalid)
                 const errorCode = error.response?.data?.reason || 'invalid';
                 setReason(errorCode);
             }
@@ -49,7 +46,6 @@ export default function VerifyEmailSuccessPage() {
         verifyToken();
     }, [searchParams]);
 
-    // Nếu đang gọi API thì hiện loading
     if (status === 'loading') {
         return (
             <div className="min-h-[70vh] flex flex-col items-center justify-center">

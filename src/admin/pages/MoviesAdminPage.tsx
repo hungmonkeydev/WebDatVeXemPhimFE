@@ -32,7 +32,6 @@ export default function MovieManage() {
     setPageSize(pagination.pageSize);
   };
 
-  // Mở Modal (Xử lý dọn dẹp form giống hệt bên suất chiếu)
   const showModal = (record?: any) => {
     if (record) {
       setEditingMovie(record);
@@ -110,11 +109,10 @@ export default function MovieManage() {
     },
     {
       title: 'Đạo diễn',
-      dataIndex: 'directors', // Đổi thành số nhiều cho khớp API
+      dataIndex: 'directors',
       key: 'directors',
       render: (directors: any[]) => {
         if (!directors || directors.length === 0) return <span className="text-gray-400">Chưa có</span>;
-        // Lấy danh sách name ghép lại bằng dấu phẩy
         return directors.map(d => d.name).join(', ');
       }
     }, {

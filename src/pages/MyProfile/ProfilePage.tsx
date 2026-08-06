@@ -194,17 +194,17 @@ export default function Profile() {
 
                                 <div className="absolute top-4 left-[33%] -translate-x-1/2 text-center">
                                     <div className="text-[10px] font-bold text-[#C0C0C0]">SILVER</div>
-                                    <div className="text-[12px] text-gray-500 whitespace-nowrap">10 Tr ₫</div>
+                                    <div className="text-[12px] text-gray-500 whitespace-nowrap">1 Tr ₫</div>
                                 </div>
 
                                 <div className="absolute top-4 left-[66%] -translate-x-1/2 text-center">
                                     <div className="text-[10px] font-bold text-[#FFD700]">GOLD</div>
-                                    <div className="text-[12px] text-gray-500 whitespace-nowrap">50 Tr ₫</div>
+                                    <div className="text-[12px] text-gray-500 whitespace-nowrap">5 Tr ₫</div>
                                 </div>
 
                                 <div className="absolute top-4 right-0 translate-x-1/4 text-center">
                                     <div className="text-[10px] font-bold text-[#B9F2FF]">DIAMOND</div>
-                                    <div className="text-[12px] text-gray-500 whitespace-nowrap">100 Tr ₫</div>
+                                    <div className="text-[12px] text-gray-500 whitespace-nowrap">10 Tr ₫</div>
                                 </div>
                             </div>
                         </div>

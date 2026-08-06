@@ -25,7 +25,6 @@ export default function BookingSuccessPage() {
         if (isGuest) {
             const savedData = localStorage.getItem('pendingTicket');
             if (savedData) setGuestTicketData(JSON.parse(savedData));
-            // Sếp nhớ tạo thêm một state local để tắt loading cho Guest ở đây nếu cần
             return;
         }
 
@@ -52,7 +51,7 @@ export default function BookingSuccessPage() {
         return (
             <div className="min-h-screen bg-gray-50 py-10 flex justify-center items-center">
                 <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
-                    <div className="text-5xl mb-4">✅</div>
+                    <div className="text-5xl mb-4"></div>
                     <h2 className="text-2xl font-bold text-green-600 mb-2">Thanh toán thành công!</h2>
                     <p className="text-gray-500 mb-6">
                         Vé điện tử đã được gửi về email của bạn.
@@ -109,7 +108,7 @@ export default function BookingSuccessPage() {
     return (
         <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center py-10 px-4">
             <div className="mb-6 text-center">
-                <div className="text-5xl mb-4">✅</div>
+                <div className="text-5xl mb-4"></div>
                 <h2 className="text-3xl font-bold text-green-600">Thanh toán thành công!</h2>
                 <p className="text-gray-600 mt-2">Vé điện tử kèm mã QR đã được gửi đến email của bạn.</p>
             </div>

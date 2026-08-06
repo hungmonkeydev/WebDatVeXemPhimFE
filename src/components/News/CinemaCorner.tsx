@@ -65,9 +65,11 @@ export default function CinemaCorner() {
             <h3 className="text-xl md:text-3xl font-bold text-white mb-2 line-clamp-2">
               {mainMovie.title}
             </h3>
-            <p className="text-gray-200 text-sm mb-3 line-clamp-2 max-w-2xl">
-              {mainMovie.description}
-            </p>
+            <div className="hidden md:block mb-3">
+              <p className="text-gray-200 text-sm line-clamp-2 max-w-2xl">
+                {mainMovie.description}
+              </p>
+            </div>
             <div className="flex items-center gap-2">
               <span className="text-yellow-400 text-lg">★</span>
               <span className="font-bold text-white text-sm">

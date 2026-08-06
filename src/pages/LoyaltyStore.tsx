@@ -16,9 +16,7 @@ const LoyaltyStore = () => {
         const fetchInitialData = async () => {
             try {
                 setLoading(true);
-                // 1. Lấy điểm hiện tại của User
                 const pointsRes = await loyaltyService.getMyPointsSummary();
-                console.log("CỤC JSON ĐIỂM TRẢ VỀ:", pointsRes.data);
                 if (pointsRes.data?.status === 'success') {
                     setCurrentPoints(pointsRes.data.data.currentPoints || 0);
                     setLoyaltyData(pointsRes.data.data);

@@ -50,18 +50,18 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
   };
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4 pr-3 md:pr-0">
       <input
         type="text"
         placeholder='Tìm kiếm phim, diễn viên...'
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         onKeyDown={handleSearchKeyDown}
-        className='border border-gray-200 rounded-full pl-4 pr-10 py-2 text-[14px] outline-none focus:border-[#f26b38] w-[250px] transition-all'
+        className='border border-gray-200 rounded-full pl-4 pr-10 py-2 text-[14px] outline-none focus:border-[#f26b38] flex-1 min-w-[150px] md:w-[250px] md:flex-none transition-all'
       />
       {currentUser ? (
 
-        <div className="relative">
+        <div className="relative mr-4 md:mr-0 shrink-0">
           <div
             className="flex items-center gap-2 cursor-pointer select-none group"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -130,7 +130,7 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
         /* GIAO DIỆN KHI CHƯA ĐĂNG NHẬP */
         <button
           onClick={onOpenLogin}
-          className="flex items-center gap-2 text-[14.5px] font-medium text-gray-700 hover:text-[#f26b38] transition-colors cursor-pointer"
+          className="flex items-center gap-2 text-[14.5px] font-medium text-gray-700 hover:text-[#f26b38] transition-colors cursor-pointer mr-4 md:mr-0 shrink-0"
         >
           <span>Đăng nhập</span>
         </button>

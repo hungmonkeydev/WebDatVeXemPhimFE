@@ -103,7 +103,7 @@ export default function ComboManage() {
         { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
         {
             title: 'Tên Combo',
-            dataIndex: 'name', // Đổi field theo đúng API Backend
+            dataIndex: 'name', 
             key: 'name',
             render: (text: string) => <div className="font-semibold text-gray-800">{text}</div>,
         },

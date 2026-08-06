@@ -1,4 +1,4 @@
-// src/pages/SeatSelection.tsx
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSeats } from '../Hooks/useSeats';
@@ -12,7 +12,7 @@ export default function SeatSelection() {
   const navigate = useNavigate();
 
   const { seatRows, seatTypes, showtimeInfo, roomInfo, isLoadingSeats } = useSeats(id);
-  console.log("🚨 KIỂM TRA DỮ LIỆU GHẾ TRÊN UI:", seatRows);
+  console.log("Kiểm tra dữ liệu ghế trên UI:", seatRows);
 
   const [selectedSeats, setSelectedSeats] = useState<any[]>([]);
   const { holdSeats, isHolding } = useHoldSeats();
@@ -52,10 +52,10 @@ export default function SeatSelection() {
     }
   };
   const SEAT_COLORS: Record<number, string> = {
-    1: '#4CAF50', 
-    2: '#FFD700', 
-    3: '#E91E63', 
-    4: '#9C27B0', 
+    1: '#4CAF50',
+    2: '#FFD700',
+    3: '#E91E63',
+    4: '#9C27B0',
   };
 
   const totalPrice = selectedSeats.reduce((total, seat) => {
@@ -84,19 +84,22 @@ export default function SeatSelection() {
     const result = await holdSeats(id, seatIds);
 
     if (result.success) {
-      const expireAt = Date.now() + (300 * 1000); // Luôn luôn đếm 5 phút (300s) cho User
+      // Sử dụng thời gian còn lại (TTL) do Backend trả về (hoặc fallback của Hook)
+      const seconds = result.remainingSeconds || 300;
+      const expireAt = Date.now() + (seconds * 1000);
+
       navigate(`/dat-ve/${id}/thuc-an`, {
         state: {
           selectedSeats: selectedSeats,
           showtimeInfo: showtimeInfo,
           roomInfo: roomInfo,
           totalTicketPrice: totalPrice,
-          remainingSeconds: 300, // Luôn luôn đếm 5 phút (300s) cho User
+          remainingSeconds: seconds,
           expireAt
         }
       });
     } else {
-      alert(`❌ Không thể tiếp tục: ${result.message}`);
+      alert(` Không thể tiếp tục: ${result.message}`);
     }
   };
 
@@ -137,27 +140,30 @@ export default function SeatSelection() {
           <span className="text-gray-400">Xác nhận</span>
         </div>
       </div>
-
       {/* ====== NỘI DUNG CHÍNH ====== */}
       <div className="max-w-6xl mx-auto px-4 flex flex-col lg:flex-row gap-8">
-
-        <div className="flex-1 bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex justify-items-center mb-10">
-            <span className="text-gray-600 font-medium">Đổi suất chiếu</span>
-            <button className=" ml-auto bg-blue-700 text-white px-6 py-1.5 rounded text-sm font-semibold">{startTimeDisplay}</button>
+        
+        {/* Sơ đồ ghế */}
+        <div className="flex-1 bg-white p-2 md:p-6 rounded-lg shadow-sm w-full">
+          <div className="flex items-center mb-6 md:mb-10 px-2">
+            <span className="text-gray-600 font-medium text-sm md:text-base">Đổi suất chiếu</span>
+            <button className=" ml-auto bg-blue-700 text-white px-4 md:px-6 py-1.5 rounded text-sm font-semibold">{startTimeDisplay}</button>
           </div>
 
-          <div className="overflow-x-auto custom-scrollbar pb-4">
-            <div className="min-w-max flex flex-col items-center gap-3">
+          <div className="w-full pb-6">
+            
+            {/* Căn giữa toàn bộ cụm sơ đồ */}
+            <div className="w-full flex flex-col items-center gap-1.5 md:gap-3">
 
               {/* Vòng lặp vẽ Hàng Ghế */}
               {seatRows && seatRows.map((rowItem: any) => (
-                <div key={rowItem.rowLabel} className="flex items-center gap-4">
+                <div key={rowItem.rowLabel} className="flex items-center justify-between w-full max-w-[500px]">
+                  
                   {/* Tên hàng ghế (Trái) */}
-                  <span className="font-bold text-gray-500 w-4 text-center">{rowItem.rowLabel}</span>
+                  <span className="font-bold text-gray-500 text-xs md:text-sm w-4 md:w-5 text-center shrink-0">{rowItem.rowLabel}</span>
 
                   {/* Vẽ các Ghế trong hàng */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-[2px] sm:gap-1 md:gap-2 flex-1 mx-1 md:mx-2">
                     {(() => {
                       const renderSeatBtn = (seat: any, groupSeats: any[]) => {
                         const isSelected = selectedSeats.some((s) => s.seatId === seat.seatId);
@@ -174,7 +180,7 @@ export default function SeatSelection() {
                               color: isSelected ? '#fff' : isSold ? '#9ca3af' : '#000',
                               borderColor: isSelected ? '#f26b38' : isSold ? '#d1d5db' : seatColor,
                             }}
-                            className={`w-8 h-8 rounded-t-lg rounded-b-sm text-[11px] font-medium border-b-4 flex items-center justify-center transition-all hover:scale-110 
+                            className={`w-7 h-7 sm:w-6 sm:h-6 md:w-8 md:h-8 rounded-t md:rounded-t-lg rounded-b-sm text-[8px] sm:text-[9px] md:text-[11px] font-medium border-b-[2px] md:border-b-4 flex items-center justify-center transition-all hover:scale-110 shrink-0
                             ${isSold ? 'cursor-not-allowed opacity-50' : 'cursor-pointer shadow-sm'}
                           `}
                           >
@@ -183,7 +189,7 @@ export default function SeatSelection() {
                         );
                       };
 
-                      // 2. Gom nhóm ghế: Cứ thấy type 3 thì bắt cặp 2 cái liền kề
+                      // Gom nhóm ghế Couple
                       const groupedSeats = [];
                       let i = 0;
                       while (i < rowItem.seats.length) {
@@ -200,8 +206,7 @@ export default function SeatSelection() {
                       return groupedSeats.map((group, index) => {
                         if (group.isCouple) {
                           return (
-                            // Khung bọc viền cho 2 ghế Couple
-                            <div key={`couple-${index}`} className="flex gap-1 border-2 border-[#E91E63] p-[3px] rounded-lg bg-pink-50 shadow-sm items-center justify-center">
+                            <div key={`couple-${index}`} className="flex gap-[2px] md:gap-1 border-[1.5px] md:border-2 border-[#E91E63] p-[2px] md:p-[3px] rounded bg-pink-50 shadow-sm items-center justify-center shrink-0">
                               {group.seats.map((seat: any) => renderSeatBtn(seat, group.seats))}
                             </div>
                           );
@@ -217,41 +222,38 @@ export default function SeatSelection() {
                   </div>
 
                   {/* Tên hàng ghế (Phải) */}
-                  <span className="font-bold text-gray-500 w-4 text-center">{rowItem.rowLabel}</span>
+                  <span className="font-bold text-gray-500 text-xs md:text-sm w-4 md:w-5 text-center shrink-0">{rowItem.rowLabel}</span>
                 </div>
               ))}
 
               {/* Màn hình (Screen) */}
-              <div className="w-[80%] h-1 bg-orange-400 mt-10 mb-2 shadow-[0_10px_20px_rgba(242,107,56,0.3)]"></div>
-              <span className="text-gray-400 text-sm mb-8 tracking-[0.2em]">MÀN HÌNH</span>
+              <div className="w-full max-w-[400px] h-1 bg-orange-400 mt-6 md:mt-10 mb-2 shadow-[0_10px_20px_rgba(242,107,56,0.3)]"></div>
+              <span className="text-gray-400 text-[10px] md:text-sm mb-6 md:mb-8 tracking-[0.2em] text-center w-full block">MÀN HÌNH</span>
 
               {/* Chú thích màu ghế */}
-              <div className="flex flex-wrap gap-6 text-xs text-gray-600 justify-center mt-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 bg-gray-300 rounded border-b-2 border-gray-400 text-gray-500 flex items-center justify-center font-bold">X</div>
+              <div className="flex flex-wrap gap-2 md:gap-6 text-[9px] sm:text-[10px] md:text-xs text-gray-600 justify-center mt-2 w-full">
+                <div className="flex items-center gap-1 md:gap-2">
+                  <div className="w-3 h-3 md:w-5 md:h-5 bg-gray-300 rounded border-b-[1px] md:border-b-2 border-gray-400 text-gray-500 flex items-center justify-center font-bold text-[8px] md:text-xs">X</div>
                   Đã bán
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 bg-[#f26b38] rounded border-b-2 border-[#d95a2b]"></div>
+                <div className="flex items-center gap-1 md:gap-2">
+                  <div className="w-3 h-3 md:w-5 md:h-5 bg-[#f26b38] rounded border-b-[1px] md:border-b-2 border-[#d95a2b]"></div>
                   Đang chọn
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 bg-[#4CAF50] rounded border-b-2 border-[#388E3C]"></div>
+                <div className="flex items-center gap-1 md:gap-2">
+                  <div className="w-3 h-3 md:w-5 md:h-5 bg-[#4CAF50] rounded border-b-[1px] md:border-b-2 border-[#388E3C]"></div>
                   Thường
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 bg-[#FFD700] rounded border-b-2 border-[#FFA000]"></div>
+                <div className="flex items-center gap-1 md:gap-2">
+                  <div className="w-3 h-3 md:w-5 md:h-5 bg-[#FFD700] rounded border-b-[1px] md:border-b-2 border-[#FFA000]"></div>
                   VIP
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 bg-[#E91E63] rounded border-b-2 border-[#C2185B]"></div>
+                <div className="flex items-center gap-1 md:gap-2">
+                  <div className="w-3 h-3 md:w-5 md:h-5 bg-[#E91E63] rounded border-b-[1px] md:border-b-2 border-[#C2185B]"></div>
                   Couple
                 </div>
-
-                {/* Ghế Deluxe (Tím) */}
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 bg-[#9C27B0] rounded border-b-2 border-[#7B1FA2]"></div>
+                <div className="flex items-center gap-1 md:gap-2">
+                  <div className="w-3 h-3 md:w-5 md:h-5 bg-[#9C27B0] rounded border-b-[1px] md:border-b-2 border-[#7B1FA2]"></div>
                   Deluxe
                 </div>
               </div>

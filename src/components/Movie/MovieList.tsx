@@ -60,20 +60,22 @@ export default function MovieList({ isFullPage = false }: MovieListProps) {
             )}
 
             {/* ====== HEADER ====== */}
-            <div className="flex items-center gap-5 md:gap-8 mb-8 border-b border-gray-200 pb-2 overflow-x-auto scrollbar-hide whitespace-nowrap w-full">
+            <div className="flex items-center gap-3 md:gap-8 mb-8 border-b border-gray-200 pb-2 w-full">
+                
                 <div className="flex items-center gap-2 shrink-0">
                     <div className="w-1 h-5 md:h-6 bg-blue-700"></div>
                     <h2 className="hidden md:block text-lg md:text-xl font-bold text-gray-800 uppercase tracking-wide">Phim</h2>
                 </div>
 
                 {!hasSearch && (
-                    <div className="flex items-center gap-5 md:gap-6 font-medium text-[14px] md:text-[15px] shrink-0">
+                    <div className="flex-1 md:flex-none flex items-center justify-around md:justify-start md:gap-6 font-medium text-[12px] sm:text-[14px] md:text-[15px]">
                         {tabs.map((tab) => (
                             <div
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`relative cursor-pointer transition-colors ${activeTab === tab.id ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600'
-                                    }`}
+                                className={`relative cursor-pointer transition-colors text-center whitespace-nowrap ${
+                                    activeTab === tab.id ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600'
+                                }`}
                             >
                                 {tab.label}
                                 {activeTab === tab.id && (
@@ -83,14 +85,6 @@ export default function MovieList({ isFullPage = false }: MovieListProps) {
                         ))}
                     </div>
                 )}
-
-                <div className="hidden md:flex items-center gap-1 text-blue-600 font-medium text-[14px] md:text-[15px] cursor-pointer ml-auto shrink-0">
-                    <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Toàn quốc
-                </div>
             </div>
 
             {/* ====== HIỂN THỊ KẾT QUẢ ====== */}

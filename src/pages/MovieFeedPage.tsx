@@ -32,11 +32,12 @@ export default function MovieFeedPage() {
             <div className="max-w-3xl mx-auto px-4">
 
                 {/* TIÊU ĐỀ TRANG */}
-                <div className="mb-6 border-b border-gray-300 pb-3">
-                    <h1 className="text-2xl font-bold text-gray-800 uppercase tracking-tight">
-                        Khám Phá Phim
-                    </h1>
-                    <p className="text-sm text-gray-500 mt-1">Cập nhật những bộ phim hot nhất tại rạp</p>
+               <div className="flex items-center gap-3 md:gap-8 mb-8 border-b border-gray-200 pb-2 w-full">
+                
+                    <div className="flex items-center gap-2 shrink-0">
+                        <div className="w-1 h-5 md:h-6 bg-blue-700"></div>
+                        <h2 className="hidden md:block text-lg md:text-xl font-bold text-gray-800 uppercase tracking-wide">Khám phá những bình luận</h2>
+                    </div>
                 </div>
 
                 {/* DANH SÁCH BÀI ĐĂNG */}
