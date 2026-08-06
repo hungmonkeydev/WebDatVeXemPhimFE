@@ -11,6 +11,9 @@ export const bookingService = {
       seatIds: seatIds,
     });
   },
+  getBookingCaculate: async (payload: any) => {
+    return await api.post('/bookings/calculate', payload);
+  },
   getBookingDetail: async (bookingId: number | string) => {
     return await api.get(`/bookings/${bookingId}`);
   },

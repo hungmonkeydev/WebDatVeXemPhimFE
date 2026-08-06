@@ -9,7 +9,7 @@ export const useAdminShowtimes = () => {
     const fetchShowtimes = useCallback(async (page: number, size: number) => {
         setIsLoading(true);
         try {
-            const res = await adminShowtimeService.getAll({ page: page - 1, size: size });
+            const res = await adminShowtimeService.getAll({ page: page - 1, size: size, activeOnly: false });
             if (res && res.data) {
                 setShowtimes(res.data);
                 setTotalShowtimes(res.data.totalElements || 0);
@@ -30,7 +30,7 @@ export const useAdminShowtimes = () => {
             return {
                 success: false,
                 message: responseData?.message || "Vui lòng kiểm tra lại thông tin!",
-                fieldErrors: responseData?.data 
+                fieldErrors: responseData?.data
             };
         } finally {
             setIsLoading(false);

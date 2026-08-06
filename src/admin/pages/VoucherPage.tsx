@@ -66,25 +66,49 @@ export default function VoucherManage() {
     try {
       const values = await form.validateFields();
       const payload = { ...values };
+
+      // Xử lý ngày tháng
       if (payload.validDates) {
         payload.expiresAt = payload.validDates[1].format('YYYY-MM-DD');
       }
       delete payload.validDates;
       delete payload.validFrom;
+
       if (!payload.code || payload.code.trim() === '') delete payload.code;
       if (!payload.description) delete payload.description;
+
+      // Xử lý payload theo từng loại Voucher cụ thể
       if (payload.voucherType === 'GIFT_CARD') {
         payload.originalValue = Number(payload.originalValue);
+        // Reset các trường không liên quan
         delete payload.discountValue;
         delete payload.discountType;
         delete payload.currentBalance;
+        delete payload.redeemedComboId;
+        delete payload.redeemedComboQuantity;
+      } else if (payload.voucherType === 'COMBO_DISCOUNT') {
+        payload.discountValue = Number(payload.discountValue);
+        payload.redeemedComboId = Number(payload.redeemedComboId);
+        payload.redeemedComboQuantity = Number(payload.redeemedComboQuantity);
+        // Reset các trường không liên quan
+        delete payload.originalValue;
+        delete payload.currentBalance;
+        delete payload.recipientName;
+        delete payload.recipientEmail;
+        delete payload.message;
       } else {
+        // TICKET_DISCOUNT
         payload.discountValue = Number(payload.discountValue);
         delete payload.originalValue;
         delete payload.currentBalance;
+        delete payload.redeemedComboId;
+        delete payload.redeemedComboQuantity;
+        delete payload.recipientName;
+        delete payload.recipientEmail;
+        delete payload.message;
       }
 
-      console.log("Cục Payload trước khi gửi:", payload);
+      console.log("Cục Payload gửi lên Backend:", payload);
       let result;
       const idToUpdate = editingVoucher?.id || editingVoucher?.voucherId;
 
@@ -109,13 +133,11 @@ export default function VoucherManage() {
   const handleToggleLock = async (record: any) => {
     const id = record.id || record.voucherId;
     let result;
-
     if (record.status === 'LOCKED') {
       result = await unlockVoucher(id);
     } else {
       result = await lockVoucher(id);
     }
-
     if (result.success) {
       message.success(result.message);
       fetchVouchers(currentPage, pageSize, { keyword, voucherType: typeFilter, status: statusFilter });
@@ -135,7 +157,7 @@ export default function VoucherManage() {
   };
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
+    { title: 'ID', dataIndex: 'id', key: 'id', width: 60 },
     {
       title: 'Mã Voucher',
       dataIndex: 'code',
@@ -143,14 +165,24 @@ export default function VoucherManage() {
       render: (text: string) => <div className="font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded inline-block border border-orange-200">{text}</div>,
     },
     {
-      title: 'Loại',
-      dataIndex: 'voucherType',
-      key: 'voucherType',
-      render: (type: string) => {
-        if (type === 'GIFT_CARD') return <Tag color="purple">Thẻ quà tặng</Tag>;
-        if (type === 'TICKET_DISCOUNT') return <Tag color="blue">Giảm giá vé</Tag>;
-        if (type === 'COMBO_DISCOUNT') return <Tag color="cyan">Giảm giá Combo</Tag>;
-        return <Tag>{type}</Tag>;
+      title: 'Loại / Chi tiết',
+      key: 'details',
+      render: (_: any, record: any) => {
+        return (
+          <div className="flex flex-col gap-1">
+            <div>
+              {record.voucherType === 'GIFT_CARD' && <Tag color="purple">Thẻ quà tặng</Tag>}
+              {record.voucherType === 'TICKET_DISCOUNT' && <Tag color="blue">Giảm giá vé</Tag>}
+              {record.voucherType === 'COMBO_DISCOUNT' && <Tag color="cyan">Giảm giá Combo</Tag>}
+            </div>
+            {/*Hiển thị thêm chi tiết cho Combo */}
+            {record.voucherType === 'COMBO_DISCOUNT' && record.redeemedComboId && (
+              <span className="text-xs text-gray-500">
+                Áp dụng Combo ID: {record.redeemedComboId} (SL: {record.redeemedComboQuantity})
+              </span>
+            )}
+          </div>
+        );
       }
     },
     {
@@ -165,7 +197,6 @@ export default function VoucherManage() {
             </div>
           );
         }
-
         const isPercent = record.discountType === 'PERCENT';
         return (
           <span className="font-medium text-red-500">
@@ -175,14 +206,26 @@ export default function VoucherManage() {
       }
     },
     {
-      title: 'Chủ sở hữu',
+      title: 'Chủ sở hữu / Người nhận',
       key: 'owner',
       render: (_: any, record: any) => {
-        if (!record.ownerEmail) return <span className="text-gray-400 italic">Chưa sở hữu</span>;
         return (
           <div className="text-sm">
-            <div className="font-medium text-gray-800">{record.ownerFullName}</div>
-            <div className="text-xs text-gray-500">{record.ownerEmail}</div>
+            {record.ownerEmail ? (
+              <>
+                <div className="text-xs text-gray-400">Người mua:</div>
+                <div className="font-medium text-gray-800">{record.ownerFullName || 'Unknown'}</div>
+              </>
+            ) : <span className="text-gray-400 italic">Chưa có người mua</span>}
+
+            {/*Hiển thị người nhận cho Gift Card */}
+            {record.voucherType === 'GIFT_CARD' && record.recipientEmail && (
+              <div className="mt-1 pt-1 border-t border-dashed border-gray-200">
+                <div className="text-xs text-gray-400">Gửi đến:</div>
+                <div className="font-medium text-blue-600">{record.recipientName}</div>
+                <div className="text-xs text-gray-500">{record.recipientEmail}</div>
+              </div>
+            )}
           </div>
         );
       }
@@ -192,8 +235,7 @@ export default function VoucherManage() {
       key: 'expiresAt',
       render: (_: any, record: any) => (
         <div className="text-xs text-gray-600">
-          Từ: {record.validFrom ? dayjs(record.validFrom).format('DD/MM/YYYY') : '---'}<br />
-          Đến: {record.expiresAt ? dayjs(record.expiresAt).format('DD/MM/YYYY') : '---'}
+          Tới: {record.expiresAt ? dayjs(record.expiresAt).format('DD/MM/YYYY') : '---'}
         </div>
       ),
     },
@@ -204,7 +246,7 @@ export default function VoucherManage() {
       render: (status: string) => renderStatus(status),
     },
     {
-      title: 'Hành động', key: 'action', width: 120,
+      title: 'Hành động', key: 'action', width: 100,
       render: (_: any, record: any) => {
         const isLocked = record.status === 'LOCKED';
         return (
@@ -214,12 +256,12 @@ export default function VoucherManage() {
             </Tooltip>
             <Popconfirm
               title={isLocked ? "Mở khóa voucher này?" : "Khóa voucher này?"}
-              description={isLocked ? "Voucher sẽ trở lại trạng thái bình thường." : "Khách hàng sẽ không thể dùng voucher này."}
+              description={isLocked ? "Voucher sẽ trở lại bình thường." : "Khách sẽ không thể dùng voucher này."}
               onConfirm={() => handleToggleLock(record)}
               okText="Đồng ý" cancelText="Hủy"
               okButtonProps={isLocked ? { type: 'primary' } : { danger: true }}
             >
-              <Tooltip title={isLocked ? "Mở khóa" : "Khóa khẩn cấp"}>
+              <Tooltip title={isLocked ? "Mở khóa" : "Khóa"}>
                 <Button type="text" danger={isLocked} className={!isLocked ? 'text-green-500' : ''} icon={isLocked ? <LockOutlined /> : <UnlockOutlined />} />
               </Tooltip>
             </Popconfirm>
@@ -279,12 +321,11 @@ export default function VoucherManage() {
       <Modal
         title={editingVoucher ? "Cập nhật Voucher" : "Tạo Voucher Mới"}
         open={isModalOpen} onOk={handleFormSubmit} onCancel={() => setIsModalOpen(false)}
-        okText={editingVoucher ? "Cập nhật" : "Tạo mới"} cancelText="Hủy" destroyOnHidden
+        okText={editingVoucher ? "Lưu" : "Tạo mới"} cancelText="Hủy" destroyOnHidden
         confirmLoading={isLoading}
-        width={700} // Nới rộng form ra xíu cho thoáng
+        width={750}
       >
         <Form form={form} layout="vertical" className="mt-4">
-
           <div className="grid grid-cols-2 gap-4">
             <Form.Item name="code" label="Mã Voucher (Code)">
               <Input placeholder="Bỏ trống hệ thống tự sinh mã" disabled={!!editingVoucher} />
@@ -300,34 +341,22 @@ export default function VoucherManage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-
-            {/* LOGIC ĐỘNG: Hiển thị 1 Mệnh giá (Gift Card) HOẶC Form chọn %/VNĐ (Vé/Combo) */}
+            {/* LOGIC ĐỘNG: Render các field tùy theo loại Voucher */}
             {selectedType === 'GIFT_CARD' ? (
-              <Form.Item
-                name="originalValue"
-                label="Mệnh giá thẻ quà tặng (VNĐ)"
-                rules={[{ required: true, message: 'Vui lòng nhập mệnh giá thẻ!' }]}
-              >
+              <Form.Item name="originalValue" label="Mệnh giá thẻ quà tặng (VNĐ)" rules={[{ required: true, message: 'Vui lòng nhập mệnh giá!' }]}>
                 <InputNumber className="w-full" min={1} placeholder="Ví dụ: 500000" disabled={!!editingVoucher} />
               </Form.Item>
             ) : (
               <Form.Item label="Mức giảm giá" required>
                 <Space.Compact style={{ width: '100%' }}>
-                  <Form.Item
-                    name="discountValue"
-                    noStyle
-                    rules={[{ required: true, message: 'Vui lòng nhập mức giảm!' }]}
-                  >
+                  <Form.Item name="discountValue" noStyle rules={[{ required: true, message: 'Nhập mức giảm!' }]}>
                     <InputNumber style={{ width: '70%' }} min={1} placeholder="Ví dụ: 50" />
                   </Form.Item>
-                  <Form.Item
-                    name="discountType"
-                    noStyle
-                    initialValue="PERCENT"
-                  >
+                  <Form.Item name="discountType" noStyle initialValue="PERCENT">
                     <Select style={{ width: '30%' }}>
                       <Option value="PERCENT">%</Option>
                       <Option value="FIXED_AMOUNT">VNĐ</Option>
+                      <Option value="AMOUNT">VNĐ</Option>
                     </Select>
                   </Form.Item>
                 </Space.Compact>
@@ -339,8 +368,37 @@ export default function VoucherManage() {
             </Form.Item>
           </div>
 
-          <Form.Item name="description" label="Ghi chú (Tùy chọn)">
-            <Input.TextArea rows={3} placeholder="Ví dụ: Áp dụng cho thành viên mới..." />
+          {/*Các ô nhập ĐỘNG cho COMBO_DISCOUNT */}
+          {selectedType === 'COMBO_DISCOUNT' && (
+            <div className="grid grid-cols-2 gap-4 bg-cyan-50 p-4 rounded-lg mb-4 border border-cyan-100">
+              <Form.Item name="redeemedComboId" label="ID Combo được giảm" rules={[{ required: true, message: 'Nhập ID Combo!' }]}>
+                <InputNumber className="w-full" min={1} placeholder="Nhập ID của combo" />
+              </Form.Item>
+              <Form.Item name="redeemedComboQuantity" label="Số lượng Combo" rules={[{ required: true, message: 'Nhập số lượng!' }]}>
+                <InputNumber className="w-full" min={1} placeholder="Nhập số lượng" />
+              </Form.Item>
+            </div>
+          )}
+
+          {/*Các ô nhập ĐỘNG cho GIFT_CARD */}
+          {selectedType === 'GIFT_CARD' && (
+            <div className="bg-purple-50 p-4 rounded-lg mb-4 border border-purple-100">
+              <div className="grid grid-cols-2 gap-4">
+                <Form.Item name="recipientName" label="Tên người nhận (Tùy chọn)">
+                  <Input placeholder="Nhập tên người nhận..." />
+                </Form.Item>
+                <Form.Item name="recipientEmail" label="Email người nhận (Tùy chọn)" rules={[{ type: 'email', message: 'Email không hợp lệ!' }]}>
+                  <Input placeholder="Nhập email người nhận..." />
+                </Form.Item>
+              </div>
+              <Form.Item name="message" label="Lời chúc (Tùy chọn)" className="mb-0">
+                <Input.TextArea rows={2} placeholder="Nhập lời chúc đính kèm..." />
+              </Form.Item>
+            </div>
+          )}
+
+          <Form.Item name="description" label="Ghi chú hệ thống (Tùy chọn)" className="mt-4">
+            <Input.TextArea rows={2} placeholder="Ghi chú nội bộ cho admin..." />
           </Form.Item>
 
         </Form>

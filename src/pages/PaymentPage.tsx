@@ -25,6 +25,7 @@ export default function PaymentPage() {
     const { vouchers: myVoucher, isLoadingVoucher } = useMyVoucher(bookingData?.isGuest || false);
     const [usedPoints, setUsedPoints] = useState(0);
     const availablePoints = progressData?.data?.currentPoints || progressData?.currentPoints || 0;
+    const [voucherInput, setVoucherInput] = useState('');
 
     const [isVoucherApplied, setIsVoucherApplied] = useState(false);
 
@@ -206,29 +207,52 @@ export default function PaymentPage() {
     //     setUsedPoints(p);
     //     alert(`Áp dụng thành công! Bạn dùng ${p} điểm để giảm ${(p * 1000).toLocaleString('vi-VN')} đ`);
     // };
-    const handleApplyVoucher = () => {
-        if (!selectedVoucher) {
+    const handleApplyVoucher = async () => {
+        // Nếu không có nhập mã gì và cũng không chọn thẻ nào thì dừng lại
+        if (!selectedVoucher && !voucherInput) {
             setDiscountAmount(0);
             setIsVoucherApplied(false);
             return;
         }
-        let discount = 0;
 
-        if (selectedVoucher.voucherType === 'COMBO_DISCOUNT' && selectedVoucher.comboId && selectedVoucher.discountValue == null) {
-            const matchedCombo = bookingData.combos?.find((c: any) => (c.comboId ?? c.id) === selectedVoucher.comboId);
-            discount = matchedCombo ? matchedCombo.price * selectedVoucher.comboQuantity : 0;
-        }
-        else if (selectedVoucher.voucherType === 'TICKET_DISCOUNT' || selectedVoucher.voucherType === 'COMBO_DISCOUNT') {
-            discount = selectedVoucher.discountType === 'PERCENT'
-                ? Math.round(finalTotalPrice * (selectedVoucher.discountValue / 100))
-                : selectedVoucher.discountValue;
-        } else {
-            discount = Math.min(selectedVoucher.currentBalance ?? 0, finalTotalPrice);
-        }
+        try {
+            const payload = {
+                showtimeId: Number(id),
+                seatIds: bookingData.selectedSeats.map((s: any) => s.seatId),
+                combos: Object.keys(comboCart || {})
+                    .map(comboId => ({
+                        comboId: Number(comboId),
+                        quantity: comboCart[Number(comboId)]
+                    }))
+                    .filter(c => c.quantity > 0), // tránh gửi combo có quantity 0 lên backend
+                promotionCode: voucherInput ? voucherInput.trim() : null,
+                ticketVoucherId: selectedVoucher?.voucherType === 'TICKET_DISCOUNT' ? selectedVoucher.voucherId : null,
+                comboVoucherId: selectedVoucher?.voucherType === 'COMBO_DISCOUNT' ? selectedVoucher.voucherId : null
+            };
+            console.log('PAYLOAD', payload);
 
-        setDiscountAmount(discount);
-        setIsVoucherApplied(true);
-        alert(`Áp dụng voucher thành công! Giảm ${discount.toLocaleString('vi-VN')} đ`);
+            const response = await bookingService.getBookingCaculate(payload);
+
+            if (response.data && response.data.status === 'success') {
+                const data = response.data.data;
+                const discount = data.pricingBreakdown.totalDiscount;
+
+                setDiscountAmount(discount);
+                setIsVoucherApplied(true);
+
+                alert(`Áp dụng thành công! Giảm ${discount.toLocaleString('vi-VN')} đ`);
+            } else {
+                alert(response.data.message || "Mã giảm giá không hợp lệ!");
+                setDiscountAmount(0);
+                setIsVoucherApplied(false);
+            }
+
+        } catch (error: any) {
+            console.error("Lỗi gọi API tính tiền:", error);
+            alert(error.response?.data?.message || "Không thể tính toán khuyến mãi lúc này. Vui lòng thử lại!");
+            setDiscountAmount(0);
+            setIsVoucherApplied(false);
+        }
     };
 
     const pointsDiscount = usedPoints * 1000;
@@ -309,21 +333,52 @@ export default function PaymentPage() {
                     {!isGuest && (
                         <div className="bg-white p-6 rounded-lg shadow-sm">
                             <div className="flex items-center gap-3 md:gap-8 mb-8 border-b border-gray-200 pb-2 w-full">
-
                                 <div className="flex items-center gap-2 shrink-0">
                                     <div className="w-1 h-5 md:h-6 bg-blue-700"></div>
                                     <h2 className="hidden md:block text-lg md:text-xl font-bold text-gray-800 uppercase tracking-wide">Khuyến mãi</h2>
                                 </div>
                             </div>
+
                             <div className="mb-6">
-                                <label className="block text-sm font-semibold text-gray-700 mb-3">Chọn mã khuyến mãi của bạn</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-3">Nhập hoặc chọn mã khuyến mãi của bạn</label>
+
+                                <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                                    <input
+                                        type="text"
+                                        placeholder="Nhập mã khuyến mãi ở đây..."
+                                        value={voucherInput}
+                                        onChange={(e) => {
+                                            setVoucherInput(e.target.value.toUpperCase());
+                                            setSelectedVoucher(null);
+                                        }}
+                                        className="flex-1 border border-gray-300 rounded px-4 py-2.5 focus:outline-none focus:border-[#f26b38] focus:ring-1 focus:ring-[#f26b38] uppercase text-sm font-medium"
+                                    />
+                                    <button
+                                        onClick={handleApplyVoucher}
+                                        className="bg-[#f26b38] hover:bg-[#d95c2b] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold px-8 py-2.5 rounded whitespace-nowrap transition-colors shadow-sm"
+                                    >
+                                        Áp Dụng
+                                    </button>
+                                </div>
+
+                                {/* THÔNG BÁO GIẢM GIÁ */}
+                                {discountAmount > 0 && (
+                                    <div className="bg-green-50 border border-green-200 rounded p-3 mb-6">
+                                        <p className="text-green-700 text-sm font-semibold">
+                                            ✓ Áp dụng thành công! Đã giảm: {discountAmount.toLocaleString('vi-VN')} đ
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* DANH SÁCH VOUCHER CÓ SẴN (Gợi ý) */}
+                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Mã giảm giá của bạn</p>
 
                                 {isLoadingVoucher && (
-                                    <p className="text-sm text-gray-400 py-4">Đang tải ưu đãi...</p>
+                                    <p className="text-sm text-gray-400 py-2">Đang tải ưu đãi...</p>
                                 )}
 
                                 {!isLoadingVoucher && (!myVoucher || myVoucher.length === 0) && (
-                                    <p className="text-sm text-gray-400 py-4">Bạn chưa có voucher nào khả dụng.</p>
+                                    <p className="text-sm text-gray-400 py-2 italic">Bạn chưa có voucher nào khả dụng.</p>
                                 )}
 
                                 {!isLoadingVoucher && myVoucher && myVoucher.length > 0 && (
@@ -345,6 +400,7 @@ export default function PaymentPage() {
                                                             setSelectedVoucher(null);
                                                         } else {
                                                             setSelectedVoucher(v);
+                                                            // setVoucherInput(''); // Nếu bấm vào voucher có sẵn thì xóa trắng ô nhập tay đi
                                                         }
                                                         setIsVoucherApplied(false);
                                                         setDiscountAmount(0);
@@ -364,20 +420,6 @@ export default function PaymentPage() {
                                             );
                                         })}
                                     </div>
-                                )}
-
-                                <button
-                                    onClick={handleApplyVoucher}
-                                    disabled={!myVoucher || myVoucher.length === 0}
-                                    className="bg-[#f26b38] hover:bg-[#d95c2b] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold px-6 py-2 rounded"
-                                >
-                                    Áp Dụng
-                                </button>
-
-                                {discountAmount > 0 && (
-                                    <p className="text-green-600 text-sm mt-2 font-medium">
-                                        ✓ Đã giảm: {discountAmount.toLocaleString('vi-VN')} đ
-                                    </p>
                                 )}
                             </div>
                         </div>
