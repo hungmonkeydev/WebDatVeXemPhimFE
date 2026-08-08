@@ -34,6 +34,9 @@ export default function AppRoutes() {
                 <Route element={<CustomerLayout />}>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/movies" element={<MoviesPage />} />
+                    <Route path="/movies/now-showing" element={<MoviesPage />} />
+                    <Route path="/movies/coming-soon" element={<MoviesPage />} />
+                    <Route path="/movies/imax" element={<MoviesPage />} />
                     <Route path="/kham-pha" element={<MovieFeedPage />} />
                     <Route path="/phim/:id" element={<MovieDetail />} />
                     {/* BookingLayout nằm lồng bên trong CustomerLayout */}

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import MovieCard from '../Movie/MovieCard';
 import { useMovies } from '../../Hooks/useMovies';
 
@@ -15,14 +15,23 @@ export default function MovieList({ isFullPage = false }: MovieListProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [activeTrailer, setActiveTrailer] = useState<string | null>(null);
     const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
-
+    const location = useLocation();
     const tabs = [
         { id: 'dang_chieu', label: 'Đang chiếu' },
         { id: 'sap_chieu', label: 'Sắp chiếu' },
         { id: 'imax', label: 'Phim IMAX' },
         { id: 'top_rated', label: 'Đánh giá cao' }
     ];
-
+    useEffect(() => {
+        const currentPath = location.pathname;
+        if (currentPath.includes('coming-soon')) {
+            setActiveTab('sap_chieu');
+        } else if (currentPath.includes('imax')) {
+            setActiveTab('imax');
+        } else {
+            setActiveTab('dang_chieu');
+        }
+    }, [location.pathname]);
     const { moviesList, nowShowingResults, comingSoonResults, hasSearch, isLoading } = useMovies(activeTab, {
         keyword: searchKeyword,
         genreIds: selectedGenreIds,
@@ -61,7 +70,7 @@ export default function MovieList({ isFullPage = false }: MovieListProps) {
 
             {/* ====== HEADER ====== */}
             <div className="flex items-center gap-3 md:gap-8 mb-8 border-b border-gray-200 pb-2 w-full">
-                
+
                 <div className="flex items-center gap-2 shrink-0">
                     <div className="w-1 h-5 md:h-6 bg-blue-700"></div>
                     <h2 className="hidden md:block text-lg md:text-xl font-bold text-gray-800 uppercase tracking-wide">Phim</h2>
@@ -73,9 +82,8 @@ export default function MovieList({ isFullPage = false }: MovieListProps) {
                             <div
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`relative cursor-pointer transition-colors text-center whitespace-nowrap ${
-                                    activeTab === tab.id ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600'
-                                }`}
+                                className={`relative cursor-pointer transition-colors text-center whitespace-nowrap ${activeTab === tab.id ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600'
+                                    }`}
                             >
                                 {tab.label}
                                 {activeTab === tab.id && (

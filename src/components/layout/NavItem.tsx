@@ -4,7 +4,7 @@ import MovieMegaMenu from './MovieMegaMenu';
 
 interface NavItemProps {
   readonly title: string;
-  readonly subMenu?: string[];
+  readonly subMenu?: { label: string; path: string }[];
   readonly isMegaMenu?: boolean;
   path?: string;
 }
@@ -67,11 +67,11 @@ export default function NavItem({ title, subMenu, isMegaMenu, path }: NavItemPro
 
           {subMenu && (
             <ul className={`flex flex-col gap-1 py-1 lg:py-2 pl-4 lg:pl-0 border-l-[3px] border-[#f26b38] lg:border-none ml-2 lg:ml-0 ${isMegaMenu ? 'lg:hidden' : ''}`}>
-              {subMenu.map((subItem) => (
-                <li key={subItem}>
-                  <button className="block w-full text-left pr-4 lg:px-4 py-2 text-[14px] text-gray-600 lg:text-gray-700 hover:text-[#f26b38] lg:hover:bg-gray-50 transition-colors">
-                    {subItem}
-                  </button>
+              {subMenu.map((item, index) => (
+                <li key={index}>
+                  <Link to={item.path}>
+                    {item.label}
+                  </Link>
                 </li>
               ))}
             </ul>

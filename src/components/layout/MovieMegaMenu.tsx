@@ -12,8 +12,12 @@ export default function MovieMegaMenu() {
       {/* PHẦN ĐANG CHIẾU */}
       <div>
         <div className="flex items-center gap-2 shrink-0 mb-3">
-          <div className="w-1 h-5 md:h-6 bg-blue-700"></div>
-          <h2 className="hidden md:block text-lg md:text-xl font-bold text-gray-800 uppercase tracking-wide">Phim Đang Chiếu</h2>
+          <Link to="/movies/now-showing" className="flex items-center gap-2 shrink-0 mb-3 group/heading w-max cursor-pointer">
+            <div className="w-1 h-5 md:h-6 bg-blue-700"></div>
+            <h2 className="hidden md:block text-lg md:text-xl font-bold text-gray-800 uppercase tracking-wide group-hover/heading:text-[#f26b38] transition-colors">
+              Phim Đang Chiếu
+            </h2>
+          </Link>
         </div>
         <div className="grid grid-cols-4 gap-4">
           {(nowShowing || []).slice(0, 4).map((movie: any) => (
@@ -30,8 +34,12 @@ export default function MovieMegaMenu() {
       {/* PHẦN SẮP CHIẾU */}
       <div>
         <div className="flex items-center gap-2 shrink-0 mb-3">
-          <div className="w-1 h-5 md:h-6 bg-blue-700"></div>
-          <h2 className="hidden md:block text-lg md:text-xl font-bold text-gray-800 uppercase tracking-wide">Phim Sắp Chiếu</h2>
+          <Link to="/movies/coming-soon" className="flex items-center gap-2 shrink-0 mb-3 group/heading w-max cursor-pointer">
+            <div className="w-1 h-5 md:h-6 bg-blue-700"></div>
+            <h2 className="hidden md:block text-lg md:text-xl font-bold text-gray-800 uppercase tracking-wide group-hover/heading:text-[#f26b38] transition-colors">
+              Phim Sắp Chiếu
+            </h2>
+          </Link>
         </div>
         <div className="grid grid-cols-4 gap-4">
           {(comingSoon || []).slice(0, 4).map((movie: any) => (

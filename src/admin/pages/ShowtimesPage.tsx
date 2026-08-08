@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Table, Button, Space, Tag, Input, Form, Modal, Select, Popconfirm,
-  message, Tooltip, DatePicker, InputNumber
+  message, Tooltip, DatePicker, InputNumber, Radio
 } from 'antd';
 import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -24,9 +24,10 @@ interface ShowtimeType {
 export default function ShowtimeManage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [viewMode, setViewMode] = useState<'table' | 'weekly'>('table'); // Thêm state chuyển đổi giao diện
 
   const {
-    showtimes, totalShowtimes, isLoading,
+    showtimes = [], totalShowtimes, isLoading,
     fetchShowtimes, createShowtime, updateShowtime, deleteShowtime
   } = useAdminShowtimes();
 
@@ -72,20 +73,26 @@ export default function ShowtimeManage() {
 
     fetchMoviesForDropdown();
   }, []);
-  useEffect(() => {
-    const uniqueRooms = Array.from(
-      new Map(
-        showtimes.map((s: any) => [
-          s.room.roomId,
-          {
-            value: s.room.roomId,
-            label: `${s.cinema.name} - ${s.room.roomName}`,
-          },
-        ])
-      ).values()
-    );
 
-    setRooms(uniqueRooms);
+  useEffect(() => {
+    if (showtimes && showtimes.length > 0) {
+      const uniqueRooms = Array.from(
+        new Map(
+          showtimes
+            .filter((s: any) => s.room && s.cinema) // Đảm bảo không bị lỗi nếu thiếu data
+            .map((s: any) => [
+              s.room.roomId,
+              {
+                value: s.room.roomId,
+                label: `${s.cinema.name} - ${s.room.roomName}`,
+              },
+            ])
+        ).values()
+      );
+      if (uniqueRooms.length > 0) {
+        setRooms(uniqueRooms);
+      }
+    }
   }, [showtimes]);
 
 
@@ -238,6 +245,80 @@ export default function ShowtimeManage() {
     },
   ];
 
+  // ==========================================
+  // XỬ LÝ NHÓM DỮ LIỆU VÀ VẼ LỊCH CỘT
+  // ==========================================
+  const groupedShowtimes = showtimes.reduce((group: any, showtime: any) => {
+    if (!showtime.startTime) return group;
+    const dateKey = dayjs(showtime.startTime).format('YYYY-MM-DD');
+    if (!group[dateKey]) {
+      group[dateKey] = [];
+    }
+    group[dateKey].push(showtime);
+    return group;
+  }, {});
+
+  const sortedDates = Object.keys(groupedShowtimes).sort();
+
+  const renderWeeklyView = () => (
+    <div className="flex gap-4 overflow-x-auto pb-4 snap-x">
+      {sortedDates.length === 0 ? (
+        <div className="text-center w-full py-10 text-gray-500 border-2 border-dashed rounded-lg">
+          Không có dữ liệu suất chiếu. (Thử tăng số dòng hiển thị để lấy thêm dữ liệu)
+        </div>
+      ) : (
+        sortedDates.map((date) => (
+          <div key={date} className="min-w-[280px] bg-gray-50/50 border border-gray-200 rounded-xl p-4 snap-start shrink-0">
+            {/* Tiêu đề Cột Ngày */}
+            <div className="font-extrabold text-[16px] text-blue-700 mb-4 border-b-2 border-blue-200 pb-2 flex justify-between items-center">
+              {/* Dùng mảng để dịch số (0-6) sang thứ trong tiếng Việt */}
+              <span>
+                {['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][dayjs(date).day()]},{' '}
+                {dayjs(date).format('DD/MM/YYYY')}
+              </span>
+              <Tag color="blue">{groupedShowtimes[date].length} suất</Tag>
+            </div>
+
+            {/* Danh sách suất chiếu trong ngày */}
+            <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto scrollbar-hide pr-1">
+              {groupedShowtimes[date].map((item: any) => (
+                <div
+                  key={item.showtimeId}
+                  className={`relative group bg-white p-3 rounded-lg shadow-sm border-l-4 transition-all hover:shadow-md ${item.isActive ? 'border-green-500' : 'border-red-400 opacity-60'}`}
+                >
+                  <div className="flex justify-between items-start mb-1">
+                    <p className="font-bold text-gray-800 text-[15px]">
+                      {dayjs(item.startTime).format('HH:mm')} - {dayjs(item.endTime).format('HH:mm')}
+                    </p>
+                  </div>
+
+                  <p className="text-[14px] font-semibold text-blue-600 line-clamp-1">{item.movie?.title}</p>
+                  <p className="text-[12px] text-gray-500 mt-1 flex items-center gap-1">
+                    {item.cinema?.name} - {item.room?.roomName}
+                  </p>
+
+                  {!item.isActive && <span className="text-[10px] text-red-500 font-bold mt-1 block">VÔ HIỆU HÓA</span>}
+
+                  {/* NÚT CRUD - Chỉ hiện khi hover */}
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 bg-white/90 px-1 rounded shadow-sm">
+                    <Tooltip title="Sửa">
+                      <EditOutlined className="text-blue-500 cursor-pointer text-lg hover:scale-110" onClick={() => showModal(item)} />
+                    </Tooltip>
+                    <Popconfirm title="Xóa suất chiếu này?" onConfirm={() => handleDelete(item.showtimeId)} okButtonProps={{ danger: true }}>
+                      <Tooltip title="Xóa">
+                        <DeleteOutlined className="text-red-500 cursor-pointer text-lg hover:scale-110" />
+                      </Tooltip>
+                    </Popconfirm>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -245,7 +326,19 @@ export default function ShowtimeManage() {
           <h2 className="text-xl font-bold text-gray-800">Quản lý Suất chiếu</h2>
           <p className="text-gray-500 text-sm">Điều phối lịch chiếu phim tại các rạp</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
+
+          {/* NÚT CHUYỂN ĐỔI CHẾ ĐỘ XEM */}
+          <Radio.Group
+            value={viewMode}
+            onChange={(e) => setViewMode(e.target.value)}
+            buttonStyle="solid"
+            className="whitespace-nowrap shrink-0"
+          >
+            <Radio.Button value="table">Dạng Bảng</Radio.Button>
+            <Radio.Button value="weekly">Dạng Lịch</Radio.Button>
+          </Radio.Group>
+
           <Input placeholder="Tìm theo tên phim..." prefix={<SearchOutlined />} className="w-64" allowClear />
           <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()} className="bg-blue-600">
             Thêm Suất Chiếu
@@ -253,15 +346,35 @@ export default function ShowtimeManage() {
         </div>
       </div>
 
-      <Table
-        columns={columns} dataSource={showtimes} rowKey="showtimeId" loading={isLoading}
-        onChange={handleTableChange}
-        pagination={{
-          current: currentPage, pageSize: pageSize, total: totalShowtimes,
-          showSizeChanger: true, showTotal: (total) => `Tổng ${total} suất chiếu`,
-        }}
-        bordered
-      />
+      {/* RENDER DỰA THEO CHẾ ĐỘ XEM */}
+      {viewMode === 'table' ? (
+        <Table
+          columns={columns} dataSource={showtimes} rowKey="showtimeId" loading={isLoading}
+          onChange={handleTableChange}
+          pagination={{
+            current: currentPage, pageSize: pageSize, total: totalShowtimes,
+            showSizeChanger: true, showTotal: (total) => `Tổng ${total} suất chiếu`,
+          }}
+          bordered
+        />
+      ) : (
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          {renderWeeklyView()}
+
+          {/* Thêm thanh phân trang cho Lịch để có thể lật trang dữ liệu */}
+          <div className="mt-4 flex justify-end">
+            <Table
+              pagination={{
+                current: currentPage, pageSize: pageSize, total: totalShowtimes,
+                showSizeChanger: true, showTotal: (total) => `Tổng ${total} suất chiếu`,
+                onChange: (page, size) => handleTableChange({ current: page, pageSize: size })
+              }}
+              dataSource={[]} // Ẩn dữ liệu bảng đi, chỉ lấy cái thanh pagination
+              className="[&_.ant-table]:hidden" // Class ẩn cái bảng
+            />
+          </div>
+        </div>
+      )}
 
       <Modal
         title={editingShowtime ? "Cập nhật suất chiếu" : "Tạo suất chiếu mới"}
@@ -288,6 +401,7 @@ export default function ShowtimeManage() {
               filterOption={(input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase())}
             />
           </Form.Item>
+
           <Form.Item name="basePrice" label="Giá vé cơ bản (VNĐ)" rules={[{ required: true, message: 'Vui lòng nhập giá vé!' }]}>
             <InputNumber
               className="w-full"
