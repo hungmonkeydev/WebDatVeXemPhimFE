@@ -3,201 +3,25 @@ import {
     Table, Button, Space, Tag, Input, Form, Modal, Select, Popconfirm,
     message, Tooltip, InputNumber, Descriptions, Badge, Switch
 } from 'antd';
-import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined, LockOutlined, UnlockOutlined, EyeOutlined } from '@ant-design/icons';
+import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined, LockOutlined, UnlockOutlined, EyeOutlined, ReloadOutlined, UndoOutlined } from '@ant-design/icons';
 import { adminUserService } from '../../services/adminUserService';
 import { CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons';
 
-interface UserType {
-    userId: number;
-    fullName: string;
-    email: string;
-    phone: string;
-    role: string;
-    gender: string;
-    isActive: boolean;
-    emailVerified: boolean;
-    phoneVerified: boolean;
-    birthDate?: string;
-    membershipTierId?: number;
-}
+import { useAdminUser, type UserType } from '../../Hooks/useAdminUser';
 
 export default function UserManage() {
-    const [users, setUsers] = useState<UserType[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
-    const [totalUsers, setTotalUsers] = useState(0);
-
-    // State cho Modal Thêm/Sửa
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingUser, setEditingUser] = useState<UserType | null>(null);
-    const [form] = Form.useForm();
-
-    const [isBanModalOpen, setIsBanModalOpen] = useState(false);
-    const [banningUser, setBanningUser] = useState<UserType | null>(null);
-    const [banForm] = Form.useForm();
-
-    // Thông tin user
-    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-    const [userDetail, setUserDetail] = useState<any>(null);
-    const [isFetchingDetail, setIsFetchingDetail] = useState(false);
-    const showDetailModal = async (userId: number) => {
-        setIsDetailModalOpen(true);
-        setIsFetchingDetail(true);
-        try {
-            const res = await adminUserService.getUserDetail(userId);
-            setUserDetail(res.data.data);
-        } catch (error) {
-            message.error("Không thể lấy thông tin chi tiết!");
-            setIsDetailModalOpen(false);
-        } finally {
-            setIsFetchingDetail(false);
-        }
-    };
-    // Hàm load data
-    const fetchUsers = async (page: number, size: number) => {
-        setIsLoading(true);
-        try {
-
-            const res = await adminUserService.getUsers(page, size);
-            if (res && res.data) {
-                setUsers(res.data.content);
-                setTotalUsers(res.data.totalElements);
-            }
-        } catch (error) {
-            message.error("Lỗi khi tải danh sách người dùng!");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchUsers(currentPage, pageSize);
-    }, [currentPage, pageSize]);
-
-    const handleTableChange = (pagination: any) => {
-        setCurrentPage(pagination.current);
-        setPageSize(pagination.pageSize);
-    };
-
-    // Mở Modal Thêm/Sửa
-    const showModal = (record?: UserType) => {
-        if (record) {
-            setEditingUser(record);
-            form.setFieldsValue(record);
-        } else {
-            setEditingUser(null);
-            form.resetFields();
-            form.setFieldsValue({
-                role: 'CUSTOMER',
-                gender: 'MALE'
-            });
-        }
-        setIsModalOpen(true);
-    };
-
-    // Xử lý Submit Form
-    const handleFormSubmit = async () => {
-        try {
-            const values = await form.validateFields();
-
-            if (editingUser) {
-                const updatePayload = {
-                    fullName: values.fullName,
-                    email: values.email,
-                    phone: values.phone,
-                    gender: values.gender,
-                    birthDate: values.birthDate ? values.birthDate : null,
-                    isActive: values.isActive ?? true,
-                    emailVerified: values.emailVerified ?? false,
-                    phoneVerified: values.phoneVerified ?? false,
-                    membershipTierId: values.membershipTierId
-                };
-
-                await adminUserService.updateUser(editingUser.userId, updatePayload);
-
-                if (values.role !== editingUser.role) {
-                    try {
-                        await adminUserService.updateUserRole(editingUser.userId, { role: values.role });
-                    } catch (roleError) {
-                        console.error("Lỗi cập nhật Role:", roleError);
-                        message.warning("Đã cập nhật thông tin, nhưng lỗi khi đổi Vai trò!");
-                    }
-                }
-
-                message.success("Cập nhật thông tin thành công!");
-            } else {
-                const createPayload = { ...values };
-                if (!createPayload.birthDate) createPayload.birthDate = null;
-
-                await adminUserService.createUser(createPayload);
-                message.success("Thêm tài khoản mới thành công!");
-            }
-
-            setIsModalOpen(false);
-            fetchUsers(currentPage, pageSize);
-
-        } catch (error: any) {
-            console.log("Chi tiết lỗi:", error);
-
-            const responseData = error.response?.data;
-
-            if (responseData?.data && typeof responseData.data === 'object' && !Array.isArray(responseData.data)) {
-                const backendErrors = responseData.data;
-                form.setFields(
-                    Object.keys(backendErrors).map((field) => ({
-                        name: field,
-                        errors: [backendErrors[field]],
-                    }))
-                );
-            } else if (responseData?.message) {
-                message.error(responseData.message);
-            } else if (error.errorFields) {
-                message.warning("Vui lòng điền đầy đủ các thông tin bắt buộc!");
-            } else {
-                message.error("Không thể kết nối đến máy chủ!");
-            }
-        }
-    };
-    const handleDelete = async (userId: number) => {
-        try {
-            await adminUserService.deleteUser(userId);
-            message.success("Đã xóa người dùng thành công!");
-            fetchUsers(currentPage, pageSize);
-        } catch (error) {
-            message.error("Xóa thất bại!");
-        }
-    };
-    const showBanModal = (record: UserType) => {
-        setBanningUser(record);
-        setIsBanModalOpen(true);
-    };
-    const handleBanSubmit = async () => {
-        try {
-            const values = await banForm.validateFields();
-
-            if (banningUser) {
-                const res = await adminUserService.banUser(banningUser.userId, {
-                    reason: values.reason,
-                    lockDurationHours: values.lockDurationHours
-                });
-                message.success(`Đã khóa tài khoản ${banningUser.fullName} thành công!`);
-                setIsBanModalOpen(false);
-                fetchUsers(currentPage, pageSize);
-            }
-        } catch (error: any) {
-            message.error(error.response?.data?.message || "Lỗi khi khóa tài khoản!");
-        }
-    };
-    const handleUnban = async (userId: number) => {
-        try {
-            await adminUserService.unBanUser(userId);
-            message.success("Đã mở khóa tài khoản thành công!");
-            fetchUsers(currentPage, pageSize);
-        } catch (error: any) {
-            message.error(error.response?.data?.message || "Mở khóa thất bại!");
-        }
-    };
+    const [searchTerm, setSearchTerm] = useState('');
+    const {
+        users, isLoading, currentPage, pageSize, totalUsers,
+        form, banForm, resetPasswordForm,
+        isModalOpen, setIsModalOpen, editingUser,
+        isBanModalOpen, setIsBanModalOpen, banningUser,
+        isResetPasswordModalOpen, setIsResetPasswordModalOpen, resettingUser,
+        isDetailModalOpen, setIsDetailModalOpen, userDetail, isFetchingDetail,
+        handleTableChange, showModal, handleFormSubmit, handleDelete,
+        showBanModal, handleBanSubmit, handleUnban,
+        showResetPasswordModal, handleResetPassword, handleRestoreUser, showDetailModal
+    } = useAdminUser();
     const columns = [
         { title: 'ID', dataIndex: 'userId', key: 'userId', width: 70 },
         {
@@ -223,43 +47,74 @@ export default function UserManage() {
         },
         {
             title: 'Hành động', key: 'action', width: 120,
-            render: (_: any, record: UserType) => (
-                <Space size="middle">
-                    <Tooltip title="Chỉnh sửa">
-                        <Button type="text" icon={<EditOutlined className="text-blue-500" />} onClick={() => showModal(record)} />
-                    </Tooltip>
-                    {record.isActive ? (
-                        <Tooltip title="Khóa tài khoản">
-                            <Button
-                                type="text"
-                                icon={<UnlockOutlined className="text-green-500" />}
-                                onClick={() => showBanModal(record)}
-                            />
+            render: (_: any, record: UserType) => {
+                // Sửa thành deletedAt vì BE trả về deletedAt chứ không phải isDeleted
+                const isDeleted = !!(record as any).deletedAt;
+
+                if (isDeleted) {
+                    return (
+                        <Space size="middle">
+                            <Tooltip title="Xem chi tiết">
+                                <Button type="text" icon={<EyeOutlined className="text-green-500" />} onClick={() => showDetailModal(record.userId)} />
+                            </Tooltip>
+                            <Popconfirm
+                                title="Khôi phục tài khoản"
+                                description="Bạn có chắc chắn muốn khôi phục tài khoản này không?"
+                                onConfirm={() => handleRestoreUser(record.userId)}
+                                okText="Khôi phục"
+                                cancelText="Hủy"
+                            >
+                                <Tooltip title="Khôi phục">
+                                    <Button type="text" icon={<UndoOutlined className="text-blue-500" />} />
+                                </Tooltip>
+                            </Popconfirm>
+                        </Space>
+                    );
+                }
+
+                return (
+                    <Space size="middle">
+                        <Tooltip title="Chỉnh sửa">
+                            <Button type="text" icon={<EditOutlined className="text-blue-500" />} onClick={() => showModal(record)} />
                         </Tooltip>
-                    ) : (
-                        <Tooltip title="Mở khóa tài khoản">
-                            <Button
-                                type="text"
-                                icon={<LockOutlined className="text-red-500" />}
-                                onClick={() => handleUnban(record.userId)}
-                            />
+                        {record.isActive ? (
+                            <Tooltip title="Khóa tài khoản">
+                                <Button
+                                    type="text"
+                                    icon={<UnlockOutlined className="text-green-500" />}
+                                    onClick={() => showBanModal(record)}
+                                />
+                            </Tooltip>
+                        ) : (
+                            <Tooltip title="Mở khóa tài khoản">
+                                <Button
+                                    type="text"
+                                    icon={<LockOutlined className="text-red-500" />}
+                                    onClick={() => handleUnban(record.userId)}
+                                />
+                            </Tooltip>
+                        )}
+                        <Tooltip title="Xem chi tiết">
+                            <Button type="text" icon={<EyeOutlined className="text-green-500" />} onClick={() => showDetailModal(record.userId)} />
                         </Tooltip>
-                    )}
-                    <Tooltip title="Xem chi tiết">
-                        <Button type="text" icon={<EyeOutlined className="text-green-500" />} onClick={() => showDetailModal(record.userId)} />
-                    </Tooltip>
-                    <Popconfirm
-                        title="Cảnh báo"
-                        description={`Bạn có chắc chắn muốn xóa ${record.fullName}?`}
-                        onConfirm={() => handleDelete(record.userId)}
-                        okText="Xóa" cancelText="Hủy" okButtonProps={{ danger: true }}
-                    >
-                        <Tooltip title="Xóa tài khoản">
-                            <Button type="text" danger icon={<DeleteOutlined />} />
+                        
+                        <Tooltip title="Reset mật khẩu">
+                            <Button type="text" danger icon={<ReloadOutlined />} onClick={() => showResetPasswordModal(record)} />
                         </Tooltip>
-                    </Popconfirm>
-                </Space>
-            ),
+
+                        <Popconfirm
+                            title="Cảnh báo"
+                            description={`Bạn có chắc chắn muốn xóa ${record.fullName}?`}
+                            onConfirm={() => handleDelete(record.userId)}
+                            okText="Xóa" cancelText="Hủy" okButtonProps={{ danger: true }}
+                        >
+                            <Tooltip title="Xóa tài khoản">
+                                <Button type="text" danger icon={<DeleteOutlined />} />
+                            </Tooltip>
+                        </Popconfirm>
+                    </Space>
+                );
+            },
         },
     ];
     return (
@@ -270,7 +125,13 @@ export default function UserManage() {
                     <p className="text-gray-500 text-sm">Danh sách khách hàng và quản trị viên hệ thống</p>
                 </div>
                 <div className="flex gap-4">
-                    <Input placeholder="Tìm theo tên, email..." prefix={<SearchOutlined />} className="w-64" allowClear />
+                    <Input 
+                        placeholder="Tìm theo tên, email (Trang HT)..." 
+                        prefix={<SearchOutlined />} 
+                        className="w-64" 
+                        allowClear 
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                     <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()} className="bg-blue-600">
                         Thêm Người Dùng
                     </Button>
@@ -278,7 +139,17 @@ export default function UserManage() {
             </div>
 
             <Table
-                columns={columns} dataSource={users} rowKey="userId" loading={isLoading}
+                columns={columns} 
+                dataSource={users.filter(u => {
+                    if (!searchTerm) return true;
+                    const kw = searchTerm.toLowerCase();
+                    return (
+                        (u.fullName && u.fullName.toLowerCase().includes(kw)) ||
+                        (u.email && u.email.toLowerCase().includes(kw)) ||
+                        (u.phone && u.phone.includes(kw))
+                    );
+                })} 
+                rowKey="userId" loading={isLoading}
                 onChange={handleTableChange}
                 pagination={{
                     current: currentPage, pageSize: pageSize, total: totalUsers,
@@ -378,6 +249,33 @@ export default function UserManage() {
                     </Form>
                 </Modal>
             )}
+
+            {/* ====== MODAL ĐẶT LẠI MẬT KHẨU ====== */}
+            {isResetPasswordModalOpen && (
+                <Modal
+                    title={<span>Đặt lại mật khẩu cho: <span className="text-blue-500">{resettingUser?.fullName}</span></span>}
+                    open={isResetPasswordModalOpen}
+                    onOk={handleResetPassword}
+                    onCancel={() => setIsResetPasswordModalOpen(false)}
+                    okText="Xác nhận"
+                    cancelText="Hủy"
+                >
+                    <Form form={resetPasswordForm} layout="vertical" className="mt-4">
+                        <Form.Item 
+                            name="newPassword" 
+                            label="Mật khẩu mới" 
+                            rules={[
+                                { required: true, message: 'Vui lòng nhập mật khẩu mới!' },
+                                { min: 8, message: 'Mật khẩu phải từ 8 ký tự trở lên!' },
+                                { pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/, message: 'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt!' }
+                            ]}
+                        >
+                            <Input.Password placeholder="Nhập mật khẩu mới..." />
+                        </Form.Item>
+                    </Form>
+                </Modal>
+            )}
+
             {/* ====== MODAL CHI TIẾT USER ====== */}
             <Modal
                 title={<span className="text-lg font-bold">Hồ sơ khách hàng</span>}

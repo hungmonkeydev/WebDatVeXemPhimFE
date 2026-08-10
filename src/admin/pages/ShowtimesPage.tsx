@@ -96,9 +96,12 @@ export default function ShowtimeManage() {
   }, [showtimes]);
 
 
+  const [filterDate, setFilterDate] = useState<string | null>(null);
+  const [filterMovieId, setFilterMovieId] = useState<number | null>(null);
+
   useEffect(() => {
-    fetchShowtimes(currentPage, pageSize);
-  }, [currentPage, pageSize, fetchShowtimes]);
+    fetchShowtimes(currentPage, pageSize, { date: filterDate, movieId: filterMovieId });
+  }, [currentPage, pageSize, fetchShowtimes, filterDate, filterMovieId]);
 
   const handleTableChange = (pagination: any) => {
     setCurrentPage(pagination.current);
@@ -148,7 +151,7 @@ export default function ShowtimeManage() {
       if (result.success) {
         message.success(result.message);
         setIsModalOpen(false);
-        fetchShowtimes(currentPage, pageSize);
+        fetchShowtimes(currentPage, pageSize, { date: filterDate, movieId: filterMovieId });
       } else {
         if (result.fieldErrors && typeof result.fieldErrors === 'object') {
           const formErrors = Object.keys(result.fieldErrors).map((field) => ({
@@ -171,7 +174,7 @@ export default function ShowtimeManage() {
     const result = await deleteShowtime(showtimeId);
     if (result.success) {
       message.success(result.message);
-      fetchShowtimes(currentPage, pageSize);
+      fetchShowtimes(currentPage, pageSize, { date: filterDate, movieId: filterMovieId });
     } else {
       message.error(result.message);
     }
@@ -339,7 +342,24 @@ export default function ShowtimeManage() {
             <Radio.Button value="weekly">Dạng Lịch</Radio.Button>
           </Radio.Group>
 
-          <Input placeholder="Tìm theo tên phim..." prefix={<SearchOutlined />} className="w-64" allowClear />
+          <DatePicker 
+            placeholder="Lọc theo ngày" 
+            format="DD/MM/YYYY" 
+            className="w-40"
+            onChange={(val) => setFilterDate(val ? val.format('YYYY-MM-DD') : null)} 
+          />
+          <Select
+            placeholder="Lọc theo phim"
+            allowClear
+            showSearch
+            popupMatchSelectWidth={false}
+            className="w-48"
+            options={movieOptions}
+            onChange={(val) => setFilterMovieId(val)}
+            filterOption={(input, option) =>
+              (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+            }
+          />
           <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()} className="bg-blue-600">
             Thêm Suất Chiếu
           </Button>

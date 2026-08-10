@@ -7,20 +7,51 @@ import {
     TagOutlined
 } from '@ant-design/icons';
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { useAdminDashboard } from '../../Hooks/useAdminDashboard';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+// Import cả 2 hook
+import { useAdminDashboard } from '../../Hooks/useAdminDashboard';
+import { useAdminRevenue } from '../../Hooks/useAdminRevenue';
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#f26b38'];
 
 const AdminDashboard = () => {
-    const { userStats, isLoading } = useAdminDashboard();
+    // 1. Gọi Hook lấy data User
+    const { userStats, isLoading: isUserLoading } = useAdminDashboard();
 
-    if (isLoading) {
-        return <div className="text-center mt-20"><Spin size="large" description="Đang tải dữ liệu..." /></div>;
+    // 2. Gọi Hook lấy data Revenue
+    const {
+        overviewData,
+        periodData,
+        movieData,
+        paymentData,
+        isLoading: isRevenueLoading
+    } = useAdminRevenue();
+
+    // 3. Xử lý loading chung
+    if (isUserLoading || isRevenueLoading) {
+        return <div className="flex justify-center items-center h-[70vh]"><Spin size="large" tip="Đang tổng hợp dữ liệu..." /></div>;
     }
 
+    // Hàm format tiền tệ
+    const formatVND = (value: number | string) => {
+        return new Intl.NumberFormat('vi-VN').format(Number(value || 0)) + ' VNĐ';
+    };
+
+    // 2. Hàm format Trục Biểu Đồ (Viết tắt K và Tr cho gọn)
+    const formatAxis = (val: number) => {
+        if (val >= 1000000) {
+            return `${(val / 1000000).toFixed(1).replace('.0', '')} Tr`;
+        }
+        if (val >= 1000) {
+            return `${(val / 1000).toFixed(0)} K`;
+        }
+        return val.toString();
+    };
+
+    // Chuẩn bị data cho biểu đồ tròn (User Roles)
     const roleData = userStats?.roleDistribution
         ? Object.keys(userStats.roleDistribution).map((key) => ({
             name: key,
@@ -30,36 +61,115 @@ const AdminDashboard = () => {
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
-            <h1 className="text-2xl font-bold mb-6">Bảng Điều Khiển (Dashboard)</h1>
+            <h1 className="text-2xl font-bold mb-6 text-gray-800">Bảng Điều Khiển (Dashboard)</h1>
 
-            {/* ================= KHU VỰC 1: THẺ THỐNG KÊ TỔNG QUAN ================= */}
+            {/* ================= KHU VỰC 1: THẺ THỐNG KÊ TỔNG QUAN (KPIs) ================= */}
             <Row gutter={[16, 16]}>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card className="shadow-sm border-l-4 border-l-blue-500 hover:shadow-md transition-all">
-                        <Statistic title="Doanh thu hôm nay (Chờ API)" value={0} suffix="VNĐ" valueStyle={{ color: '#3f8600', fontWeight: 'bold' }} prefix={<DollarCircleOutlined />} />
+                    <Card className="shadow-sm border-l-4 border-l-[#f26b38] hover:shadow-md transition-all rounded-xl">
+                        <Statistic
+                            title="Tổng Doanh Thu (30 ngày)"
+                            value={overviewData?.totalRevenue || 0}
+                            formatter={(val) => formatVND(val as number)}
+                            valueStyle={{ color: '#f26b38', fontWeight: 'bold' }}
+                            prefix={<DollarCircleOutlined />}
+                        />
+
+                        {/* NÓ NẰM Ở ĐÂY NÈ BA: Dưới Statistic và trên thẻ đóng /Card */}
+                        <div className="text-sm text-gray-500 mt-4 border-t pt-2">
+                            (Gồm {formatVND(overviewData?.ticketRevenue || 0)} vé + {formatVND(overviewData?.comboRevenue || 0)} bắp nước)
+                        </div>
+
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card className="shadow-sm border-l-4 border-l-orange-500 hover:shadow-md transition-all">
-                        <Statistic title="Vé đã bán hôm nay (Chờ API)" value={0} valueStyle={{ color: '#cf1322', fontWeight: 'bold' }} prefix={<TagOutlined />} />
+                    <Card className="shadow-sm border-l-4 border-l-blue-500 hover:shadow-md transition-all rounded-xl">
+                        <Statistic
+                            title="Tổng Vé Đã Bán"
+                            value={overviewData?.totalTicketsSold || 0}
+                            valueStyle={{ color: '#3b82f6', fontWeight: 'bold' }}
+                            prefix={<TagOutlined />}
+                        />
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card className="shadow-sm border-l-4 border-l-green-500 hover:shadow-md transition-all">
-                        <Statistic title="Tổng người dùng" value={userStats?.totalUsers || 0} prefix={<UserOutlined />} />
+                    <Card className="shadow-sm border-l-4 border-l-green-500 hover:shadow-md transition-all rounded-xl">
+                        <Statistic
+                            title="Tổng Người Dùng"
+                            value={userStats?.totalUsers || 0}
+                            valueStyle={{ color: '#22c55e', fontWeight: 'bold' }}
+                            prefix={<UserOutlined />}
+                        />
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card className="shadow-sm border-l-4 border-l-purple-500 hover:shadow-md transition-all">
-                        <Statistic title="Đăng ký mới hôm nay" value={userStats?.newUsersToday || 0} valueStyle={{ color: '#722ed1', fontWeight: 'bold' }} prefix={<UserAddOutlined />} />
+                    <Card className="shadow-sm border-l-4 border-l-purple-500 hover:shadow-md transition-all rounded-xl">
+                        <Statistic
+                            title="Đăng Ký Mới Hôm Nay"
+                            value={userStats?.newUsersToday || 0}
+                            valueStyle={{ color: '#a855f7', fontWeight: 'bold' }}
+                            prefix={<UserAddOutlined />}
+                        />
                     </Card>
                 </Col>
             </Row>
 
-            {/* ================= KHU VỰC 2: BIỂU ĐỒ ================= */}
+            {/* ================= KHU VỰC 2: BIỂU ĐỒ DOANH THU ================= */}
             <Row gutter={[16, 16]} className="mt-6">
                 <Col xs={24} lg={16}>
-                    <Card title="Lượng Đăng Ký Mới (30 ngày qua)" className="shadow-sm h-full min-h-[350px]">
+                    <Card title="Biểu Đồ Doanh Thu (30 ngày qua)" className="shadow-sm h-full min-h-[350px] rounded-xl">
+                        {periodData?.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={300}>
+                                <LineChart data={periodData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+
+                                    {/* BỎ formatAxis ở đây vì đây là trục ngày tháng (chữ) */}
+                                    <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+
+                                    {/* ĐƯA formatAxis vào trục Y (trục tiền) */}
+                                    <YAxis tickFormatter={formatAxis} width={70} />
+
+                                    <Tooltip formatter={(value) => formatVND(value as number)} />
+                                    <Line type="monotone" name="Doanh Thu" dataKey="totalRevenue" stroke="#f26b38" strokeWidth={3} activeDot={{ r: 8 }} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-gray-400">Chưa có dữ liệu doanh thu</div>
+                        )}
+                    </Card>
+                </Col>
+
+                <Col xs={24} lg={8}>
+                    <Card title="Top Phim Doanh Thu Cao Nhất" className="shadow-sm h-full min-h-[350px] rounded-xl">
+                        {movieData?.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={300}>
+                                {/* 1. Bỏ layout="vertical" để biểu đồ đứng thẳng */}
+                                <BarChart data={movieData} margin={{ top: 20, right: 5, left: 0, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+
+                                    {/* 2. Đổi XAxis thành tên phim */}
+                                    <XAxis dataKey="title" tick={{ fontSize: 11 }} interval={0} angle={-30} textAnchor="end" height={60} />
+
+                                    {/* 3. Đổi YAxis thành trục tiền và đưa formatAxis vào */}
+                                    <YAxis tickFormatter={formatAxis} width={70} />
+
+                                    <Tooltip formatter={(value) => formatVND(value as number)} />
+
+                                    {/* 4. Đổi radius bo góc lên đầu cột: [TopLeft, TopRight, BottomRight, BottomLeft] */}
+                                    <Bar name="Doanh Thu" dataKey="ticketRevenue" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={30} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-gray-400">Chưa có dữ liệu phim</div>
+                        )}
+                    </Card>
+                </Col>
+            </Row>
+
+            {/* ================= KHU VỰC 3: BIỂU ĐỒ NGƯỜI DÙNG ================= */}
+            <Row gutter={[16, 16]} className="mt-6">
+                <Col xs={24} lg={16}>
+                    <Card title="Lượng Đăng Ký Mới (30 ngày qua)" className="shadow-sm h-full min-h-[350px] rounded-xl">
                         {userStats?.dailyRegistrations?.length > 0 ? (
                             <ResponsiveContainer width="100%" height={300}>
                                 <LineChart data={userStats.dailyRegistrations} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
@@ -67,17 +177,17 @@ const AdminDashboard = () => {
                                     <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                                     <YAxis allowDecimals={false} />
                                     <Tooltip />
-                                    <Line type="monotone" dataKey="count" name="Người dùng mới" stroke="#8884d8" strokeWidth={3} activeDot={{ r: 8 }} />
+                                    <Line type="monotone" dataKey="count" name="Người dùng mới" stroke="#10b981" strokeWidth={3} activeDot={{ r: 8 }} />
                                 </LineChart>
                             </ResponsiveContainer>
                         ) : (
-                            <div className="flex items-center justify-center h-full text-gray-400">Chưa có dữ liệu 30 ngày qua</div>
+                            <div className="flex items-center justify-center h-full text-gray-400">Chưa có dữ liệu đăng ký</div>
                         )}
                     </Card>
                 </Col>
 
                 <Col xs={24} lg={8}>
-                    <Card title="Cơ cấu Người Dùng" className="shadow-sm h-full min-h-[350px]">
+                    <Card title="Cơ cấu Người Dùng" className="shadow-sm h-full min-h-[350px] rounded-xl">
                         <div className="h-48 mb-4">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -114,7 +224,6 @@ const AdminDashboard = () => {
                         </div>
                     </Card>
                 </Col>
-
             </Row>
         </div>
     );

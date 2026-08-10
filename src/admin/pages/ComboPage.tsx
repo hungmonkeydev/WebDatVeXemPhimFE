@@ -24,8 +24,8 @@ export default function ComboManage() {
 
     // Load data
     useEffect(() => {
-        fetchCombos(currentPage, pageSize, searchText);
-    }, [currentPage, pageSize, searchText, fetchCombos]);
+        fetchCombos(currentPage, pageSize);
+    }, [currentPage, pageSize, fetchCombos]);
 
     const handleTableChange = (pagination: any) => {
         setCurrentPage(pagination.current);
@@ -157,12 +157,11 @@ export default function ComboManage() {
                 </div>
                 <div className="flex gap-4">
                     <Input
-                        placeholder="Tìm theo tên combo..."
+                        placeholder="Tìm theo tên combo (Trang HT)..."
                         prefix={<SearchOutlined />}
                         className="w-64"
                         allowClear
                         onChange={(e) => setSearchText(e.target.value)}
-                        onPressEnter={(e: any) => setSearchText(e.target.value)}
                     />
                     <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()} className="bg-blue-600">
                         Thêm Combo
@@ -171,7 +170,16 @@ export default function ComboManage() {
             </div>
 
             <Table
-                columns={columns} dataSource={combos} rowKey="id" loading={isLoading}
+                columns={columns} 
+                dataSource={combos.filter((c: any) => {
+                    if (!searchText) return true;
+                    const kw = searchText.toLowerCase();
+                    return (
+                        (c.name && c.name.toLowerCase().includes(kw)) ||
+                        (c.description && c.description.toLowerCase().includes(kw))
+                    );
+                })} 
+                rowKey="id" loading={isLoading}
                 onChange={handleTableChange}
                 pagination={{
                     current: currentPage, pageSize: pageSize, total: totalCombos,

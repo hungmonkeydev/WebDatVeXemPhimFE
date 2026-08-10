@@ -120,7 +120,9 @@ export default function PaymentPage() {
                     })),
                     fullName: guestInfo.fullName,
                     email: guestInfo.email,
-                    phoneNumber: guestInfo.phone
+                    phoneNumber: guestInfo.phone,
+                    promoCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null,
+                    promotionCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null
                 };
 
                 console.log("Đang tạo vé cho Guest...", guestPayload);
@@ -143,7 +145,11 @@ export default function PaymentPage() {
                     loyaltyPointsToUse: usedPoints > 0 ? usedPoints : 0,
                     ticketVoucherId: isVoucherApplied && selectedVoucher?.voucherType === 'TICKET_DISCOUNT' ? selectedVoucher.voucherId : null,
                     comboVoucherId: isVoucherApplied && selectedVoucher?.voucherType === 'COMBO_DISCOUNT' ? selectedVoucher.voucherId : null,
+                    promoCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null,
+                    promotionCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null
                 };
+                
+                console.log("Đang tạo vé cho User...", userPayload);
                 const userRes = await bookingService.createBooking(userPayload);
                 actualBookingId = userRes.data?.bookingId || userRes.data?.id || userRes.data?.data?.bookingId;
                 if (!actualBookingId) {

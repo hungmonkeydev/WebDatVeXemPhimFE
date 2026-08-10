@@ -10,10 +10,15 @@ export const useAdminMovies = () => {
     const [actors, setActors] = useState<any[]>([]);
     const [directors, setDirectors] = useState<any[]>([]);
     const [genres, setGenres] = useState<any[]>([]);
-    const fetchMovies = useCallback(async (page: number, size: number) => {
+    const fetchMovies = useCallback(async (page: number, size: number, filters?: any) => {
         setIsLoading(true);
         try {
-            const res = await adminMovieService.getAll({ page: page - 1, size });
+            const params: any = { page: page - 1, size };
+            if (filters?.keyword) params.keyword = filters.keyword;
+            if (filters?.genreIds && filters.genreIds.length > 0) params.genreIds = filters.genreIds.join(',');
+            if (filters?.ageRating) params.ageRating = filters.ageRating;
+
+            const res = await adminMovieService.getAll(params);
             if (res && res.data) {
                 setMovies(res.data.content || res.data);
                 setTotalMovies(res.data.totalElements || res.data.length || 0);
@@ -73,6 +78,21 @@ export const useAdminMovies = () => {
             setIsLoading(false);
         }
     };
+
+    const restoreMovie = async (id: number) => {
+        setIsLoading(true);
+        try {
+            await adminMovieService.restore(id);
+            return { success: true, message: "Đã khôi phục phim thành công!" };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error.response?.data?.message || "Khôi phục thất bại!"
+            };
+        } finally {
+            setIsLoading(false);
+        }
+    };
     const fetchCastAndCrew = useCallback(async () => {
         try {
             const actorRes = await actorDirectorService.getActors('', 0, 100);
@@ -93,6 +113,6 @@ export const useAdminMovies = () => {
 
     return {
         movies, totalMovies, isLoading, actors, directors, genres,
-        fetchMovies, createMovie, updateMovie, deleteMovie, fetchCastAndCrew
+        fetchMovies, createMovie, updateMovie, deleteMovie, restoreMovie, fetchCastAndCrew
     };
 };

@@ -66,7 +66,8 @@ const AdminLayout: React.FC = () => {
         { key: '/admin/orders', icon: <ShoppingCartOutlined />, label: 'Quản lý Đơn hàng' },
         { key: '/admin/users', icon: <TeamOutlined />, label: 'Quản lý Người dùng' },
         { key: '/admin/combos', icon: <CoffeeOutlined />, label: 'Quản lý Bắp nước' },
-        { key: '/admin/vouchers', icon: <TagOutlined />, label: 'Quản lý Khuyến mãi' },
+        { key: '/admin/promotions', icon: <TagOutlined />, label: 'Quản lý Khuyến mãi' },
+        { key: '/admin/vouchers', icon: <TagOutlined />, label: 'Quản lý Voucher' },
     ];
 
     const userDropdownItems: MenuProps['items'] = [

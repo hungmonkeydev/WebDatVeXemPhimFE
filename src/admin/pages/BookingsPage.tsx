@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import {
   Table, Button, Space, Input, Select, Modal, Popconfirm,
-  message, Tooltip, Tag
+  message, Tooltip, Tag, DatePicker
 } from 'antd';
 import { SearchOutlined, EyeOutlined, SyncOutlined, StopOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useAdminBookings } from '../../Hooks/useAdminBooking';
 
 const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 export default function BookingsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [bookingCode, setBookingCode] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [customerKeyword, setCustomerKeyword] = useState('');
+  const [fromDate, setFromDate] = useState<string | null>(null);
+  const [toDate, setToDate] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [detailBooking, setDetailBooking] = useState<any | null>(null);
   const showDetailModal = (record: any) => {
@@ -35,9 +39,11 @@ export default function BookingsPage() {
   useEffect(() => {
     fetchBookings(currentPage, pageSize, {
       bookingCode: bookingCode || undefined,
-      status: statusFilter || undefined
+      status: statusFilter || undefined,
+      fromDate: fromDate || undefined,
+      toDate: toDate || undefined
     });
-  }, [currentPage, pageSize, bookingCode, statusFilter, fetchBookings]);
+  }, [currentPage, pageSize, bookingCode, statusFilter, fromDate, toDate, fetchBookings]);
 
   const handleTableChange = (pagination: any) => {
     setCurrentPage(pagination.current);
@@ -176,6 +182,27 @@ export default function BookingsPage() {
             onPressEnter={(e: any) => setBookingCode(e.target.value)}
             onChange={(e) => { if (!e.target.value) setBookingCode('') }}
           />
+          <Input
+            placeholder="Tìm tên, email (Trang HT)"
+            prefix={<SearchOutlined />}
+            className="w-56"
+            allowClear
+            onChange={(e) => setCustomerKeyword(e.target.value)}
+          />
+          <RangePicker
+            className="w-64"
+            format="DD/MM/YYYY"
+            placeholder={['Từ ngày', 'Đến ngày']}
+            onChange={(dates) => {
+              if (dates && dates.length === 2) {
+                setFromDate(dates[0] ? dates[0].format('YYYY-MM-DD') : null);
+                setToDate(dates[1] ? dates[1].format('YYYY-MM-DD') : null);
+              } else {
+                setFromDate(null);
+                setToDate(null);
+              }
+            }}
+          />
           <Select
             placeholder="Lọc trạng thái"
             style={{ width: 150 }}
@@ -190,7 +217,16 @@ export default function BookingsPage() {
       </div>
 
       <Table
-        columns={columns} dataSource={bookings} rowKey="bookingId" loading={isLoading}
+        columns={columns} 
+        dataSource={bookings.filter((b: any) => {
+          if (!customerKeyword) return true;
+          const kw = customerKeyword.toLowerCase();
+          return (
+            (b.customerName && b.customerName.toLowerCase().includes(kw)) ||
+            (b.customerEmail && b.customerEmail.toLowerCase().includes(kw))
+          );
+        })} 
+        rowKey="bookingId" loading={isLoading}
         onChange={handleTableChange}
         pagination={{
           current: currentPage, pageSize: pageSize, total: totalBookings,

@@ -24,5 +24,10 @@ export const adminMovieService = {
   delete: async (id: number | string) => {
     const response = await api.delete(`/admin/movies/${id}`);
     return response.data;
+  },
+
+  restore: async (id: number | string) => {
+    const response = await api.patch(`/admin/movies/${id}/restore`);
+    return response.data;
   }
 };

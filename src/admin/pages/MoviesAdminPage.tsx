@@ -3,7 +3,7 @@ import {
   Table, Button, Space, Tag, Input, Form, Modal, Popconfirm,
   message, Tooltip, DatePicker, InputNumber, Select
 } from 'antd';
-import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined, UndoOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useAdminMovies } from '../../Hooks/useAdminMovie';
 export default function MovieManage() {
@@ -12,19 +12,28 @@ export default function MovieManage() {
 
   const {
     movies, totalMovies, isLoading,
-    fetchMovies, createMovie, updateMovie, deleteMovie, fetchCastAndCrew, actors, directors, genres
+    fetchMovies, createMovie, updateMovie, deleteMovie, fetchCastAndCrew, actors, directors, genres, restoreMovie
   } = useAdminMovies();
 
   // State Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState<any | null>(null);
   const [form] = Form.useForm();
+  
+  // State Restore Modal
+  const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
+  const [restoreId, setRestoreId] = useState<number | null>(null);
+
+  // Search Filters
+  const [keyword, setKeyword] = useState('');
+  const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
+  const [selectedAgeRating, setSelectedAgeRating] = useState<string | null>(null);
 
   // Load data
   useEffect(() => {
-    fetchMovies(currentPage, pageSize);
+    fetchMovies(currentPage, pageSize, { keyword, genreIds: selectedGenreIds, ageRating: selectedAgeRating });
     fetchCastAndCrew();
-  }, [currentPage, pageSize, fetchMovies, fetchCastAndCrew]);
+  }, [currentPage, pageSize, fetchMovies, fetchCastAndCrew, keyword, selectedGenreIds, selectedAgeRating]);
 
 
   const handleTableChange = (pagination: any) => {
@@ -71,7 +80,7 @@ export default function MovieManage() {
       if (result.success) {
         message.success(result.message);
         setIsModalOpen(false);
-        fetchMovies(currentPage, pageSize);
+        fetchMovies(currentPage, pageSize, { keyword, genreIds: selectedGenreIds, ageRating: selectedAgeRating });
       } else {
         if (result.fieldErrors && typeof result.fieldErrors === 'object') {
           const formErrors = Object.keys(result.fieldErrors).map((field) => ({
@@ -93,7 +102,17 @@ export default function MovieManage() {
     const result = await deleteMovie(movieId);
     if (result.success) {
       message.success(result.message);
-      fetchMovies(currentPage, pageSize);
+      fetchMovies(currentPage, pageSize, { keyword, genreIds: selectedGenreIds, ageRating: selectedAgeRating });
+    } else {
+      message.error(result.message);
+    }
+  };
+
+  const handleRestore = async (movieId: number) => {
+    const result = await restoreMovie(movieId);
+    if (result.success) {
+      message.success(result.message);
+      fetchMovies(currentPage, pageSize, { keyword, genreIds: selectedGenreIds, ageRating: selectedAgeRating });
     } else {
       message.error(result.message);
     }
@@ -115,7 +134,31 @@ export default function MovieManage() {
         if (!directors || directors.length === 0) return <span className="text-gray-400">Chưa có</span>;
         return directors.map(d => d.name).join(', ');
       }
-    }, {
+    },
+    {
+      title: 'Thể loại',
+      dataIndex: 'genres',
+      key: 'genres',
+      render: (genres: any[]) => {
+        if (!genres || genres.length === 0) return <span className="text-gray-400">Chưa có</span>;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {genres.map(g => <Tag color="blue" key={g.genreId || g.id}>{g.name}</Tag>)}
+          </div>
+        );
+      }
+    },
+    {
+      title: 'Độ tuổi',
+      dataIndex: 'ageRating',
+      key: 'ageRating',
+      width: 90,
+      render: (rating: string) => {
+        if (!rating) return <span className="text-gray-400">N/A</span>;
+        return <Tag color={rating === 'P' ? 'green' : rating === 'C13' ? 'orange' : 'red'}>{rating}</Tag>;
+      }
+    },
+    {
       title: 'Thời lượng',
       dataIndex: 'duration',
       key: 'duration',
@@ -157,7 +200,40 @@ export default function MovieManage() {
           <p className="text-gray-500 text-sm">Thêm, sửa, xóa danh sách phim trên hệ thống</p>
         </div>
         <div className="flex gap-4">
-          <Input placeholder="Tìm theo tên phim..." prefix={<SearchOutlined />} className="w-64" allowClear />
+          <Input.Search 
+            placeholder="Tìm tên phim..." 
+            className="w-48" 
+            allowClear 
+            onSearch={(val) => setKeyword(val)}
+          />
+          <Select 
+            mode="multiple" 
+            allowClear 
+            placeholder="Lọc thể loại" 
+            className="w-48"
+            popupMatchSelectWidth={false}
+            value={selectedGenreIds}
+            onChange={(val) => setSelectedGenreIds(val)}
+            options={(genres || []).map((g: any) => ({ value: g.genreId || g.id, label: g.name }))}
+            maxTagCount="responsive"
+          />
+          <Select 
+            allowClear 
+            placeholder="Độ tuổi" 
+            className="w-32"
+            popupMatchSelectWidth={false}
+            value={selectedAgeRating}
+            onChange={(val) => setSelectedAgeRating(val)}
+            options={[
+              { value: 'P', label: 'Phim mọi lứa tuổi' },
+              { value: 'C13', label: 'Phim từ 13+' },
+              { value: 'C16', label: 'Phim từ 16+' },
+              { value: 'C18', label: 'Phim từ 18+' },
+            ]}
+          />
+          <Button icon={<UndoOutlined />} onClick={() => setIsRestoreModalOpen(true)} className="border-green-500 text-green-500 hover:text-green-600 hover:border-green-600">
+            Khôi Phục Bằng ID
+          </Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()} className="bg-blue-600">
             Thêm Phim Mới
           </Button>
@@ -295,6 +371,38 @@ export default function MovieManage() {
             <Input.TextArea rows={4} placeholder="Tóm tắt nội dung phim..." />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="Khôi phục phim bằng ID"
+        open={isRestoreModalOpen}
+        onOk={async () => {
+          if (!restoreId) {
+            message.warning("Vui lòng nhập ID phim cần khôi phục!");
+            return;
+          }
+          await handleRestore(restoreId);
+          setIsRestoreModalOpen(false);
+          setRestoreId(null);
+        }}
+        onCancel={() => {
+          setIsRestoreModalOpen(false);
+          setRestoreId(null);
+        }}
+        okText="Khôi phục"
+        cancelText="Hủy bỏ"
+        okButtonProps={{ className: 'bg-green-500 hover:bg-green-600 border-none' }}
+        destroyOnClose
+      >
+        <p className="mb-2 text-gray-600">Nhập ID của bộ phim đã xóa để khôi phục lại lên hệ thống:</p>
+        <InputNumber 
+          className="w-full mt-2" 
+          placeholder="Ví dụ: 1" 
+          value={restoreId}
+          onChange={(val) => setRestoreId(val as number)}
+          min={1}
+          autoFocus
+        />
       </Modal>
     </div>
   );

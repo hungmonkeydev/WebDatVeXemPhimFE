@@ -7,6 +7,7 @@ import MoviesAdminPage from '../admin/pages/MoviesAdminPage';
 import ComboPage from '../admin/pages/ComboPage';
 import BookingsPage from '../admin/pages/BookingsPage';
 import VoucherManage from '../admin/pages/VoucherPage';
+import PromotionManage from '../admin/pages/PromotionPage';
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
@@ -41,6 +42,7 @@ export default function AdminRoutes() {
         <Route path='orders' element={<BookingsPage />} />
         {/* <Route path="booking" element={<BookingsPage />} /> */}
         <Route path='vouchers' element={<VoucherManage />} />
+        <Route path='promotions' element={<PromotionManage />} />
       </Route>
     </Routes>
   );
