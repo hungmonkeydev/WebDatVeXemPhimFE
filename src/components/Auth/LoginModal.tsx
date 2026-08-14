@@ -41,7 +41,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister, onSucc
       onClose();
       onSuccess?.();
     } else {
-      setToast({ isOpen: true, message: 'Email hoặc mật khẩu không đúng!', type: 'error' });
+      setToast({ isOpen: true, message: result.message || 'Đăng nhập thất bại!', type: 'error' });
     }
   };
 

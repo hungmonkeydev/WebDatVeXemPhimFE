@@ -10,6 +10,7 @@ import ProfilePage from '../pages/MyProfile/ProfilePage';
 import BookingLayout from '../components/Layout/BookingLayout';
 import PaymentPage from '../pages/PaymentPage';
 import BookingSuccessPage from '../pages/BookingSuccessPage';
+import PaymentFailedPage from '../pages/PaymentFailedPage';
 import MoviesPage from '../pages/MoviesPage';
 import AdminRoutes from './AdminRoutes';
 import LoyaltyStore from '../pages/LoyaltyStore';
@@ -47,6 +48,7 @@ export default function AppRoutes() {
                     <Route path="/dat-ve/:id/thanh-toan" element={<PaymentPage />} />
                     <Route path="/dat-ve/:id/thanh-cong" element={<BookingSuccessPage />} />
                     <Route path="/booking/payment-success" element={<BookingSuccessPage />} />
+                    <Route path="/booking/payment-failed" element={<PaymentFailedPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/loyalty-store" element={<LoyaltyStore />} />
                     <Route path="/verify-email" element={<VerifyEmailSuccessPage />} />

@@ -21,6 +21,15 @@ interface ShowtimeType {
   basePrice: number;
 }
 
+const getShowtimeStatus = (record: any) => {
+  if (!record.isActive) return 'DISABLED';
+  const now = dayjs();
+  const startTime = dayjs(record.startTime);
+  if (startTime.isBefore(now)) return 'PAST';
+  if (startTime.diff(now, 'day') <= 1) return 'UPCOMING';
+  return 'OPEN';
+};
+
 export default function ShowtimeManage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -98,10 +107,17 @@ export default function ShowtimeManage() {
 
   const [filterDate, setFilterDate] = useState<string | null>(null);
   const [filterMovieId, setFilterMovieId] = useState<number | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string | null>(null); // State mới cho bộ lọc trạng thái
 
   useEffect(() => {
     fetchShowtimes(currentPage, pageSize, { date: filterDate, movieId: filterMovieId });
   }, [currentPage, pageSize, fetchShowtimes, filterDate, filterMovieId]);
+
+  // Client-side filtering cho Trạng thái
+  const filteredShowtimes = showtimes.filter((item: any) => {
+    if (!filterStatus) return true;
+    return getShowtimeStatus(item) === filterStatus;
+  });
 
   const handleTableChange = (pagination: any) => {
     setCurrentPage(pagination.current);
@@ -119,12 +135,12 @@ export default function ShowtimeManage() {
         roomId: record.room?.roomId,
         startTime: record.startTime ? dayjs(record.startTime) : null,
         endTime: record.endTime ? dayjs(record.endTime) : null,
-        isActive: record.isActive
+        status: getShowtimeStatus(record)
       });
     } else {
       setEditingShowtime(null);
       form.resetFields();
-      form.setFieldsValue({ isActive: true });
+      form.setFieldsValue({ status: 'OPEN' });
     }
     setIsModalOpen(true);
   };
@@ -138,7 +154,7 @@ export default function ShowtimeManage() {
         basePrice: values.basePrice,
         startTime: values.startTime ? values.startTime.format('YYYY-MM-DD HH:mm:ss') : null,
         endTime: values.endTime ? values.endTime.format('YYYY-MM-DD HH:mm:ss') : null,
-        isActive: values.isActive ?? true,
+        isActive: values.status !== 'DISABLED',
       };
 
       let result;
@@ -219,39 +235,45 @@ export default function ShowtimeManage() {
     },
     {
       title: 'Trạng thái', dataIndex: 'isActive', key: 'isActive',
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'success' : 'error'} className="font-bold">
-          {isActive ? 'ĐANG MỞ' : 'VÔ HIỆU HÓA'}
-        </Tag>
-      ),
+      render: (_: any, record: any) => {
+        const status = getShowtimeStatus(record);
+        if (status === 'DISABLED') return <Tag color="error" className="font-bold">VÔ HIỆU HÓA</Tag>;
+        if (status === 'PAST') return <Tag color="default" className="font-bold">ĐÃ CHIẾU</Tag>;
+        if (status === 'UPCOMING') return <Tag color="warning" className="font-bold">SẮP CHIẾU</Tag>;
+        return <Tag color="success" className="font-bold">ĐANG MỞ</Tag>;
+      },
     },
     {
       title: 'Hành động', key: 'action', width: 120,
-      render: (_: any, record: any) => (
-        <Space size="middle">
-          <Tooltip title="Chỉnh sửa">
-            <Button type="text" icon={<EditOutlined className="text-blue-500" />} onClick={() => showModal(record)} />
-          </Tooltip>
-
-          <Popconfirm
-            title="Cảnh báo"
-            description={`Bạn có chắc chắn muốn xóa suất chiếu này?`}
-            onConfirm={() => handleDelete(record.showtimeId)}
-            okText="Xóa" cancelText="Hủy" okButtonProps={{ danger: true }}
-          >
-            <Tooltip title="Xóa suất chiếu">
-              <Button type="text" danger icon={<DeleteOutlined />} />
+      render: (_: any, record: any) => {
+        const isPast = dayjs().isAfter(dayjs(record.startTime));
+        return (
+          <Space size="middle">
+            <Tooltip title={isPast ? "Không thể sửa suất chiếu trong quá khứ" : "Chỉnh sửa"}>
+              <Button type="text" icon={<EditOutlined className={isPast ? "text-gray-400" : "text-blue-500"} />} onClick={() => showModal(record)} disabled={isPast} />
             </Tooltip>
-          </Popconfirm>
-        </Space>
-      ),
+
+            <Popconfirm
+              title="Cảnh báo"
+              description={`Bạn có chắc chắn muốn xóa suất chiếu này?`}
+              onConfirm={() => handleDelete(record.showtimeId)}
+              okText="Xóa" cancelText="Hủy" okButtonProps={{ danger: true }}
+              disabled={isPast}
+            >
+              <Tooltip title={isPast ? "Không thể xóa suất chiếu trong quá khứ" : "Xóa suất chiếu"}>
+                <Button type="text" danger icon={<DeleteOutlined />} disabled={isPast} />
+              </Tooltip>
+            </Popconfirm>
+          </Space>
+        );
+      },
     },
   ];
 
   // ==========================================
   // XỬ LÝ NHÓM DỮ LIỆU VÀ VẼ LỊCH CỘT
   // ==========================================
-  const groupedShowtimes = showtimes.reduce((group: any, showtime: any) => {
+  const groupedShowtimes = filteredShowtimes.reduce((group: any, showtime: any) => {
     if (!showtime.startTime) return group;
     const dateKey = dayjs(showtime.startTime).format('YYYY-MM-DD');
     if (!group[dateKey]) {
@@ -300,18 +322,35 @@ export default function ShowtimeManage() {
                     {item.cinema?.name} - {item.room?.roomName}
                   </p>
 
-                  {!item.isActive && <span className="text-[10px] text-red-500 font-bold mt-1 block">VÔ HIỆU HÓA</span>}
+                  {/* Trạng thái trong lịch */}
+                  {!item.isActive ? (
+                    <span className="text-[10px] text-red-500 font-bold mt-1 block">VÔ HIỆU HÓA</span>
+                  ) : dayjs(item.startTime).isBefore(dayjs()) ? (
+                    <span className="text-[10px] text-gray-500 font-bold mt-1 block">ĐÃ CHIẾU</span>
+                  ) : dayjs(item.startTime).diff(dayjs(), 'day') <= 1 ? (
+                    <span className="text-[10px] text-orange-500 font-bold mt-1 block">SẮP CHIẾU</span>
+                  ) : (
+                    <span className="text-[10px] text-green-500 font-bold mt-1 block">ĐANG MỞ</span>
+                  )}
 
                   {/* NÚT CRUD - Chỉ hiện khi hover */}
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 bg-white/90 px-1 rounded shadow-sm">
-                    <Tooltip title="Sửa">
-                      <EditOutlined className="text-blue-500 cursor-pointer text-lg hover:scale-110" onClick={() => showModal(item)} />
-                    </Tooltip>
-                    <Popconfirm title="Xóa suất chiếu này?" onConfirm={() => handleDelete(item.showtimeId)} okButtonProps={{ danger: true }}>
-                      <Tooltip title="Xóa">
-                        <DeleteOutlined className="text-red-500 cursor-pointer text-lg hover:scale-110" />
+                    {!dayjs(item.startTime).isBefore(dayjs()) ? (
+                      <>
+                        <Tooltip title="Sửa">
+                          <EditOutlined className="text-blue-500 cursor-pointer text-lg hover:scale-110" onClick={() => showModal(item)} />
+                        </Tooltip>
+                        <Popconfirm title="Xóa suất chiếu này?" onConfirm={() => handleDelete(item.showtimeId)} okButtonProps={{ danger: true }}>
+                          <Tooltip title="Xóa">
+                            <DeleteOutlined className="text-red-500 cursor-pointer text-lg hover:scale-110" />
+                          </Tooltip>
+                        </Popconfirm>
+                      </>
+                    ) : (
+                      <Tooltip title="Đã chiếu, không thể sửa xóa">
+                        <EditOutlined className="text-gray-300 cursor-not-allowed text-lg" />
                       </Tooltip>
-                    </Popconfirm>
+                    )}
                   </div>
                 </div>
               ))}
@@ -360,6 +399,18 @@ export default function ShowtimeManage() {
               (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
             }
           />
+          <Select
+            placeholder="Trạng thái"
+            allowClear
+            className="w-32"
+            onChange={(val) => setFilterStatus(val)}
+            options={[
+              { value: 'OPEN', label: 'Đang mở' },
+              { value: 'UPCOMING', label: 'Sắp chiếu' },
+              { value: 'PAST', label: 'Đã chiếu' },
+              { value: 'DISABLED', label: 'Vô hiệu hóa' },
+            ]}
+          />
           <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()} className="bg-blue-600">
             Thêm Suất Chiếu
           </Button>
@@ -369,10 +420,10 @@ export default function ShowtimeManage() {
       {/* RENDER DỰA THEO CHẾ ĐỘ XEM */}
       {viewMode === 'table' ? (
         <Table
-          columns={columns} dataSource={showtimes} rowKey="showtimeId" loading={isLoading}
+          columns={columns} dataSource={filteredShowtimes} rowKey="showtimeId" loading={isLoading}
           onChange={handleTableChange}
           pagination={{
-            current: currentPage, pageSize: pageSize, total: totalShowtimes,
+            current: currentPage, pageSize: pageSize, total: filteredShowtimes.length,
             showSizeChanger: true, showTotal: (total) => `Tổng ${total} suất chiếu`,
           }}
           bordered
@@ -385,7 +436,7 @@ export default function ShowtimeManage() {
           <div className="mt-4 flex justify-end">
             <Table
               pagination={{
-                current: currentPage, pageSize: pageSize, total: totalShowtimes,
+                current: currentPage, pageSize: pageSize, total: filteredShowtimes.length,
                 showSizeChanger: true, showTotal: (total) => `Tổng ${total} suất chiếu`,
                 onChange: (page, size) => handleTableChange({ current: page, pageSize: size })
               }}
@@ -438,13 +489,18 @@ export default function ShowtimeManage() {
               <DatePicker showTime format="YYYY-MM-DD HH:mm" className="w-full" placeholder="Chọn ngày giờ" />
             </Form.Item>
 
-            <Form.Item name="endTime" label="Giờ kết thúc" rules={[{ required: true, message: 'Vui lòng chọn giờ kết thúc!' }]}>
-              <DatePicker showTime format="YYYY-MM-DD HH:mm" className="w-full" placeholder="Chọn ngày giờ" />
+            <Form.Item name="endTime" label="Giờ kết thúc">
+              <DatePicker showTime format="YYYY-MM-DD HH:mm" className="w-full" placeholder="Để trống sẽ tự tính (Phim + 15p)" />
             </Form.Item>
           </div>
 
-          <Form.Item name="isActive" label="Trạng thái" rules={[{ required: true }]}>
-            <Select options={[{ value: true, label: 'Đang mở bán' }, { value: false, label: 'Vô hiệu hóa' }]} />
+          <Form.Item name="status" label="Trạng thái" rules={[{ required: true }]}>
+            <Select options={[
+              { value: 'OPEN', label: 'Đang mở' },
+              { value: 'UPCOMING', label: 'Sắp chiếu' },
+              { value: 'PAST', label: 'Đã chiếu' },
+              { value: 'DISABLED', label: 'Vô hiệu hóa' }
+            ]} />
           </Form.Item>
         </Form>
       </Modal>

@@ -40,15 +40,10 @@ const AdminDashboard = () => {
         return new Intl.NumberFormat('vi-VN').format(Number(value || 0)) + ' VNĐ';
     };
 
-    // 2. Hàm format Trục Biểu Đồ (Viết tắt K và Tr cho gọn)
+    // 2. Hàm format Trục Biểu Đồ (Hiển thị đầy đủ VNĐ)
     const formatAxis = (val: number) => {
-        if (val >= 1000000) {
-            return `${(val / 1000000).toFixed(1).replace('.0', '')} Tr`;
-        }
-        if (val >= 1000) {
-            return `${(val / 1000).toFixed(0)} K`;
-        }
-        return val.toString();
+        if (val === 0) return '0 VNĐ';
+        return new Intl.NumberFormat('vi-VN').format(val) + ' VNĐ';
     };
 
     // Chuẩn bị data cho biểu đồ tròn (User Roles)
@@ -58,6 +53,47 @@ const AdminDashboard = () => {
             value: userStats.roleDistribution[key]
         }))
         : [];
+
+    // Hàm tính toán các mốc (ticks) tự động dựa trên độ lớn của data
+    const getCustomTicks = (data: any[], dataKey: string) => {
+        let maxVal = 0;
+        if (data && data.length > 0) {
+            data.forEach(item => {
+                if (item[dataKey] && item[dataKey] > maxVal) maxVal = item[dataKey];
+            });
+        }
+
+        // Nếu chưa có doanh thu, giả lập thang đo 1 triệu VNĐ cho biểu đồ có khung đẹp
+        if (maxVal === 0) maxVal = 1000000;
+
+        let step = 200000; // Bước nhảy thấp nhất là 200.000 VNĐ
+
+        // Thuật toán tự động tìm bước nhảy: 200k -> 500k -> 1tr -> 2tr -> 5tr -> 10tr -> vô hạn...
+        // Tăng dần bước nhảy cho đến khi số lượng vạch (maxVal / step) nhỏ hơn 6 vạch (để biểu đồ thoáng)
+        while (maxVal / step > 6) {
+            const firstDigit = parseInt(step.toString().charAt(0));
+            if (firstDigit === 2) {
+                step = (step / 2) * 5; // 2 -> 5 (Vd: 200k -> 500k)
+            } else if (firstDigit === 5) {
+                step = (step / 5) * 10; // 5 -> 10 (Vd: 500k -> 1tr)
+            } else {
+                step = step * 2; // 1 -> 2 (Vd: 1tr -> 2tr)
+            }
+        }
+        
+        // Tính mốc cao nhất (dư ra 1 khoảng để chart không chạm nóc)
+        const maxTick = Math.ceil(maxVal / step) * step + (maxVal % step === 0 ? step : 0); 
+        
+        const ticks = [];
+        for (let i = 0; i <= maxTick; i += step) {
+            ticks.push(i);
+        }
+
+        return ticks;
+    };
+
+    const periodTicks = getCustomTicks(periodData, 'totalRevenue');
+    const movieTicks = getCustomTicks(movieData, 'ticketRevenue');
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
@@ -127,7 +163,13 @@ const AdminDashboard = () => {
                                     <XAxis dataKey="label" tick={{ fontSize: 12 }} />
 
                                     {/* ĐƯA formatAxis vào trục Y (trục tiền) */}
-                                    <YAxis tickFormatter={formatAxis} width={70} />
+                                    <YAxis 
+                                        tickFormatter={formatAxis} 
+                                        width={110} 
+                                        tick={{ fontSize: 11 }} 
+                                        ticks={periodTicks} 
+                                        domain={[0, periodTicks[periodTicks.length - 1]]} 
+                                    />
 
                                     <Tooltip formatter={(value) => formatVND(value as number)} />
                                     <Line type="monotone" name="Doanh Thu" dataKey="totalRevenue" stroke="#f26b38" strokeWidth={3} activeDot={{ r: 8 }} />
@@ -151,7 +193,13 @@ const AdminDashboard = () => {
                                     <XAxis dataKey="title" tick={{ fontSize: 11 }} interval={0} angle={-30} textAnchor="end" height={60} />
 
                                     {/* 3. Đổi YAxis thành trục tiền và đưa formatAxis vào */}
-                                    <YAxis tickFormatter={formatAxis} width={70} />
+                                    <YAxis 
+                                        tickFormatter={formatAxis} 
+                                        width={110} 
+                                        tick={{ fontSize: 11 }} 
+                                        ticks={movieTicks} 
+                                        domain={[0, movieTicks[movieTicks.length - 1]]} 
+                                    />
 
                                     <Tooltip formatter={(value) => formatVND(value as number)} />
 

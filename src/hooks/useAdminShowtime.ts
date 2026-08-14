@@ -9,14 +9,14 @@ export const useAdminShowtimes = () => {
     const fetchShowtimes = useCallback(async (page: number, size: number, filters?: any) => {
         setIsLoading(true);
         try {
-            const params: any = { page: page - 1, size: size, activeOnly: false };
+            const params: any = { page: page - 1, size: size, activeOnly: false, futureOnly: false };
             if (filters?.date) params.date = filters.date;
             if (filters?.movieId) params.movieId = filters.movieId;
 
             const res = await adminShowtimeService.getAll(params);
             if (res && res.data) {
                 setShowtimes(res.data);
-                setTotalShowtimes(res.data.totalElements || 0);
+                setTotalShowtimes(res.data.totalElements || res.data.length || 0);
             }
         } catch (error) {
             console.error("Lỗi fetch suất chiếu:", error);

@@ -75,6 +75,9 @@ export default function PaymentPage() {
             if (!guestInfo.fullName.trim()) {
                 newErrors.fullName = 'Vui lòng nhập họ tên!';
                 isValid = false;
+            } else if (!/^[a-zA-ZÀ-Ỹà-ỹ\s]+$/.test(guestInfo.fullName.trim()) || guestInfo.fullName.trim().length < 2) {
+                newErrors.fullName = 'Họ tên chỉ được chứa chữ cái và phải từ 2 ký tự trở lên!';
+                isValid = false;
             }
 
             if (!guestInfo.phone.trim()) {
@@ -88,8 +91,8 @@ export default function PaymentPage() {
             if (!guestInfo.email.trim()) {
                 newErrors.email = 'Vui lòng nhập email!';
                 isValid = false;
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestInfo.email)) {
-                newErrors.email = 'Email không đúng định dạng!';
+            } else if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(guestInfo.email.trim())) {
+                newErrors.email = 'Vui lòng sử dụng email đuôi @gmail.com!';
                 isValid = false;
             }
 

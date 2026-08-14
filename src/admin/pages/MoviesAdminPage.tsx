@@ -313,7 +313,7 @@ export default function MovieManage() {
               <Select placeholder="Chọn trạng thái...">
                 <Select.Option value="COMING_SOON">Sắp chiếu</Select.Option>
                 <Select.Option value="NOW_SHOWING">Đang chiếu</Select.Option>
-                <Select.Option value="STOPPED">Ngưng chiếu</Select.Option>
+                <Select.Option value="ENDED">Ngưng chiếu</Select.Option>
               </Select>
             </Form.Item>
           </div>
