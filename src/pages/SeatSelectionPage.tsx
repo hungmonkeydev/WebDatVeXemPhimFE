@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate,useLocation } from 'react-router-dom';
 import { useSeats } from '../Hooks/useSeats';
 import Spinner from '../components/UI/Spinner';
 import { useHoldSeats } from '../Hooks/useHoldSeats';
@@ -10,11 +10,36 @@ import { bookingService } from '../services/bookingService';
 export default function SeatSelection() {
   const { id } = useParams();
   const navigate = useNavigate();
+  
 
   const { seatRows, seatTypes, showtimeInfo, roomInfo, isLoadingSeats } = useSeats(id);
   console.log("Kiểm tra dữ liệu ghế trên UI:", seatRows);
 
-  const [selectedSeats, setSelectedSeats] = useState<any[]>([]);
+  const location = useLocation();
+  const expireAt = location.state?.expireAt;
+  const remainingSeconds = location.state?.remainingSeconds || 0;
+
+  const [selectedSeats, setSelectedSeats] = useState<any[]>(
+    location.state?.selectedSeats || []
+  );
+  const [releasedSeatIds, setReleasedSeatIds] = useState<Set<number>>(new Set());
+
+  const effectiveSelectedSeats = useMemo(() => {
+    const list = [...selectedSeats];
+    const selectedIds = new Set(list.map(s => s.seatId));
+    
+    if (seatRows) {
+      seatRows.forEach((row: any) => {
+        row.seats.forEach((seat: any) => {
+          if (seat.status === 'held_by_you' && !selectedIds.has(seat.seatId) && !releasedSeatIds.has(seat.seatId)) {
+            list.push(seat);
+            selectedIds.add(seat.seatId);
+          }
+        });
+      });
+    }
+    return list;
+  }, [selectedSeats, seatRows, releasedSeatIds]);
   const { holdSeats, isHolding } = useHoldSeats();
 
   let startTimeDisplay = showtimeInfo?.startTime ? showtimeInfo.startTime.substring(11, 16) : 'Đang tải...';
@@ -32,7 +57,7 @@ export default function SeatSelection() {
   }
 
   const toggleSeatGroup = async (seatsToToggle: any[]) => {
-    const isAlreadySelectedByMe = selectedSeats.some(s => s.seatId === seatsToToggle[0].seatId);
+    const isAlreadySelectedByMe = effectiveSelectedSeats.some(s => s.seatId === seatsToToggle[0].seatId);
     const isAnySeatNotSelectable = seatsToToggle.some(seat => !seat.isSelectable);
     if (isAnySeatNotSelectable && !isAlreadySelectedByMe) return;
 
@@ -47,8 +72,18 @@ export default function SeatSelection() {
         });
       }
       setSelectedSeats(prev => prev.filter(s => !seatIdsToToggle.includes(s.seatId)));
+      setReleasedSeatIds(prev => {
+        const next = new Set(prev);
+        seatIdsToToggle.forEach(id => next.add(id));
+        return next;
+      });
     } else {
       setSelectedSeats(prev => [...prev, ...seatsToToggle]);
+      setReleasedSeatIds(prev => {
+        const next = new Set(prev);
+        seatIdsToToggle.forEach(id => next.delete(id));
+        return next;
+      });
     }
   };
   const SEAT_COLORS: Record<number, string> = {
@@ -58,19 +93,19 @@ export default function SeatSelection() {
     4: '#9C27B0',
   };
 
-  const totalPrice = selectedSeats.reduce((total, seat) => {
+  const totalPrice = effectiveSelectedSeats.reduce((total, seat) => {
     return total + Number(seat.price || 0);
   }, 0);
 
   const handleNext = async () => {
-    const seatIds = selectedSeats.map(seat => seat.seatId);
+    const seatIds = effectiveSelectedSeats.map(seat => seat.seatId);
     const rawToken = localStorage.getItem('access_token');
     const isValidToken = rawToken && rawToken !== 'null' && rawToken !== 'undefined';
     if (!isValidToken) {
       console.log("Khách vãng lai đi thẳng qua trang thức ăn!");
       navigate(`/dat-ve/${id}/thuc-an`, {
         state: {
-          selectedSeats: selectedSeats,
+          selectedSeats: effectiveSelectedSeats,
           showtimeInfo: showtimeInfo,
           roomInfo: roomInfo,
           totalTicketPrice: totalPrice,
@@ -84,18 +119,20 @@ export default function SeatSelection() {
     const result = await holdSeats(id, seatIds);
 
     if (result.success) {
-      // Sử dụng thời gian còn lại (TTL) do Backend trả về (hoặc fallback của Hook)
+      // Nếu đã có thời gian đếm ngược từ trước thì giữ nguyên không reset, 
+      // nếu chưa có thì lấy thời gian mới từ backend
       const seconds = result.remainingSeconds || 300;
-      const expireAt = Date.now() + (seconds * 1000);
+      const finalExpireAt = expireAt ? expireAt : Date.now() + (seconds * 1000);
+      const finalRemainingSeconds = expireAt ? Math.floor((finalExpireAt - Date.now()) / 1000) : seconds;
 
       navigate(`/dat-ve/${id}/thuc-an`, {
         state: {
-          selectedSeats: selectedSeats,
+          selectedSeats: effectiveSelectedSeats,
           showtimeInfo: showtimeInfo,
           roomInfo: roomInfo,
           totalTicketPrice: totalPrice,
-          remainingSeconds: seconds,
-          expireAt
+          remainingSeconds: finalRemainingSeconds,
+          expireAt: finalExpireAt
         }
       });
     } else {
@@ -166,7 +203,7 @@ export default function SeatSelection() {
                   <div className="flex items-center justify-center gap-[2px] sm:gap-1 md:gap-2 flex-1 mx-1 md:mx-2">
                     {(() => {
                       const renderSeatBtn = (seat: any, groupSeats: any[]) => {
-                        const isSelected = selectedSeats.some((s) => s.seatId === seat.seatId);
+                        const isSelected = effectiveSelectedSeats.some((s) => s.seatId === seat.seatId);
                         const isSold = !seat.isSelectable && !isSelected;
                         const seatColor = SEAT_COLORS[seat.seatTypeId] || '#e5e7eb';
 
@@ -267,12 +304,33 @@ export default function SeatSelection() {
           roomInfo={roomInfo}
           startTimeDisplay={startTimeDisplay}
           dateDisplay={dateDisplay}
-          selectedSeats={selectedSeats}
+          selectedSeats={effectiveSelectedSeats}
           totalPrice={totalPrice}
-          onBack={() => navigate(-1)}
+          remainingSeconds={remainingSeconds}
+          expireAt={expireAt}
+          onTimeout={async () => {
+            try {
+              await bookingService.releaseAllSeats();
+            } catch (err) {}
+            alert("Đã hết thời gian giữ ghế! Vui lòng chọn lại từ đầu.");
+            setSelectedSeats([]);
+            setReleasedSeatIds(new Set());
+            navigate(`/dat-ve/${id}/chon-ghe`, { replace: true, state: {} });
+          }}
+          onBack={async () => {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+              try {
+                await bookingService.releaseAllSeats();
+              } catch (err) {
+                console.error("Lỗi khi nhả ghế:", err);
+              }
+            }
+            navigate(`/phim/${showtimeInfo?.movieId}`);
+          }}
           onNext={handleNext}
           nextLabel={isHolding ? 'Đang giữ ghế...' : 'Tiếp tục'}
-          isNextDisabled={selectedSeats.length === 0 || isHolding}
+          isNextDisabled={effectiveSelectedSeats.length === 0 || isHolding}
         />
 
       </div>

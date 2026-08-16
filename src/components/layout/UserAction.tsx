@@ -89,7 +89,7 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
               {/* Header của Menu (Chứa thông tin điểm) */}
               <div className="px-5 py-3 border-b border-gray-100 mb-2 bg-gray-50/50">
                 <p className="font-bold text-gray-800 text-[15px]">{currentUser.full_name}</p>
-                <div className="flex items-center gap-1.5 mt-1">
+                <div className="flex flex-col items-stretch gap-4">
                   <span className="text-yellow-500">🏅</span>
                   <span className="text-gray-600 text-sm">{currentUser.loyalty_points || 0} Stars</span>
                 </div>
@@ -130,7 +130,7 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
         /* GIAO DIỆN KHI CHƯA ĐĂNG NHẬP */
         <button
           onClick={onOpenLogin}
-          className="flex items-center gap-2 text-[14.5px] font-medium text-gray-700 hover:text-[#f26b38] transition-colors cursor-pointer mr-4 md:mr-0 shrink-0"
+          className="flex items-center gap-2 text-[14.5px] font-medium text-gray-700 hover:text-[#f26b38] transition-colors cursor-pointer mr-4 md:mr-0 shrink-0 whitespace-nowrap"
         >
           <span>Đăng nhập</span>
         </button>
@@ -140,8 +140,8 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
       {/* CHỈ HIỆN KHỐI G-STAR NÀY KHI CHƯA ĐĂNG NHẬP */}
       {!currentUser && (
         <>
-          <div className="w-[1px] h-6 bg-gray-200"></div>
-          <div className="relative group cursor-pointer">
+          <div className="w-[1px] h-6 bg-gray-200 "></div>
+          <div className="relative group cursor-pointer md:block hidden">
             <button className="flex items-center gap-2 font-bold text-[14px] text-gray-700 hover:text-[#f26b38] transition-colors uppercase">
               <img src={img} alt="Join Member GStar" className="h-10 cursor-pointer object-contain" />
             </button>

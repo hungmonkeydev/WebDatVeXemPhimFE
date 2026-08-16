@@ -40,20 +40,30 @@ export default function BookingSummary({
         return diff > 0 ? diff : 0;
     };
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+    
     useEffect(() => {
-        if (remainingSeconds <= 0) return;
+        if (remainingSeconds <= 0 || !expireAt) return;
         if (timeLeft <= 0) {
             if (onTimeout) onTimeout();
             return;
         }
 
-        // Cứ mỗi 1000ms (1 giây) thì trừ timeLeft đi 1
         const timer = setInterval(() => {
-            setTimeLeft((prev) => prev - 1);
-        }, 1000);
+            const newTimeLeft = calculateTimeLeft();
+            setTimeLeft(prev => {
+                if (prev !== newTimeLeft) {
+                    if (newTimeLeft <= 0) {
+                        clearInterval(timer);
+                        if (onTimeout) setTimeout(onTimeout, 0); // Tránh gọi onTimeout trong lúc update state
+                    }
+                    return newTimeLeft;
+                }
+                return prev;
+            });
+        }, 100);
 
         return () => clearInterval(timer);
-    }, [timeLeft, remainingSeconds, onTimeout]);
+    }, [expireAt, remainingSeconds, onTimeout]);
 
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;

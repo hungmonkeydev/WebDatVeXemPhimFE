@@ -151,7 +151,7 @@ export default function PaymentPage() {
                     promoCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null,
                     promotionCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null
                 };
-                
+
                 console.log("Đang tạo vé cho User...", userPayload);
                 const userRes = await bookingService.createBooking(userPayload);
                 actualBookingId = userRes.data?.bookingId || userRes.data?.id || userRes.data?.data?.bookingId;
@@ -190,6 +190,11 @@ export default function PaymentPage() {
             } else {
                 const errorMsg = error.response?.data?.message || "Lỗi kết nối đến server!";
                 alert(`❌ Không thể khởi tạo thanh toán: ${errorMsg}`);
+
+                // Nếu lỗi do ghế đã bị đặt thì đẩy về lại trang chọn ghế
+                if (errorMsg.toLowerCase().includes('seat') || errorMsg.toLowerCase().includes('ghế')) {
+                    window.location.href = `/dat-ve/${id}/chon-ghe`;
+                }
             }
         }
     };
@@ -273,7 +278,7 @@ export default function PaymentPage() {
                 <div className="max-w-6xl mx-auto flex justify-center gap-8 py-4 text-sm font-semibold">
                     <span className="text-gray-400">Chọn phim / Rạp / Suất</span>
                     <span className="text-gray-400">Chọn ghế</span>
-                    <span className="text-gray-400 cursor-pointer hover:text-blue-700" onClick={() => navigate(-1)}>Chọn thức ăn</span>
+                    <span className="text-gray-400 cursor-pointer hover:text-blue-700" onClick={() => navigate(`/dat-ve/${id}/thuc-an`, { state: bookingData })}>Chọn thức ăn</span>
                     <span className="text-blue-700 border-b-2 border-blue-700 pb-4 -mb-4">Thanh toán</span>
                     <span className="text-gray-400">Xác nhận</span>
                 </div>
@@ -470,7 +475,7 @@ export default function PaymentPage() {
                     }}
                     combos={bookingData.combos}
                     comboCart={comboCart}
-                    onBack={() => navigate(-1)}
+                    onBack={() => navigate(`/dat-ve/${id}/thuc-an`, { state: bookingData })}
                     onNext={handleProcessPayment}
                     nextLabel="Thanh toán ngay"
                 />

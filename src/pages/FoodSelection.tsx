@@ -11,6 +11,7 @@ export default function FoodSelection() {
     const { id } = useParams();
 
     const location = useLocation();
+    
     const {
         selectedSeats = [],
         expireAt,
@@ -65,7 +66,7 @@ export default function FoodSelection() {
             <div className="bg-white shadow-sm mb-8">
                 <div className="max-w-6xl mx-auto flex justify-center gap-8 py-4 text-sm font-semibold">
                     <span className="text-gray-400">Chọn phim / Rạp / Suất</span>
-                    <span className="text-gray-400 cursor-pointer hover:text-blue-700" onClick={() => navigate(-1)}>Chọn ghế</span>
+                    <span className="text-gray-400 cursor-pointer hover:text-blue-700" onClick={() => navigate(`/dat-ve/${id}/chon-ghe`, { state: bookingData })}>Chọn ghế</span>
                     <span className="text-blue-700 border-b-2 border-blue-700 pb-4 -mb-4">Chọn thức ăn</span>
                     <span className="text-gray-400">Thanh toán</span>
                     <span className="text-gray-400">Xác nhận</span>
@@ -142,7 +143,7 @@ export default function FoodSelection() {
                     combos={combos}
                     comboCart={comboCart}
 
-                    onBack={() => navigate(-1)}
+                    onBack={() => navigate(`/dat-ve/${id}/chon-ghe`, { state: bookingData })}
                     onNext={() => {
                         const rawToken = localStorage.getItem('access_token');
                         const isValidToken = rawToken && rawToken !== 'null' && rawToken !== 'undefined';

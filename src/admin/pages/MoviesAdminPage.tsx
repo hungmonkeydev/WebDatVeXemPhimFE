@@ -210,7 +210,7 @@ export default function MovieManage() {
             mode="multiple" 
             allowClear 
             placeholder="Lọc thể loại" 
-            className="w-48"
+            className="w-64"
             popupMatchSelectWidth={false}
             value={selectedGenreIds}
             onChange={(val) => setSelectedGenreIds(val)}
@@ -321,11 +321,21 @@ export default function MovieManage() {
           {/* DÒNG 4: Ngày chiếu & Ngày kết thúc */}
           <div className="grid grid-cols-2 gap-4">
             <Form.Item name="releaseDate" label="Ngày khởi chiếu" rules={[{ required: true, message: 'Vui lòng chọn ngày chiếu!' }]}>
-              <DatePicker format="YYYY-MM-DD" className="w-full" placeholder="Chọn ngày khởi chiếu" />
+              <DatePicker 
+                format="YYYY-MM-DD" 
+                className="w-full" 
+                placeholder="Chọn ngày khởi chiếu" 
+                //disabledDate={(current) => current && current < dayjs().startOf('day')}
+              />
             </Form.Item>
 
             <Form.Item name="endDate" label="Ngày kết thúc chiếu" rules={[{ required: true, message: 'Vui lòng chọn ngày kết thúc!' }]}>
-              <DatePicker format="YYYY-MM-DD" className="w-full" placeholder="Chọn ngày kết thúc" />
+              <DatePicker 
+                format="YYYY-MM-DD" 
+                className="w-full" 
+                placeholder="Chọn ngày kết thúc" 
+                //disabledDate={(current) => current && current < dayjs().startOf('day')}
+              />
             </Form.Item>
           </div>
 

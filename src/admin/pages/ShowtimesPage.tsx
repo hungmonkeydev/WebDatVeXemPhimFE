@@ -381,11 +381,11 @@ export default function ShowtimeManage() {
             <Radio.Button value="weekly">Dạng Lịch</Radio.Button>
           </Radio.Group>
 
-          <DatePicker 
-            placeholder="Lọc theo ngày" 
-            format="DD/MM/YYYY" 
+          <DatePicker
+            placeholder="Lọc theo ngày"
+            format="DD/MM/YYYY"
             className="w-40"
-            onChange={(val) => setFilterDate(val ? val.format('YYYY-MM-DD') : null)} 
+            onChange={(val) => setFilterDate(val ? val.format('YYYY-MM-DD') : null)}
           />
           <Select
             placeholder="Lọc theo phim"
@@ -486,11 +486,20 @@ export default function ShowtimeManage() {
 
           <div className="grid grid-cols-2 gap-4">
             <Form.Item name="startTime" label="Giờ bắt đầu" rules={[{ required: true, message: 'Vui lòng chọn giờ bắt đầu!' }]}>
-              <DatePicker showTime format="YYYY-MM-DD HH:mm" className="w-full" placeholder="Chọn ngày giờ" />
+              <DatePicker showTime format="YYYY-MM-DD HH:mm"
+                className="w-full"
+                placeholder="Chọn ngày giờ"
+                disabledDate={(current) => current && current < dayjs().startOf('day')}
+              />
             </Form.Item>
 
             <Form.Item name="endTime" label="Giờ kết thúc">
-              <DatePicker showTime format="YYYY-MM-DD HH:mm" className="w-full" placeholder="Để trống sẽ tự tính (Phim + 15p)" />
+              <DatePicker showTime
+                format="YYYY-MM-DD HH:mm"
+                className="w-full"
+                placeholder="Để trống sẽ tự tính (Phim + 15p)"
+                disabledDate={(current) => current && current < dayjs().startOf('day')}
+              />
             </Form.Item>
           </div>
 

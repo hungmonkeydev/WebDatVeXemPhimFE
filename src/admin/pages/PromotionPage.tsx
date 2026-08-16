@@ -28,6 +28,7 @@ export default function PromotionManage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPromotion, setEditingPromotion] = useState<any | null>(null);
     const [form] = Form.useForm();
+    const currentDiscountType = Form.useWatch('discountType', form);
 
     // State Modal Restore
     const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
@@ -334,28 +335,52 @@ export default function PromotionManage() {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item name="discountType" label="Loại giảm giá" rules={[{ required: true }]}>
-                                <Select>
+                                <Select onChange={() => form.validateFields(['discountValue'])}>
                                     <Option value="PERCENT">Giảm theo phần trăm (%)</Option>
                                     <Option value="AMOUNT">Giảm theo số tiền (VNĐ)</Option>
                                 </Select>
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item name="discountValue" label="Trị giá giảm" rules={[{ required: true, message: 'Nhập trị giá!' }]}>
-                                <InputNumber style={{ width: '100%' }} min={0} placeholder="VD: 10 (nếu là %), 50000 (nếu là VNĐ)" />
+                            <Form.Item
+                                name="discountValue"
+                                label="Trị giá giảm"
+                                rules={[
+                                    { required: true, message: 'Nhập trị giá!' },
+                                    ({ getFieldValue }) => ({
+                                        validator(_, value) {
+                                            if (value && getFieldValue('discountType') === 'PERCENT' && value > 100) {
+                                                return Promise.reject(new Error('Phần trăm không được vượt quá 100%'));
+                                            }
+                                            return Promise.resolve();
+                                        },
+                                    })
+                                ]}
+                            >
+                                <InputNumber style={{ width: '100%' }} min={1} placeholder="VD: 10 (nếu là %), 50000 (nếu là VNĐ)" />
                             </Form.Item>
                         </Col>
                     </Row>
 
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Form.Item name="startDate" label="Thời gian bắt đầu" rules={[{ required: true }]}>
-                                <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" className="w-full" />
+                            <Form.Item name="startDate" label="Thời gian bắt đầu" rules={[{ required: true, message: 'Vui lòng chọn thời gian bắt đầu!' }]}>
+                                <DatePicker
+                                    showTime
+                                    format="YYYY-MM-DD HH:mm:ss"
+                                    className="w-full"
+                                //disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                />
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item name="endDate" label="Thời gian kết thúc" rules={[{ required: true }]}>
-                                <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" className="w-full" />
+                            <Form.Item name="endDate" label="Thời gian kết thúc" rules={[{ required: true, message: 'Vui lòng chọn thời gian kết thúc!' }]}>
+                                <DatePicker
+                                    showTime
+                                    format="YYYY-MM-DD HH:mm:ss"
+                                    className="w-full"
+                                //disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                />
                             </Form.Item>
                         </Col>
                     </Row>
@@ -368,7 +393,13 @@ export default function PromotionManage() {
                         </Col>
                         <Col span={8}>
                             <Form.Item name="maxDiscount" label="Giảm tối đa (VNĐ)">
-                                <InputNumber style={{ width: '100%' }} min={0} step={5000} placeholder="Áp dụng cho %" />
+                                <InputNumber
+                                    style={{ width: '100%' }}
+                                    min={0}
+                                    step={5000}
+                                    placeholder="Chỉ dùng cho %"
+                                    disabled={currentDiscountType !== 'PERCENT'}
+                                />
                             </Form.Item>
                         </Col>
                         <Col span={8}>
