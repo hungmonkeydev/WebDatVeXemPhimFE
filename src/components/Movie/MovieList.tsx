@@ -8,14 +8,22 @@ interface MovieListProps {
 }
 
 export default function MovieList({ isFullPage = false }: MovieListProps) {
+
+    // state tìm kiếm phim
     const [searchParams] = useSearchParams();
     const searchKeyword = searchParams.get('search') || '';
 
+    // state hoạt động của tab
     const [activeTab, setActiveTab] = useState('dang_chieu');
+
     const [isExpanded, setIsExpanded] = useState(false);
     const [activeTrailer, setActiveTrailer] = useState<string | null>(null);
     const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
+
+    // state form quản lý url hiện tại
     const location = useLocation();
+
+    // tab quản lý các thể loại phim
     const tabs = [
         { id: 'dang_chieu', label: 'Đang chiếu' },
         { id: 'sap_chieu', label: 'Sắp chiếu' },

@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import img from '../../../public/logo/join-member-Gstar.svg';
 import img1 from '../../../public/iconlogin/icon-login.fbbf1b2d.svg';
 import Button from '../UI/Button';
 import { useNavigate } from 'react-router-dom';
+import { useLoyaltyProgress } from '../../Hooks/useLoyaltyProgress';
 interface UserActionProps {
   onOpenLogin: () => void;
 }
@@ -12,6 +13,22 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const { progressData } = useLoyaltyProgress();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const loadUserFromStorage = () => {
     const userInfo = localStorage.getItem('user_info');
     if (userInfo) {
@@ -41,7 +58,6 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('user_info');
-
     setIsMenuOpen(false);
 
     window.dispatchEvent(new Event('authChange'));
@@ -61,9 +77,9 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
       />
       {currentUser ? (
 
-        <div className="relative mr-4 md:mr-0 shrink-0">
-          <div
-            className="flex items-center gap-2 cursor-pointer select-none group"
+        <div className="relative mr-4 md:mr-0 shrink-0 group" ref={menuRef}>
+          <div 
+            className="flex items-center gap-2 cursor-pointer select-none"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {/* Avatar tròn */}
@@ -75,23 +91,23 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
 
             {/* Tên và Icon xổ xuống */}
             <div className="hidden md:flex items-center gap-1">
-              <span className="font-semibold text-gray-700 text-[14px] group-hover:text-[#f26b38] transition-colors">
-                {currentUser.full_name}
+              <span className="font-semibold text-gray-700 text-[14px] md:group-hover:text-[#f26b38] transition-colors">
+                {currentUser.fullName || currentUser.full_name || 'Khách hàng'}
               </span>
-              <svg className={`w-4 h-4 text-gray-500 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              <svg className={`w-4 h-4 text-gray-500 transition-transform ${isMenuOpen ? 'rotate-180' : 'md:group-hover:rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           </div>
 
           {/* Menu thả xuống */}
-          {isMenuOpen && (
-            <div className="absolute top-full right-0 mt-3 w-[240px] bg-white rounded-md shadow-[0_8px_30px_rgba(0,0,0,0.12)] py-2 z-50 border border-gray-100 animate-[fadeIn_0.2s_ease-out]">
+          <div className={`absolute top-full right-0 pt-3 w-[240px] z-50 transition-all duration-200 ${isMenuOpen ? 'visible opacity-100' : 'invisible opacity-0 md:group-hover:visible md:group-hover:opacity-100'}`}>
+            <div className="bg-white rounded-md shadow-[0_8px_30px_rgba(0,0,0,0.12)] py-2 border border-gray-100">
 
               {/* Header của Menu (Chứa thông tin điểm) */}
               <div className="px-5 py-3 border-b border-gray-100 mb-2 bg-gray-50/50">
-                <p className="font-bold text-gray-800 text-[15px]">{currentUser.full_name}</p>
+                <p className="font-bold text-gray-800 text-[15px]">{currentUser.fullName || currentUser.full_name || 'Khách hàng'}</p>
                 <div className="flex flex-col items-stretch gap-4">
                   <span className="text-yellow-500">🏅</span>
-                  <span className="text-gray-600 text-sm">{currentUser.loyalty_points || 0} Stars</span>
+                  <span className="text-gray-600 text-sm">{progressData?.currentPoints || 0} Stars</span>
                 </div>
               </div>
 
@@ -122,7 +138,7 @@ export default function UserAction({ onOpenLogin }: UserActionProps) {
               </button>
 
             </div>
-          )}
+          </div>
         </div>
 
       ) : (

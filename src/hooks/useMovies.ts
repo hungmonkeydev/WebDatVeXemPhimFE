@@ -51,6 +51,8 @@ export const useMovies = (activeTab: string, searchParams?: { keyword?: string; 
 
                 response = await movieService.getTopRated();
                 console.log('Reate response:', response.data);
+            } else if (activeTab === "most_viewed") {
+                response = await movieService.getMostViewed();
             } else {
                 response = await movieService.getMovies();
             }

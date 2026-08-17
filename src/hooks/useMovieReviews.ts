@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import api from '../services/api'; // Trỏ đường dẫn cho đúng nha
+import { reviewService } from '../services/reviewService';
 
 export const useMovieReviews = (movieId: number) => {
     const [reviews, setReviews] = useState<any[]>([]);
@@ -10,9 +10,9 @@ export const useMovieReviews = (movieId: number) => {
 
         try {
             setIsLoading(true);
-            const response = await api.get(`/reviews/${movieId}`);
-            console.log("Đánh giá phim:", response.data);
-            const data = response.data?.data?.content || response.data?.data || [];
+            const response = await reviewService.getReviewsByMovieId(movieId);
+            console.log("Đánh giá phim:", response);
+            const data = response?.data?.content || response?.data || [];
             setReviews(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Lỗi tải đánh giá:", error);

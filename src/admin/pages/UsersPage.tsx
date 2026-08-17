@@ -29,8 +29,9 @@ export default function UserManage() {
             key: 'user',
             render: (_: any, record: UserType) => (
                 <div>
-                    <div className="font-semibold text-gray-800">{record.fullName}</div>
-                    <div className="text-xs text-gray-500">{record.email}</div>
+                    <div className={`font-semibold ${record.isActive ? 'text-gray-800' : 'text-red-500 line-through'}`}>{record.fullName}</div>
+                    <div className={`text-xs ${record.isActive ? 'text-gray-500' : 'text-red-400'}`}>{record.email}</div>
+                    {!record.isActive && <Tag color="error" className="mt-1">Đã khóa</Tag>}
                 </div>
             ),
         },
@@ -89,7 +90,8 @@ export default function UserManage() {
                             <Tooltip title="Mở khóa tài khoản">
                                 <Button
                                     type="text"
-                                    icon={<LockOutlined className="text-red-500" />}
+                                    danger
+                                    icon={<LockOutlined />}
                                     onClick={() => handleUnban(record.userId)}
                                 />
                             </Tooltip>

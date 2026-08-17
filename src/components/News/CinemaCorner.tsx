@@ -3,15 +3,10 @@ import { useMemo } from 'react';
 import { useMovies } from '../../Hooks/useMovies';
 
 export default function CinemaCorner() {
-  const { moviesList, isLoading } = useMovies('outstanding');
+  const { moviesList, isLoading } = useMovies('most_viewed');
   const topMovies = useMemo(() => {
     if (!moviesList || moviesList.length === 0) return [];
-    const sortedMovies = [...moviesList].sort((a, b) => {
-      const scoreA = a.avg_rating || a.averageRating || 0;
-      const scoreB = b.avg_rating || b.averageRating || 0;
-      return scoreB - scoreA;
-    });
-    return sortedMovies.slice(0, 4);
+    return moviesList.slice(0, 4);
   }, [moviesList]);
 
   if (isLoading) {

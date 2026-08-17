@@ -19,21 +19,29 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister, onSucc
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // State cho Quên mật khẩu
+  // State Quên mật khẩu
   const [isForgotView, setIsForgotView] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
 
+  // State Toast
   const [toast, setToast] = useState({
     isOpen: false,
     message: '',
     type: 'success' as 'success' | 'error'
   });
 
-  // Lấy thêm forgotPassword ra từ Hook
+  // Lấy các hàm xử lý ra từ Hook
   const { login, forgotPassword, isLoading } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setToast({ isOpen: true, message: 'Email không đúng định dạng!', type: 'error' });
+      return;
+    }
+
     setToast({ ...toast, isOpen: false });
     const result = await login(email, password);
     if (result.success) {
@@ -50,6 +58,12 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister, onSucc
     e.preventDefault();
     if (!forgotEmail) {
       setToast({ isOpen: true, message: 'Vui lòng nhập email của bạn!', type: 'error' });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(forgotEmail)) {
+      setToast({ isOpen: true, message: 'Email không đúng định dạng!', type: 'error' });
       return;
     }
 

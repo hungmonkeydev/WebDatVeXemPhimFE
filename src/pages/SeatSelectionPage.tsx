@@ -15,15 +15,20 @@ export default function SeatSelection() {
   const { seatRows, seatTypes, showtimeInfo, roomInfo, isLoadingSeats } = useSeats(id);
   console.log("Kiểm tra dữ liệu ghế trên UI:", seatRows);
 
+  // state form quản lý url hiện tại
   const location = useLocation();
+  // state thời gian ghế được giữ
   const expireAt = location.state?.expireAt;
+  // state thời gian còn lại
   const remainingSeconds = location.state?.remainingSeconds || 0;
-
+  // state quản lý ghế đã chọn
   const [selectedSeats, setSelectedSeats] = useState<any[]>(
     location.state?.selectedSeats || []
   );
+  // state quản lý ghế đã nhả
   const [releasedSeatIds, setReleasedSeatIds] = useState<Set<number>>(new Set());
 
+  // xử lý ghế đã được chọn trước đó
   const effectiveSelectedSeats = useMemo(() => {
     const list = [...selectedSeats];
     const selectedIds = new Set(list.map(s => s.seatId));
@@ -40,8 +45,10 @@ export default function SeatSelection() {
     }
     return list;
   }, [selectedSeats, seatRows, releasedSeatIds]);
+  
   const { holdSeats, isHolding } = useHoldSeats();
 
+  // xử lý hiển thị thời gian chiếu
   let startTimeDisplay = showtimeInfo?.startTime ? showtimeInfo.startTime.substring(11, 16) : 'Đang tải...';
   let dateDisplay = 'Đang tải...';
 
@@ -55,7 +62,7 @@ export default function SeatSelection() {
 
     dateDisplay = `${dayOfWeek}, ${dateStr}`;
   }
-
+  // xử lý chọn ghế
   const toggleSeatGroup = async (seatsToToggle: any[]) => {
     const isAlreadySelectedByMe = effectiveSelectedSeats.some(s => s.seatId === seatsToToggle[0].seatId);
     const isAnySeatNotSelectable = seatsToToggle.some(seat => !seat.isSelectable);
@@ -86,6 +93,7 @@ export default function SeatSelection() {
       });
     }
   };
+  // hiển thị màu ghế
   const SEAT_COLORS: Record<number, string> = {
     1: '#4CAF50',
     2: '#FFD700',
@@ -97,6 +105,7 @@ export default function SeatSelection() {
     return total + Number(seat.price || 0);
   }, 0);
 
+  // xử lý chuyển sang trang thức ăn
   const handleNext = async () => {
     const seatIds = effectiveSelectedSeats.map(seat => seat.seatId);
     const rawToken = localStorage.getItem('access_token');

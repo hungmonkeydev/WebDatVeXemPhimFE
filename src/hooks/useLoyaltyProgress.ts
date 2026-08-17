@@ -5,10 +5,15 @@ import { message } from 'antd';
 export const useLoyaltyProgress = () => {
     const [progressData, setProgressData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const token = localStorage.getItem('access_token');
-    if (!token) return null;
+
     useEffect(() => {
         const fetchProgress = async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                setProgressData(null);
+                setIsLoading(false);
+                return;
+            }
             try {
                 setIsLoading(true);
                 const response = await userService.getMyPointsProgress();
@@ -16,13 +21,16 @@ export const useLoyaltyProgress = () => {
                 setProgressData(response.data);
             } catch (err: any) {
                 console.error("Lỗi lấy thông tin điểm:", err);
-                message.error('Không thể tải thông tin hạng thành viên!');
             } finally {
                 setIsLoading(false);
             }
         };
 
         fetchProgress();
+        window.addEventListener('authChange', fetchProgress);
+        return () => {
+            window.removeEventListener('authChange', fetchProgress);
+        };
     }, []);
 
     return { progressData, isLoading };

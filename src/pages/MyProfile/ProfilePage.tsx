@@ -134,15 +134,15 @@ export default function Profile() {
 
     let progressPercent = 0;
 
-    if (totalSpent <= 10000000) {
-        progressPercent = (totalSpent / 10000000) * 33.33;
-    } else if (totalSpent <= 50000000) {
-        const excess = totalSpent - 10000000;
-        const interval = 40000000;
+    if (totalSpent <= 1000000) {
+        progressPercent = (totalSpent / 1000000) * 33.33;
+    } else if (totalSpent <= 5000000) {
+        const excess = totalSpent - 1000000;
+        const interval = 4000000;
         progressPercent = 33.33 + ((excess / interval) * 33.33);
-    } else if (totalSpent <= 100000000) {
-        const excess = totalSpent - 50000000;
-        const interval = 50000000;
+    } else if (totalSpent <= 10000000) {
+        const excess = totalSpent - 5000000;
+        const interval = 5000000;
         progressPercent = 66.66 + ((excess / interval) * 33.33);
     } else {
         progressPercent = 100;
@@ -180,29 +180,30 @@ export default function Profile() {
                             </div>
                             <div className="relative w-full h-1.5 bg-gray-200 rounded-full mb-10 mt-6">
                                 {/* Thanh chạy màu cam */}
-                                <div className="absolute top-0 left-0 h-full bg-[#f26b38] rounded-full" style={{ width: `${progressPercent}%` }}></div>
+                                <div className="absolute top-0 left-0 h-full bg-[#f26b38] rounded-full z-0" style={{ width: `${progressPercent}%` }}></div>
 
                                 {/* 4 Chấm tròn đánh dấu mốc (Member, Silver, Gold, Diamond) */}
-                                <div className="absolute top-1/2 -translate-y-1/2 left-0 w-4 h-4 bg-white border-2 border-[#f26b38] rounded-full"></div>
-                                <div className={`absolute top-1/2 -translate-y-1/2 left-[33%] w-4 h-4 bg-white border-2 rounded-full transition-colors duration-300 ${totalSpent >= 10000000 ? 'border-[#f26b38]' : 'border-gray-300'}`}></div>
-                                <div className={`absolute top-1/2 -translate-y-1/2 left-[66%] w-4 h-4 bg-white border-2 rounded-full transition-colors duration-300 ${totalSpent >= 50000000 ? 'border-[#f26b38]' : 'border-gray-300'}`}></div>
-                                <div className={`absolute top-1/2 -translate-y-1/2 right-0 w-4 h-4 bg-white border-2 rounded-full transition-colors duration-300 ${totalSpent >= 100000000 ? 'border-[#f26b38]' : 'border-gray-300'}`}></div>
-                                <div className="absolute top-4 left-0 -translate-x-1/4 text-center">
+                                <div className="absolute top-1/2 -translate-y-1/2 left-0 -translate-x-1/2 w-4 h-4 bg-white border-2 border-[#f26b38] rounded-full z-10"></div>
+                                <div className={`absolute top-1/2 -translate-y-1/2 left-[33.33%] -translate-x-1/2 w-4 h-4 bg-white border-2 rounded-full z-10 transition-colors duration-300 ${totalSpent >= 1000000 ? 'border-[#f26b38]' : 'border-gray-300'}`}></div>
+                                <div className={`absolute top-1/2 -translate-y-1/2 left-[66.66%] -translate-x-1/2 w-4 h-4 bg-white border-2 rounded-full z-10 transition-colors duration-300 ${totalSpent >= 5000000 ? 'border-[#f26b38]' : 'border-gray-300'}`}></div>
+                                <div className={`absolute top-1/2 -translate-y-1/2 left-[100%] -translate-x-1/2 w-4 h-4 bg-white border-2 rounded-full z-10 transition-colors duration-300 ${totalSpent >= 10000000 ? 'border-[#f26b38]' : 'border-gray-300'}`}></div>
+                                
+                                <div className="absolute top-4 left-0 -translate-x-1/2 text-center">
                                     <div className="text-[10px] font-bold text-gray-400">MEMBER</div>
                                     <div className="text-[12px] text-gray-500 whitespace-nowrap">0 ₫</div>
                                 </div>
 
-                                <div className="absolute top-4 left-[33%] -translate-x-1/2 text-center">
+                                <div className="absolute top-4 left-[33.33%] -translate-x-1/2 text-center">
                                     <div className="text-[10px] font-bold text-[#C0C0C0]">SILVER</div>
                                     <div className="text-[12px] text-gray-500 whitespace-nowrap">1 Tr ₫</div>
                                 </div>
 
-                                <div className="absolute top-4 left-[66%] -translate-x-1/2 text-center">
+                                <div className="absolute top-4 left-[66.66%] -translate-x-1/2 text-center">
                                     <div className="text-[10px] font-bold text-[#FFD700]">GOLD</div>
                                     <div className="text-[12px] text-gray-500 whitespace-nowrap">5 Tr ₫</div>
                                 </div>
 
-                                <div className="absolute top-4 right-0 translate-x-1/4 text-center">
+                                <div className="absolute top-4 left-[100%] -translate-x-1/2 text-center">
                                     <div className="text-[10px] font-bold text-[#B9F2FF]">DIAMOND</div>
                                     <div className="text-[12px] text-gray-500 whitespace-nowrap">10 Tr ₫</div>
                                 </div>

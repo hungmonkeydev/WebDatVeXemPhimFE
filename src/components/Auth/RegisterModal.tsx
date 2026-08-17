@@ -13,6 +13,7 @@ interface RegisterModalProps {
 }
 
 export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModalProps) {
+  //State form quản lý các trường đăng ký
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -22,16 +23,19 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
 
+  //state form để ẩn hiện mật khẩu
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  //state form để hiện thông báo
   const [toast, setToast] = useState({ isOpen: false, message: '', type: 'success' as 'success' | 'error' });
   const { register, isLoading } = useAuth();
 
-  const [step, setStep] = useState<'form' | 'check-email'>('form');
-  const [registeredEmail, setRegisteredEmail] = useState('');
-  const [isResending, setIsResending] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
+  //state form để quản lý các bước đăng ký
+  const [step, setStep] = useState<'form' | 'check-email'>('form');// from là màn đăng ký còn check-email là màn xác thực email
+  const [registeredEmail, setRegisteredEmail] = useState('');// email đã đăng ký
+  const [isResending, setIsResending] = useState(false);// state form để check gửi lại email
+  const [resendCooldown, setResendCooldown] = useState(0);// state form để đếm ngược thời gian gửi lại email
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +44,7 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
       setToast({ isOpen: true, message: 'Vui lòng đồng ý với Điều khoản dịch vụ!', type: 'error' });
       return;
     }
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
       setToast(
         {
@@ -131,7 +135,7 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
             />
 
             <h2 className="text-[19px] font-bold text-gray-800 mb-6">Đăng Ký Tài Khoản</h2>
-
+            {/* form đăng ký */}
             <form onSubmit={handleRegister} className="w-full flex flex-col gap-4">
 
               {/* Họ và tên */}
@@ -283,7 +287,7 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
                 )}
               </Button>
             </form>
-
+            {/* button chuyển sang form đăng nhập */}
             <div className="w-full text-center border-t border-gray-200 pt-5 mt-6">
               <p className="text-[13px] text-gray-500 mb-3">Bạn đã có tài khoản?</p>
               <Button

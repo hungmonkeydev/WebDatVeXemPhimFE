@@ -27,6 +27,11 @@ export const movieService = {
       }
     });
   },
+  getMostViewed: async (limit = 10) => {
+    return api.get('/movies/most-viewed', {
+      params: { limit }
+    });
+  },
   searchMovies: async (params: {
     keyword?: string;
     genreIds?: number[];
