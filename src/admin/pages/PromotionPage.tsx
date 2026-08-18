@@ -369,7 +369,7 @@ export default function PromotionManage() {
                                     showTime
                                     format="YYYY-MM-DD HH:mm:ss"
                                     className="w-full"
-                                //disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                    disabledDate={(current) => current && current < dayjs().startOf('day')}
                                 />
                             </Form.Item>
                         </Col>
@@ -379,7 +379,7 @@ export default function PromotionManage() {
                                     showTime
                                     format="YYYY-MM-DD HH:mm:ss"
                                     className="w-full"
-                                //disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                    disabledDate={(current) => current && current < dayjs().startOf('day')}
                                 />
                             </Form.Item>
                         </Col>

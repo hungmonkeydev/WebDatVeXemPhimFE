@@ -4,9 +4,9 @@ import { useMovies } from '../Hooks/useMovies';
 import MovieReviews from '../components/Movie/MovieReviews';
 
 export default function MovieFeedPage() {
-    const { moviesList, isLoading } = useMovies('dang_chieu');
-
-    const [openComments, setOpenComments] = useState<Record<number, boolean>>({});
+    const { moviesList, isLoading} = useMovies('dang_chieu');
+    const [openComments, setOpenComments] = useState<{ [key: number]: boolean }>({});
+    const [trailerMovie, setTrailerMovie] = useState<any>(null);
 
     const toggleComments = (movieId: number) => {
         setOpenComments(prev => ({
@@ -79,17 +79,25 @@ export default function MovieFeedPage() {
                             </div>
 
                             {/* MEDIA: BANNER HOẶC POSTER PHIM */}
-                            <Link to={`/phim/${movie.movieId}`} className="block mt-3 w-full bg-[#0f0f0f] overflow-hidden">
-
-                                {/* 🚨 Thêm h-auto vào đây, trả object-cover lại để hình hiển thị tự nhiên nhất */}
+                            <div className="relative block mt-3 w-full bg-[#0f0f0f] overflow-hidden flex justify-center items-center group">
                                 <img
                                     src={movie.bannerUrl || movie.posterUrl}
                                     alt={movie.title}
-                                    className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
+                                    className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
                                     onError={(e) => { e.currentTarget.src = movie.posterUrl; }}
                                 />
-
-                            </Link>
+                                <div className="absolute inset-0 bg-black/20 pointer-events-none transition-opacity duration-300"></div>
+                                <Link to={`/phim/${movie.movieId}`} className="absolute inset-0 z-0 cursor-pointer"></Link>
+                                <button
+                                    className="absolute z-10 w-14 h-14 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white transition-all cursor-pointer opacity-90 hover:scale-110"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setTrailerMovie(movie);
+                                    }}
+                                >
+                                    <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                </button>
+                            </div>
 
                             {/* NÚT TƯƠNG TÁC */}
                             <div className="px-4 py-3.5 border-t border-gray-100 flex items-center justify-between bg-white">
@@ -127,6 +135,28 @@ export default function MovieFeedPage() {
                 </div>
 
             </div>
+
+            {trailerMovie && trailerMovie.trailerUrl && (
+                <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-start pt-[15vh] bg-black/90 p-4 lg:p-10 backdrop-blur-sm">
+                    {/* Video section */}
+                    <div className="relative w-full max-w-5xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-gray-800 animate-fade-in">
+                        <button
+                            onClick={() => setTrailerMovie(null)}
+                            className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/60 hover:bg-[#f26b38] text-white rounded-full flex items-center justify-center transition-colors text-xl font-bold"
+                        >
+                            ✕
+                        </button>
+                        {/* Màn hình chiếu */}
+                        <iframe
+                            src={trailerMovie.trailerUrl.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")}
+                            title={`Trailer phim ${trailerMovie.title}`}
+                            className="w-full h-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate,useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useSeats } from '../Hooks/useSeats';
 import Spinner from '../components/UI/Spinner';
 import { useHoldSeats } from '../Hooks/useHoldSeats';
@@ -10,7 +10,7 @@ import { bookingService } from '../services/bookingService';
 export default function SeatSelection() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
 
   const { seatRows, seatTypes, showtimeInfo, roomInfo, isLoadingSeats } = useSeats(id);
   console.log("Kiểm tra dữ liệu ghế trên UI:", seatRows);
@@ -32,7 +32,7 @@ export default function SeatSelection() {
   const effectiveSelectedSeats = useMemo(() => {
     const list = [...selectedSeats];
     const selectedIds = new Set(list.map(s => s.seatId));
-    
+
     if (seatRows) {
       seatRows.forEach((row: any) => {
         row.seats.forEach((seat: any) => {
@@ -45,7 +45,7 @@ export default function SeatSelection() {
     }
     return list;
   }, [selectedSeats, seatRows, releasedSeatIds]);
-  
+
   const { holdSeats, isHolding } = useHoldSeats();
 
   // xử lý hiển thị thời gian chiếu
@@ -105,6 +105,16 @@ export default function SeatSelection() {
     return total + Number(seat.price || 0);
   }, 0);
 
+  const comboCart = location.state?.comboCart || {};
+  const combos = location.state?.combos || [];
+
+  const totalComboPrice = combos.reduce((total: number, combo: any) => {
+    const qty = comboCart[combo.comboId || combo.id] || 0;
+    return total + (Number(combo.price) * qty);
+  }, 0);
+
+  const finalTotalPrice = totalPrice + totalComboPrice;
+
   // xử lý chuyển sang trang thức ăn
   const handleNext = async () => {
     const seatIds = effectiveSelectedSeats.map(seat => seat.seatId);
@@ -114,10 +124,13 @@ export default function SeatSelection() {
       console.log("Khách vãng lai đi thẳng qua trang thức ăn!");
       navigate(`/dat-ve/${id}/thuc-an`, {
         state: {
+          ...location.state,
           selectedSeats: effectiveSelectedSeats,
           showtimeInfo: showtimeInfo,
           roomInfo: roomInfo,
           totalTicketPrice: totalPrice,
+          comboCart: comboCart,
+          combos: combos,
           remainingSeconds: 0,
           expireAt: 0
         }
@@ -136,10 +149,13 @@ export default function SeatSelection() {
 
       navigate(`/dat-ve/${id}/thuc-an`, {
         state: {
+          ...location.state,
           selectedSeats: effectiveSelectedSeats,
           showtimeInfo: showtimeInfo,
           roomInfo: roomInfo,
           totalTicketPrice: totalPrice,
+          comboCart: comboCart,
+          combos: combos,
           remainingSeconds: finalRemainingSeconds,
           expireAt: finalExpireAt
         }
@@ -188,7 +204,7 @@ export default function SeatSelection() {
       </div>
       {/* ====== NỘI DUNG CHÍNH ====== */}
       <div className="max-w-6xl mx-auto px-4 flex flex-col lg:flex-row gap-8">
-        
+
         {/* Sơ đồ ghế */}
         <div className="flex-1 bg-white p-2 md:p-6 rounded-lg shadow-sm w-full">
           <div className="flex items-center mb-6 md:mb-10 px-2">
@@ -197,14 +213,14 @@ export default function SeatSelection() {
           </div>
 
           <div className="w-full pb-6">
-            
+
             {/* Căn giữa toàn bộ cụm sơ đồ */}
             <div className="w-full flex flex-col items-center gap-1.5 md:gap-3">
 
               {/* Vòng lặp vẽ Hàng Ghế */}
               {seatRows && seatRows.map((rowItem: any) => (
                 <div key={rowItem.rowLabel} className="flex items-center justify-between w-full max-w-[500px]">
-                  
+
                   {/* Tên hàng ghế (Trái) */}
                   <span className="font-bold text-gray-500 text-xs md:text-sm w-4 md:w-5 text-center shrink-0">{rowItem.rowLabel}</span>
 
@@ -242,10 +258,10 @@ export default function SeatSelection() {
                         const seat = rowItem.seats[i];
                         if (seat.seatTypeId === 3 && i + 1 < rowItem.seats.length && rowItem.seats[i + 1].seatTypeId === 3) {
                           groupedSeats.push({ isCouple: true, seats: [seat, rowItem.seats[i + 1]] });
-                          i += 2; 
+                          i += 2;
                         } else {
                           groupedSeats.push({ isCouple: false, seats: [seat] });
-                          i += 1; 
+                          i += 1;
                         }
                       }
 
@@ -314,13 +330,15 @@ export default function SeatSelection() {
           startTimeDisplay={startTimeDisplay}
           dateDisplay={dateDisplay}
           selectedSeats={effectiveSelectedSeats}
-          totalPrice={totalPrice}
+          totalPrice={finalTotalPrice}
+          combos={combos}
+          comboCart={comboCart}
           remainingSeconds={remainingSeconds}
           expireAt={expireAt}
           onTimeout={async () => {
             try {
               await bookingService.releaseAllSeats();
-            } catch (err) {}
+            } catch (err) { }
             alert("Đã hết thời gian giữ ghế! Vui lòng chọn lại từ đầu.");
             setSelectedSeats([]);
             setReleasedSeatIds(new Set());

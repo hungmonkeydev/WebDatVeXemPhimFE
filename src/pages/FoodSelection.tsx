@@ -30,7 +30,7 @@ export default function FoodSelection() {
 
     const { combos, isLoadingCombos } = useCombos();
 
-    const [comboCart, setComboCart] = useState<Record<number, number>>({});
+    const [comboCart, setComboCart] = useState<Record<number, number>>(location.state?.comboCart || {});
     // Hàm cập nhật số lượng
     const updateQuantity = (comboId: number, delta: number) => {
         setComboCart(prev => {
@@ -66,7 +66,7 @@ export default function FoodSelection() {
             <div className="bg-white shadow-sm mb-8">
                 <div className="max-w-6xl mx-auto flex justify-center gap-8 py-4 text-sm font-semibold">
                     <span className="text-gray-400">Chọn phim / Rạp / Suất</span>
-                    <span className="text-gray-400 cursor-pointer hover:text-blue-700" onClick={() => navigate(`/dat-ve/${id}/chon-ghe`, { state: bookingData })}>Chọn ghế</span>
+                    <span className="text-gray-400 cursor-pointer hover:text-blue-700" onClick={() => navigate(`/dat-ve/${id}/chon-ghe`, { state: { ...bookingData, comboCart } })}>Chọn ghế</span>
                     <span className="text-blue-700 border-b-2 border-blue-700 pb-4 -mb-4">Chọn thức ăn</span>
                     <span className="text-gray-400">Thanh toán</span>
                     <span className="text-gray-400">Xác nhận</span>
@@ -84,9 +84,10 @@ export default function FoodSelection() {
                     ) : (
                         <div className="flex flex-col gap-6">
                             {combos.map(combo => {
-                                const quantity = comboCart[combo.comboId] || 0;
+                                const cId = combo.comboId || combo.id;
+                                const quantity = comboCart[cId] || 0;
                                 return (
-                                    <div key={combo.comboId} className="flex gap-6 items-center border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+                                    <div key={cId} className="flex gap-6 items-center border-b border-gray-100 pb-6 last:border-0 last:pb-0">
                                         <img
                                             src={combo.imageUrl || 'https://via.placeholder.com/150'}
                                             alt={combo.name}
@@ -101,14 +102,16 @@ export default function FoodSelection() {
                                             </p>
                                         </div>
 
-                                        <div className="flex items-center gap-4 bg-gray-50 border border-gray-200 rounded px-2 py-1">
-                                            <button
-                                                onClick={() => updateQuantity(combo.comboId, -1)}
-                                                className="w-6 h-6 flex justify-center items-center font-bold text-gray-500 hover:text-[#f26b38]"
-                                            >-</button>
-                                            <span className="text-[14px] font-semibold text-gray-800 w-4 text-center">{quantity}</span>
-                                            <button
-                                                onClick={() => updateQuantity(combo.comboId, 1)}
+                                            <div className="flex items-center gap-3">
+                                                <button
+                                                    onClick={() => updateQuantity(cId, -1)}
+                                                    className="w-8 h-8 rounded-full border flex items-center justify-center text-gray-500 hover:bg-gray-50"
+                                                >
+                                                    -
+                                                </button>
+                                                <span className="w-4 text-center font-semibold text-gray-800">{quantity}</span>
+                                                <button
+                                                    onClick={() => updateQuantity(cId, 1)}
                                                 className="w-6 h-6 flex justify-center items-center font-bold text-gray-500 hover:text-[#f26b38]"
                                             >+</button>
                                         </div>
@@ -143,7 +146,7 @@ export default function FoodSelection() {
                     combos={combos}
                     comboCart={comboCart}
 
-                    onBack={() => navigate(`/dat-ve/${id}/chon-ghe`, { state: bookingData })}
+                    onBack={() => navigate(`/dat-ve/${id}/chon-ghe`, { state: { ...bookingData, comboCart } })}
                     onNext={() => {
                         const rawToken = localStorage.getItem('access_token');
                         const isValidToken = rawToken && rawToken !== 'null' && rawToken !== 'undefined';
@@ -156,6 +159,7 @@ export default function FoodSelection() {
                                 comboCart,
                                 combos,
                                 finalTotalPrice,
+                                totalTicketPrice,
                                 showtimeInfo,
                                 roomInfo,
                                 expireAt,

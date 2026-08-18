@@ -44,6 +44,7 @@ export default function PaymentPage() {
     const {
         selectedSeats,
         comboCart,
+        combos,
         finalTotalPrice,
         showtimeInfo,
         roomInfo,
@@ -221,9 +222,9 @@ export default function PaymentPage() {
     //     setUsedPoints(p);
     //     alert(`Áp dụng thành công! Bạn dùng ${p} điểm để giảm ${(p * 1000).toLocaleString('vi-VN')} đ`);
     // };
-    const handleApplyVoucher = async () => {
+    const handleApplyVoucher = async (voucherToApply: any = selectedVoucher) => {
         // Nếu không có nhập mã gì và cũng không chọn thẻ nào thì dừng lại
-        if (!selectedVoucher && !voucherInput) {
+        if (!voucherToApply && !voucherInput) {
             setDiscountAmount(0);
             setIsVoucherApplied(false);
             return;
@@ -240,8 +241,8 @@ export default function PaymentPage() {
                     }))
                     .filter(c => c.quantity > 0), // tránh gửi combo có quantity 0 lên backend
                 promotionCode: voucherInput ? voucherInput.trim() : null,
-                ticketVoucherId: selectedVoucher?.voucherType === 'TICKET_DISCOUNT' ? selectedVoucher.voucherId : null,
-                comboVoucherId: selectedVoucher?.voucherType === 'COMBO_DISCOUNT' ? selectedVoucher.voucherId : null
+                ticketVoucherId: voucherToApply?.voucherType === 'TICKET_DISCOUNT' ? voucherToApply.voucherId : null,
+                comboVoucherId: voucherToApply?.voucherType === 'COMBO_DISCOUNT' ? voucherToApply.voucherId : null
             };
             console.log('PAYLOAD', payload);
 
@@ -255,6 +256,7 @@ export default function PaymentPage() {
                 setIsVoucherApplied(true);
 
                 alert(`Áp dụng thành công! Giảm ${discount.toLocaleString('vi-VN')} đ`);
+                // alert(`Áp dụng thành công! Giảm ${discount.toLocaleString('vi-VN')} đ`);
             } else {
                 alert(response.data.message || "Mã giảm giá không hợp lệ!");
                 setDiscountAmount(0);
@@ -399,11 +401,16 @@ export default function PaymentPage() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                                         {myVoucher.map((v: any) => {
                                             const isSelected = selectedVoucher?.voucherId === v.voucherId;
-                                            const label = v.voucherType === 'TICKET_DISCOUNT' || v.voucherType === 'COMBO_DISCOUNT' || v.voucherType === 'DISCOUNT'
-                                                ? (v.discountType === 'PERCENT'
-                                                    ? `Giảm ${v.discountValue}%`
-                                                    : `Giảm ${Number(v.discountValue || 0).toLocaleString('vi-VN')} đ`)
-                                                : `Thẻ quà tặng ${Number(v.currentBalance || 0).toLocaleString('vi-VN')} đ`;
+                                            let label = '';
+                                            if (v.voucherType === 'GIFT_CARD') {
+                                                label = `Thẻ quà tặng ${Number(v.currentBalance || 0).toLocaleString('vi-VN')} đ`;
+                                            } else if (v.voucherType === 'COMBO_DISCOUNT') {
+                                                label = `Voucher Combo: ${v.comboName || 'Không rõ'}`;
+                                            } else {
+                                                label = v.discountType === 'PERCENT'
+                                                    ? `Giảm ${v.discountValue}% vé`
+                                                    : `Giảm ${Number(v.discountValue || 0).toLocaleString('vi-VN')} đ vé`;
+                                            }
 
                                             return (
                                                 <button
@@ -413,11 +420,17 @@ export default function PaymentPage() {
                                                         if (isSelected) {
                                                             setSelectedVoucher(null);
                                                         } else {
+                                                            if (v.voucherType === 'COMBO_DISCOUNT') {
+                                                                const comboNamesInCart = combos.filter((c: any) => comboCart[c.comboId || c.id] > 0)
+                                                                    .map((c: any) => c.name);
+                                                                if (!comboNamesInCart.includes(v.comboName)) {
+                                                                    alert(`Voucher này chỉ áp dụng cho combo "${v.comboName}". Vui lòng quay lại trang chọn thức ăn để thêm vào giỏ hàng!`);
+                                                                    return;
+                                                                }
+                                                            }
                                                             setSelectedVoucher(v);
-                                                            // setVoucherInput(''); // Nếu bấm vào voucher có sẵn thì xóa trắng ô nhập tay đi
+                                                            handleApplyVoucher(v);
                                                         }
-                                                        setIsVoucherApplied(false);
-                                                        setDiscountAmount(0);
                                                     }}
                                                     className={`text-left flex items-center gap-3 border rounded-lg p-3 transition-colors ${isSelected
                                                         ? 'border-[#f26b38] bg-orange-50 ring-1 ring-[#f26b38]'

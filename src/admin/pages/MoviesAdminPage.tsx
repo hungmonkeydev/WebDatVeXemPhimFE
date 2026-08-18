@@ -325,7 +325,7 @@ export default function MovieManage() {
                 format="YYYY-MM-DD" 
                 className="w-full" 
                 placeholder="Chọn ngày khởi chiếu" 
-                //disabledDate={(current) => current && current < dayjs().startOf('day')}
+                disabledDate={(current) => current && current < dayjs().startOf('day')}
               />
             </Form.Item>
 
@@ -334,7 +334,7 @@ export default function MovieManage() {
                 format="YYYY-MM-DD" 
                 className="w-full" 
                 placeholder="Chọn ngày kết thúc" 
-                //disabledDate={(current) => current && current < dayjs().startOf('day')}
+                disabledDate={(current) => current && current < dayjs().startOf('day')}
               />
             </Form.Item>
           </div>
