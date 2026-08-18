@@ -53,13 +53,13 @@ export default function TicketDetailCard({ booking, onClose }: TicketDetailCardP
             </button>
 
             {/* PHẦN 1: POSTER VÀ TÊN PHIM */}
-            <div className="flex flex-col items-center pt-8 px-6 pb-4">
+            <div className="flex flex-col items-center pt-6 px-6 pb-2">
                 <img
                     src={booking.showtime?.posterUrl || booking.movie?.posterUrl || "https://via.placeholder.com/150x220"}
                     alt={movieName}
-                    className="w-[120px] h-[170px] object-cover rounded-md shadow-md mb-4"
+                    className="w-[100px] h-[140px] object-cover rounded-md shadow-md mb-2"
                 />
-                <h2 className="text-[20px] font-bold text-gray-800 text-center leading-tight mb-2">
+                <h2 className="text-[18px] font-bold text-gray-800 text-center leading-tight mb-1">
                     {movieName}
                 </h2>
                 <div className="flex items-center gap-2">
@@ -75,18 +75,19 @@ export default function TicketDetailCard({ booking, onClose }: TicketDetailCardP
             </div>
 
             {/* PHẦN 2: THÔNG TIN RẠP, GIỜ CHIẾU, GHẾ VÀ COMBO */}
-            <div className="px-6 py-5 flex flex-col items-center w-full">
-                <p className="font-bold text-gray-700 text-[16px] mb-1 text-center">{cinemaName}</p>
-                {roomName && <p className="text-[14px] text-gray-500 mb-1">{roomName}</p>}
+            <div className="px-6 py-3 flex flex-col items-center w-full">
+                <p className="font-bold text-gray-700 text-[15px] mb-0.5 text-center">{cinemaName}</p>
+                {roomName && <p className="text-[13px] text-gray-500 mb-0.5">{roomName}</p>}
 
-                <p className="text-[15px] text-gray-600 text-center mb-4">
+                <p className="text-[14px] text-gray-600 text-center mb-3">
                     Suất: <span className="font-bold text-[#f26b38]">{showTime}</span> - {dayOfWeek}, <span className="font-bold text-gray-800">{showDate}</span>
                 </p>
 
-                <div className="w-full bg-gray-50 rounded-lg p-3 border border-gray-100 flex flex-col gap-2">                    <div className="flex justify-between items-start">
-                    <span className="text-[13px] text-gray-500 w-16 shrink-0">Ghế ngồi:</span>
-                    <span className="font-bold text-gray-800 text-[14px] text-right break-words">{seatsDisplay}</span>
-                </div>
+                <div className="w-full bg-gray-50 rounded-lg p-3 border border-gray-100 flex flex-col gap-2">
+                    <div className="flex justify-between items-start">
+                        <span className="text-[13px] text-gray-500 w-16 shrink-0">Ghế ngồi:</span>
+                        <span className="font-bold text-gray-800 text-[14px] text-right break-words">{seatsDisplay}</span>
+                    </div>
                     {hasCombo && (
                         <>
                             <div className="w-full border-t border-gray-200/60 my-0.5"></div>
@@ -104,12 +105,12 @@ export default function TicketDetailCard({ booking, onClose }: TicketDetailCardP
                     )}
                 </div>
 
-                {/* QR CODE TO ĐÙNG */}
-                <div className="mt-6 mb-2">
+                {/* QR CODE */}
+                <div className="mt-4 mb-1">
                     <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${qrData}`}
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${qrData}`}
                         alt="QR Code"
-                        className="w-[140px] h-[140px] object-contain"
+                        className="w-[120px] h-[120px] object-contain"
                     />
                 </div>
             </div>
@@ -143,8 +144,8 @@ export default function TicketDetailCard({ booking, onClose }: TicketDetailCardP
             </div>
 
             {/* PHẦN FOOTER: GHI CHÚ */}
-            <div className="px-6 py-5 text-center bg-white rounded-b-lg">
-                <p className="text-[13px] text-gray-500 leading-relaxed">
+            <div className="px-6 py-3 text-center bg-white rounded-b-lg">
+                <p className="text-[12px] text-gray-500 leading-relaxed">
                     Bạn cần trợ giúp? Liên hệ:<br />
                     <a href="tel:19002224" className="font-bold text-gray-700 border-b border-dotted border-gray-500 hover:text-[#f26b38] transition-colors">1900 2224</a>
                     {' '}•{' '}

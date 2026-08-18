@@ -11,20 +11,28 @@ const { Option } = Select;
 const { RangePicker } = DatePicker;
 
 export default function BookingsPage() {
+  // Lưu số trang hiện tại và số dòng trên 1 trang
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // Lưu giá trị Admin gõ vào ô tìm kiếm hoặc chọn ngày/trạng thái
   const [bookingCode, setBookingCode] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [customerKeyword, setCustomerKeyword] = useState('');
   const [fromDate, setFromDate] = useState<string | null>(null);
   const [toDate, setToDate] = useState<string | null>(null);
+
+  // Biến cờ bật tắt xem chi tiết
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [detailBooking, setDetailBooking] = useState<any | null>(null);
+
+  // Hàm lấy dữ liệu dòng vừa bấm
   const showDetailModal = (record: any) => {
     setDetailBooking(record);
     setIsDetailModalOpen(true);
   };
-  // Gọi Hook
+
+  // Gọi Hook lấy danh 
   const {
     bookings, totalBookings, isLoading,
     fetchBookings, updateBookingStatus, cancelBooking
@@ -45,6 +53,7 @@ export default function BookingsPage() {
     });
   }, [currentPage, pageSize, bookingCode, statusFilter, fromDate, toDate, fetchBookings]);
 
+  // tự động chạy khi admin bấm sang trang
   const handleTableChange = (pagination: any) => {
     setCurrentPage(pagination.current);
     setPageSize(pagination.pageSize);
@@ -57,6 +66,7 @@ export default function BookingsPage() {
     setIsStatusModalOpen(true);
   };
 
+  //  Admin bấm nút "Lưu thay đổi" 
   const handleStatusSubmit = async () => {
     if (selectedBooking && newStatus !== selectedBooking.status) {
       const result = await updateBookingStatus(selectedBooking.bookingId, newStatus);

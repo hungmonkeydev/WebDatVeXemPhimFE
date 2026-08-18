@@ -172,7 +172,10 @@ const AdminDashboard = () => {
                                     />
 
                                     <Tooltip formatter={(value) => formatVND(value as number)} />
-                                    <Line type="monotone" name="Doanh Thu" dataKey="totalRevenue" stroke="#f26b38" strokeWidth={3} activeDot={{ r: 8 }} />
+                                    <Legend verticalAlign="top" height={36} />
+                                    <Line type="monotone" name="Doanh Thu Vé" dataKey="ticketRevenue" stroke="#3b82f6" strokeWidth={2} />
+                                    <Line type="monotone" name="Doanh Thu Bắp Nước" dataKey="comboRevenue" stroke="#10b981" strokeWidth={2} />
+                                    <Line type="monotone" name="Tổng Doanh Thu" dataKey="totalRevenue" stroke="#f26b38" strokeWidth={3} activeDot={{ r: 8 }} />
                                 </LineChart>
                             </ResponsiveContainer>
                         ) : (

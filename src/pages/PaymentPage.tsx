@@ -1,5 +1,5 @@
 // src/pages/PaymentPage.tsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal } from 'antd';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import BookingSummary from '../components/Booking/BookingSummary';
@@ -30,6 +30,39 @@ export default function PaymentPage() {
 
     const [isVoucherApplied, setIsVoucherApplied] = useState(false);
 
+    // Tính discount mặc định ngay khi vào trang (membership discount, loyalty discount...)
+    useEffect(() => {
+        if (!bookingData || bookingData.selectedSeats?.length === 0 || bookingData.isGuest) return;
+
+        const fetchInitialDiscount = async () => {
+            try {
+                const payload = {
+                    showtimeId: Number(id),
+                    seatIds: bookingData.selectedSeats.map((s: any) => s.seatId),
+                    combos: Object.keys(bookingData.comboCart || {})
+                        .map(comboId => ({
+                            comboId: Number(comboId),
+                            quantity: bookingData.comboCart[Number(comboId)]
+                        }))
+                        .filter(c => c.quantity > 0),
+                    promotionCode: null,
+                    ticketVoucherId: null,
+                    comboVoucherId: null
+                };
+
+                const response = await bookingService.getBookingCaculate(payload);
+                if (response.data && response.data.status === 'success') {
+                    const data = response.data.data;
+                    const discount = data.pricingBreakdown.totalDiscount;
+                    setDiscountAmount(discount);
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải giảm giá mặc định:", error);
+            }
+        };
+
+        fetchInitialDiscount();
+    }, []);
 
     if (!bookingData || bookingData.selectedSeats?.length === 0) {
         return (
@@ -113,7 +146,7 @@ export default function PaymentPage() {
                 // GỌI API TẠO VÉ VÀ VNPAY
                 let actualBookingId = null;
                 try {
-                    if (isGuest) {  
+                    if (isGuest) {
                         const guestPayload = {
                             showtimeId: Number(id),
                             seatIds: selectedSeats.map((seat: any) => seat.id || seat.seatId),
@@ -124,8 +157,8 @@ export default function PaymentPage() {
                             fullName: guestInfo.fullName,
                             email: guestInfo.email,
                             phoneNumber: guestInfo.phone,
-                            promoCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null,
-                            promotionCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null
+                            //promoCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null,
+                            //promotionCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null
                         };
 
                         console.log("Đang tạo vé cho Guest...", guestPayload);
@@ -154,10 +187,19 @@ export default function PaymentPage() {
 
                         console.log("Đang tạo vé cho User...", userPayload);
                         const userRes = await bookingService.createBooking(userPayload);
-                        actualBookingId = userRes.data?.bookingId || userRes.data?.id || userRes.data?.data?.bookingId;
+                        actualBookingId = userRes.data?.data?.bookingId || userRes.data?.data?.id || userRes.data?.id || userRes.data?.bookingId;
+                        const actualBookingCode = userRes.data?.data?.bookingCode || userRes.data?.bookingCode || actualBookingId;
+                        
                         if (!actualBookingId) {
+                            console.error("userRes error:", userRes);
                             alert("Có lỗi khi tạo vé cho thành viên! Vui lòng thử lại.");
                             return;
+                        }
+                        
+                        // Xử lý 0đ ngay đây thay vì ở dưới
+                        if (actualAmountToPay === 0) {
+                            const codeToPass = isGuest ? actualBookingId : actualBookingCode;
+                            navigate(`/booking/payment-success?bookingCode=${codeToPass}`); return;
                         }
                     }
                     localStorage.setItem('successBookingCode', actualBookingId);
@@ -168,10 +210,6 @@ export default function PaymentPage() {
                         bankCode: "",
                         locale: "vn"
                     };
-                    if (actualAmountToPay === 0) {
-
-                        navigate(`/booking-success?bookingCode=${actualBookingId}`); return;
-                    }
                     const response = isGuest
                         ? await bookingService.createPaymentUrlForGuest(vnpayPayload)
                         : await bookingService.createPaymentUrl(vnpayPayload);
@@ -224,7 +262,6 @@ export default function PaymentPage() {
     //     alert(`Áp dụng thành công! Bạn dùng ${p} điểm để giảm ${(p * 1000).toLocaleString('vi-VN')} đ`);
     // };
     const handleApplyVoucher = async (voucherToApply: any = selectedVoucher) => {
-        // Nếu không có nhập mã gì và cũng không chọn thẻ nào thì dừng lại
         if (!voucherToApply && !voucherInput) {
             setDiscountAmount(0);
             setIsVoucherApplied(false);
@@ -256,8 +293,8 @@ export default function PaymentPage() {
                 setDiscountAmount(discount);
                 setIsVoucherApplied(true);
 
-                alert(`Áp dụng thành công! Giảm ${discount.toLocaleString('vi-VN')} đ`);
-                // alert(`Áp dụng thành công! Giảm ${discount.toLocaleString('vi-VN')} đ`);
+                const effectiveDiscount = Math.min(discount, finalTotalPrice);
+                alert(`Áp dụng thành công! Giảm ${effectiveDiscount.toLocaleString('vi-VN')} đ`);
             } else {
                 alert(response.data.message || "Mã giảm giá không hợp lệ!");
                 setDiscountAmount(0);
@@ -366,12 +403,11 @@ export default function PaymentPage() {
                                         value={voucherInput}
                                         onChange={(e) => {
                                             setVoucherInput(e.target.value.toUpperCase());
-                                            setSelectedVoucher(null);
                                         }}
                                         className="flex-1 border border-gray-300 rounded px-4 py-2.5 focus:outline-none focus:border-[#f26b38] focus:ring-1 focus:ring-[#f26b38] uppercase text-sm font-medium"
                                     />
                                     <button
-                                        onClick={handleApplyVoucher}
+                                        onClick={() => handleApplyVoucher(selectedVoucher)}
                                         className="bg-[#f26b38] hover:bg-[#d95c2b] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold px-8 py-2.5 rounded whitespace-nowrap transition-colors shadow-sm"
                                     >
                                         Áp Dụng
