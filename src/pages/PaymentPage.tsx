@@ -1,5 +1,6 @@
 // src/pages/PaymentPage.tsx
 import { useState } from 'react';
+import { Modal } from 'antd';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import BookingSummary from '../components/Booking/BookingSummary';
 import { bookingService } from '../services/bookingService';
@@ -103,101 +104,101 @@ export default function PaymentPage() {
         }
 
         // HIỆN BẢNG XÁC NHẬN (CONFIRM)
-        const userConfirmed = window.confirm(
-            "Vui lòng kiểm tra lại thông tin ghế, bắp nước và thông tin liên hệ 1 lần nữa.\n\nBạn đã chắc chắn muốn tiến hành thanh toán?"
-        );
+        Modal.confirm({
+            title: 'Xác nhận thanh toán',
+            content: 'Vui lòng kiểm tra lại thông tin ghế, bắp nước và thông tin liên hệ 1 lần nữa. Bạn đã chắc chắn muốn tiến hành thanh toán?',
+            okText: 'Thanh toán ngay',
+            cancelText: 'Hủy bỏ',
+            onOk: async () => {
+                // GỌI API TẠO VÉ VÀ VNPAY
+                let actualBookingId = null;
+                try {
+                    if (isGuest) {  
+                        const guestPayload = {
+                            showtimeId: Number(id),
+                            seatIds: selectedSeats.map((seat: any) => seat.id || seat.seatId),
+                            combos: Object.keys(comboCart || {}).map(comboId => ({
+                                comboId: Number(comboId),
+                                quantity: comboCart[Number(comboId)]
+                            })),
+                            fullName: guestInfo.fullName,
+                            email: guestInfo.email,
+                            phoneNumber: guestInfo.phone,
+                            promoCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null,
+                            promotionCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null
+                        };
 
-        if (!userConfirmed) {
-            return;
-        }
+                        console.log("Đang tạo vé cho Guest...", guestPayload);
+                        const guestRes = await bookingService.guestCreateBooking(guestPayload);
+                        actualBookingId = guestRes.data?.bookingId || guestRes.data?.id || guestRes.data?.data?.bookingId || guestRes.data?.data?.id;
+                        if (!actualBookingId) {
+                            alert("Có lỗi khi tạo vé cho khách vãng lai!");
+                            return;
+                        }
+                    }
+                    else {
+                        const userPayload = {
+                            showtimeId: Number(id),
+                            seatIds: selectedSeats.map((seat: any) => seat.id || seat.seatId),
+                            combos: Object.keys(comboCart).map(comboId => ({
+                                comboId: Number(comboId),
+                                quantity: comboCart[Number(comboId)]
+                            })),
+                            useLoyaltyPoints: usedPoints > 0,
+                            loyaltyPointsToUse: usedPoints > 0 ? usedPoints : 0,
+                            ticketVoucherId: isVoucherApplied && selectedVoucher?.voucherType === 'TICKET_DISCOUNT' ? selectedVoucher.voucherId : null,
+                            comboVoucherId: isVoucherApplied && selectedVoucher?.voucherType === 'COMBO_DISCOUNT' ? selectedVoucher.voucherId : null,
+                            promoCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null,
+                            promotionCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null
+                        };
 
-        // GỌI API TẠO VÉ VÀ VNPAY
-        let actualBookingId = null;
-        try {
-            if (isGuest) {
-                const guestPayload = {
-                    showtimeId: Number(id),
-                    seatIds: selectedSeats.map((seat: any) => seat.id || seat.seatId),
-                    combos: Object.keys(comboCart || {}).map(comboId => ({
-                        comboId: Number(comboId),
-                        quantity: comboCart[Number(comboId)]
-                    })),
-                    fullName: guestInfo.fullName,
-                    email: guestInfo.email,
-                    phoneNumber: guestInfo.phone,
-                    promoCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null,
-                    promotionCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null
-                };
+                        console.log("Đang tạo vé cho User...", userPayload);
+                        const userRes = await bookingService.createBooking(userPayload);
+                        actualBookingId = userRes.data?.bookingId || userRes.data?.id || userRes.data?.data?.bookingId;
+                        if (!actualBookingId) {
+                            alert("Có lỗi khi tạo vé cho thành viên! Vui lòng thử lại.");
+                            return;
+                        }
+                    }
+                    localStorage.setItem('successBookingCode', actualBookingId);
+                    const vnpayPayload = {
+                        bookingId: actualBookingId,
+                        amount: actualAmountToPay,
+                        orderInfo: `Thanh toan ma ve ${actualBookingId}`,
+                        bankCode: "",
+                        locale: "vn"
+                    };
+                    if (actualAmountToPay === 0) {
 
-                console.log("Đang tạo vé cho Guest...", guestPayload);
-                const guestRes = await bookingService.guestCreateBooking(guestPayload);
-                actualBookingId = guestRes.data?.bookingId || guestRes.data?.id || guestRes.data?.data?.bookingId || guestRes.data?.data?.id;
-                if (!actualBookingId) {
-                    alert("Có lỗi khi tạo vé cho khách vãng lai!");
-                    return;
+                        navigate(`/booking-success?bookingCode=${actualBookingId}`); return;
+                    }
+                    const response = isGuest
+                        ? await bookingService.createPaymentUrlForGuest(vnpayPayload)
+                        : await bookingService.createPaymentUrl(vnpayPayload);
+
+                    const vnpayUrl = response.data?.data?.paymentUrl || response.data?.paymentUrl || response.data?.url;
+                    if (vnpayUrl && vnpayUrl.startsWith('http')) {
+                        window.location.href = vnpayUrl;
+                    } else {
+                        alert("Không tìm thấy đường link thanh toán từ Backend trả về!");
+                    }
+
+                } catch (error: any) {
+                    console.error("Lỗi thanh toán:", error);
+                    if (error.response?.status === 401 || error.response?.status === 403) {
+                        alert("❌ Lỗi bảo mật: Bạn chưa đăng nhập hoặc Token hết hạn (Lỗi 401/403)!");
+                    } else {
+                        const errorMsg = error.response?.data?.message || "Lỗi kết nối đến server!";
+                        alert(`❌ Không thể khởi tạo thanh toán: ${errorMsg}`);
+
+                        // Nếu lỗi do ghế đã bị đặt thì đẩy về lại trang chọn ghế
+                        if (errorMsg.toLowerCase().includes('seat') || errorMsg.toLowerCase().includes('ghế')) {
+                            window.location.href = `/dat-ve/${id}/chon-ghe`;
+                        }
+                    }
                 }
             }
-            else {
-                const userPayload = {
-                    showtimeId: Number(id),
-                    seatIds: selectedSeats.map((seat: any) => seat.id || seat.seatId),
-                    combos: Object.keys(comboCart).map(comboId => ({
-                        comboId: Number(comboId),
-                        quantity: comboCart[Number(comboId)]
-                    })),
-                    useLoyaltyPoints: usedPoints > 0,
-                    loyaltyPointsToUse: usedPoints > 0 ? usedPoints : 0,
-                    ticketVoucherId: isVoucherApplied && selectedVoucher?.voucherType === 'TICKET_DISCOUNT' ? selectedVoucher.voucherId : null,
-                    comboVoucherId: isVoucherApplied && selectedVoucher?.voucherType === 'COMBO_DISCOUNT' ? selectedVoucher.voucherId : null,
-                    promoCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null,
-                    promotionCode: isVoucherApplied && voucherInput ? voucherInput.trim() : null
-                };
-
-                console.log("Đang tạo vé cho User...", userPayload);
-                const userRes = await bookingService.createBooking(userPayload);
-                actualBookingId = userRes.data?.bookingId || userRes.data?.id || userRes.data?.data?.bookingId;
-                if (!actualBookingId) {
-                    alert("Có lỗi khi tạo vé cho thành viên! Vui lòng thử lại.");
-                    return;
-                }
-            }
-            localStorage.setItem('successBookingCode', actualBookingId);
-            const vnpayPayload = {
-                bookingId: actualBookingId,
-                amount: actualAmountToPay,
-                orderInfo: `Thanh toan ma ve ${actualBookingId}`,
-                bankCode: "",
-                locale: "vn"
-            };
-            if (actualAmountToPay === 0) {
-
-                navigate(`/booking-success?bookingCode=${actualBookingId}`); return;
-            }
-            const response = isGuest
-                ? await bookingService.createPaymentUrlForGuest(vnpayPayload)
-                : await bookingService.createPaymentUrl(vnpayPayload);
-
-            const vnpayUrl = response.data?.data?.paymentUrl || response.data?.paymentUrl || response.data?.url;
-            if (vnpayUrl && vnpayUrl.startsWith('http')) {
-                window.location.href = vnpayUrl;
-            } else {
-                alert("Không tìm thấy đường link thanh toán từ Backend trả về!");
-            }
-
-        } catch (error: any) {
-            console.error("Lỗi thanh toán:", error);
-            if (error.response?.status === 401 || error.response?.status === 403) {
-                alert("❌ Lỗi bảo mật: Bạn chưa đăng nhập hoặc Token hết hạn (Lỗi 401/403)!");
-            } else {
-                const errorMsg = error.response?.data?.message || "Lỗi kết nối đến server!";
-                alert(`❌ Không thể khởi tạo thanh toán: ${errorMsg}`);
-
-                // Nếu lỗi do ghế đã bị đặt thì đẩy về lại trang chọn ghế
-                if (errorMsg.toLowerCase().includes('seat') || errorMsg.toLowerCase().includes('ghế')) {
-                    window.location.href = `/dat-ve/${id}/chon-ghe`;
-                }
-            }
-        }
+        });
     };
     // const handleApplyPoints = () => {
     //     const p = Number(points);

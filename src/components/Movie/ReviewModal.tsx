@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Rate, Input, Button } from 'antd';
 import { useSubmitReview } from '../../Hooks/useSubmitReview';
+import { useAuth } from '../../Hooks/useAuth';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 const { TextArea } = Input;
 // Hàm kiểm tra danh sách các model AI khả dụng
@@ -77,6 +78,16 @@ export default function ReviewModal({ isOpen, onClose, movieId, movieTitle, onSu
     const handleSubmit = async () => {
         if (!rating) {
             return Modal.error({ title: 'Lỗi', content: 'Vui lòng chọn số sao để đánh giá phim!' });
+        }
+        const isGuest = !localStorage.getItem('access_token');
+        if (isGuest) {
+            return Modal.warning({
+                title: 'Yêu cầu đăng nhập',
+                content: 'Bạn cần đăng nhập tài khoản để có thể đánh giá phim và nhận điểm thưởng!',
+                onOk: () => {
+                    onClose();
+                }
+            });
         }
 
         // Kiểm duyệt nội dung bình luận bằng AI trước khi gửi
