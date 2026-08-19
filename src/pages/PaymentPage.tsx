@@ -189,13 +189,13 @@ export default function PaymentPage() {
                         const userRes = await bookingService.createBooking(userPayload);
                         actualBookingId = userRes.data?.data?.bookingId || userRes.data?.data?.id || userRes.data?.id || userRes.data?.bookingId;
                         const actualBookingCode = userRes.data?.data?.bookingCode || userRes.data?.bookingCode || actualBookingId;
-                        
+
                         if (!actualBookingId) {
                             console.error("userRes error:", userRes);
                             alert("Có lỗi khi tạo vé cho thành viên! Vui lòng thử lại.");
                             return;
                         }
-                        
+
                         // Xử lý 0đ ngay đây thay vì ở dưới
                         if (actualAmountToPay === 0) {
                             const codeToPass = isGuest ? actualBookingId : actualBookingCode;
